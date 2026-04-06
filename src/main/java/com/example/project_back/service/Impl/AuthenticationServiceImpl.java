@@ -8,7 +8,7 @@ import com.example.project_back.dto.authentication.LoginRequest;
 import com.example.project_back.dto.authentication.LoginResponse;
 import com.example.project_back.dto.authentication.ResetPassword;
 import com.example.project_back.entity.Otp;
-import com.example.project_back.entity.Users;
+import com.example.project_back.entity.User;
 import com.example.project_back.exception.ApplicationException;
 import com.example.project_back.repository.OtpRepository;
 import com.example.project_back.repository.UsersRepository;
@@ -48,7 +48,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public LoginResponse login(LoginRequest loginRequest) {
-        Optional<Users> users = userRepository
+        Optional<User> users = userRepository
                 .findByEmailOrUsername(
                         loginRequest.getEmailOrUsername(),
                         loginRequest.getEmailOrUsername()
@@ -57,7 +57,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new ApplicationException("Sai email hoặc username ");
         }
 
-        Users user = users.get();
+        User user = users.get();
         // Kiểm tra tài khoản có bị khóa không
         if (user.getStatus() == Status.LOCKED && user.getLockTime() != null)
             if (user.getLockTime().plusMinutes(15).isBefore(LocalDateTime.now())) {
@@ -119,7 +119,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Transactional
     @Override
     public String sendOtp(ForgotPassword forgetpw) {
-        Optional<Users> user = userRepository.findByEmail(forgetpw.getEmail());
+        Optional<User> user = userRepository.findByEmail(forgetpw.getEmail());
         if (user.isEmpty()) {
             throw new ApplicationException("Account not found");
         }
@@ -161,7 +161,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public Boolean resetPassword(ResetPassword resetpw) {
 
-        Optional<Users> users = userRepository.findByEmail(resetpw.getEmail());
+        Optional<User> users = userRepository.findByEmail(resetpw.getEmail());
         if (users.isEmpty()) {
             throw new ApplicationException("Account not found");
         }
@@ -181,7 +181,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new ApplicationException("Confirm password không khớp");
         }
 
-        Users user = users.get();
+        User user = users.get();
         user.setPassword(passwordEncoder.encode(resetpw.getNewPassword()));
         userRepository.save(users.get());
         otpRepository.delete(otp);
@@ -200,11 +200,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public String unlockAccount(Integer userId) {
 
-        Optional<Users> user = userRepository.findById(userId);
+        Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) {
             throw new ApplicationException("Account not found ID");
         }
-        Users users = user.get();
+        User users = user.get();
         users.setStatus(Status.ACTIVED);
         users.setFailCount(0);
         users.setLockTime(null);
@@ -225,11 +225,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public String lockAccount(Integer userId) {
-        Optional<Users> user = userRepository.findById(userId);
+        Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) {
             throw new ApplicationException("Account not found ID");
         }
-        Users users = user.get();
+        User users = user.get();
         users.setStatus(Status.LOCKED);
         users.setFailCount(5);
         users.setLockTime(LocalDateTime.now());

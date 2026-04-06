@@ -3,8 +3,6 @@ package com.example.project_back.entity;
 import com.example.project_back.constant.Role;
 import com.example.project_back.constant.Status;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,7 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Table(name="users")
-public class Users {
+public class User {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Integer id;

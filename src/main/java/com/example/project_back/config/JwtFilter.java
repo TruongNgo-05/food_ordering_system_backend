@@ -1,6 +1,6 @@
 package com.example.project_back.config;
 
-//import com.example.examprepbackend.entity.Users;
+//import com.example.examprepbackend.entity.User;
 //import com.example.examprepbackend.exception.ApplicationException;
 //import com.example.examprepbackend.repository.UsersRepository;
 import jakarta.servlet.FilterChain;
@@ -49,9 +49,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
                 String username = jwtUtils.getUsernameFromToken(token);
 
-//                Optional<Users> userOpt = userRepository.findByUsername(username);
+//                Optional<User> userOpt = userRepository.findByUsername(username);
 //
-//                Users user = userOpt.orElseThrow(() ->
+//                User user = userOpt.orElseThrow(() ->
 //                        new ApplicationException("User not found")
 //                );
 //
