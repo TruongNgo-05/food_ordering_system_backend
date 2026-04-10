@@ -1,5 +1,5 @@
 package com.example.project_back.constant;
 
 public enum Role {
-    ADMIN, STAFF, CUSTOMER
+    ADMINadd, CUSTOMER
 }

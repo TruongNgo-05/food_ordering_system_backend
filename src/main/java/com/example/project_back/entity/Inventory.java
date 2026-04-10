@@ -19,7 +19,4 @@ public class Inventory {
     @JoinColumn(name = "ingredient_id")
     private Ingredient ingredient;
 
-    @ManyToOne
-    @JoinColumn(name = "branch_id")
-    private Branch branch;
 }

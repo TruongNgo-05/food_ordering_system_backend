@@ -30,10 +30,6 @@ public class Order {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "branch_id")
-    private Branch branch;
-
-    @ManyToOne
     @JoinColumn(name = "voucher_id")
     private Voucher voucher;
 }
