@@ -11,7 +11,7 @@ import com.example.project_back.entity.Otp;
 import com.example.project_back.entity.User;
 import com.example.project_back.exception.ApplicationException;
 import com.example.project_back.repository.OtpRepository;
-import com.example.project_back.repository.UsersRepository;
+import com.example.project_back.repository.UserRepository;
 import com.example.project_back.service.AuthenticationService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
-    private final UsersRepository userRepository;
+    private final UserRepository userRepository;
     private final OtpRepository otpRepository;
     private final MailService mailService;
     private final ModelMapper modelMapper;

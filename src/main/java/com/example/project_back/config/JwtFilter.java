@@ -2,7 +2,7 @@ package com.example.project_back.config;
 
 //import com.example.examprepbackend.entity.User;
 //import com.example.examprepbackend.exception.ApplicationException;
-//import com.example.examprepbackend.repository.UsersRepository;
+//import com.example.examprepbackend.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,7 +23,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
 
-//    private final UsersRepository userRepository;
+//    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
