@@ -198,7 +198,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public String unlockAccount(Integer userId) {
+    public String unlockAccount(Long userId) {
 
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) {
@@ -224,7 +224,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public String lockAccount(Integer userId) {
+    public String lockAccount(Long userId) {
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) {
             throw new ApplicationException("Account not found ID");

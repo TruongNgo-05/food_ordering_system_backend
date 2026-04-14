@@ -7,9 +7,9 @@ import com.example.project_back.dto.authentication.ResetPassword;
 
 public interface AuthenticationService {
     // admin
-    String unlockAccount(Integer userId );
+    String unlockAccount(Long userId );
 
-    String lockAccount(Integer userId );
+    String lockAccount(Long userId );
 
     // user
     LoginResponse login(LoginRequest loginRequest );

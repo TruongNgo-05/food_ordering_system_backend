@@ -20,12 +20,12 @@ public class AdminSecurityController {
 
 
     @PutMapping("/account/unlock/{id}")
-    public ResponseEntity<BaseResponse<String>> unlock(@PathVariable Integer id ) {
+    public ResponseEntity<BaseResponse<String>> unlock(@PathVariable Long id ) {
         String email = authenticationService.unlockAccount(id);
         return ResponseEntity.ok(new BaseResponse<>( "email :" + email,"Mở khóa thành công" ));
     }
     @PutMapping("/account/lock/{id}")
-    public ResponseEntity<BaseResponse<String>> lock(@PathVariable Integer id) {
+    public ResponseEntity<BaseResponse<String>> lock(@PathVariable Long id) {
         String email = authenticationService.lockAccount(id);
         return ResponseEntity.ok(
                 new BaseResponse<>("email: " + email, "Khóa tài khoản thành công")

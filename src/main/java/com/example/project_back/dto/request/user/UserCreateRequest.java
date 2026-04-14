@@ -6,21 +6,21 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CreateUserRequest {
+public class UserCreateRequest {
     @NotNull(message = "Username not null")
-    private String Username;
+    private String username;
 
     @NotNull(message = "FirstName not null")
-    private String FirstName;
+    private String firstName;
 
     @NotNull(message = "LastName not null")
-    private String LastName;
+    private String lastName;
 
     @NotNull(message = "Email not null")
-    private String Email;
+    private String email;
 
     @NotNull(message = "Password not null")
-    private String Password;
+    private String password;
 
     @NotNull(message = "ConfirmPassword not null")
     private String ConfirmPassword;
