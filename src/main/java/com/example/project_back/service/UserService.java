@@ -1,19 +1,24 @@
 package com.example.project_back.service;
 
-import com.example.project_back.dto.request.customer.CustomerUpdateRequest;
+import com.example.project_back.dto.request.user.UserUpdateRequest;
 import com.example.project_back.dto.request.user.UserCreateRequest;
 import com.example.project_back.dto.response.user.UserResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface UserService {
-    Page<UserResponseDTO> findAllUsers(Pageable pageable);
+//   user
+UserResponseDTO createUser(UserCreateRequest createUserRequest);
 
-    UserResponseDTO findUserById(Long id);
+UserResponseDTO getCurrentUser();
 
-    UserResponseDTO createUser(UserCreateRequest createUserRequest);
+UserResponseDTO updateMyProfile(UserUpdateRequest userUpdateRequest);
 
-    UserResponseDTO updateUser(Long id, CustomerUpdateRequest customerUpdateRequest);
+String deleteUser(Long id);
+//    admin
+Page<UserResponseDTO> findAllUsers(Pageable pageable);
 
-    String deleteUser(Long id);
+UserResponseDTO findUserById(Long id);
+
+
 }

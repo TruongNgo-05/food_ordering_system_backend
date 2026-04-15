@@ -34,6 +34,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Column(columnDefinition = "LONGTEXT")
+    private String avatar;
+
     @Column(name="is_active")
     private Boolean isActive;
 

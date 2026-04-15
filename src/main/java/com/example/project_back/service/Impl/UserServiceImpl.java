@@ -1,12 +1,15 @@
 package com.example.project_back.service.Impl;
 
-import com.example.project_back.dto.request.customer.CustomerUpdateRequest;
+import com.example.project_back.config.SecurityUtils;
+import com.example.project_back.dto.request.user.UserUpdateRequest;
 import com.example.project_back.dto.request.user.UserCreateRequest;
 import com.example.project_back.dto.response.user.UserResponseDTO;
 import com.example.project_back.entity.User;
 import com.example.project_back.exception.ApplicationException;
 import com.example.project_back.mapper.UserMapper;
 import com.example.project_back.repository.UserRepository;
+import com.example.project_back.service.FileService;
+import com.example.project_back.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,10 +20,11 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-public class UserServiceImpl implements com.example.project_back.service.UserService {
+public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final FileService fileService;
 
     @Override
     public Page<UserResponseDTO> findAllUsers(Pageable pageable){
@@ -39,37 +43,42 @@ public class UserServiceImpl implements com.example.project_back.service.UserSer
 
     @Override
     public UserResponseDTO createUser(UserCreateRequest createUserRequest) {
-        if(userRepository.findByEmailOrUsername(createUserRequest.getEmail(), createUserRequest.getUsername()).isEmpty()){
+        if(userRepository.findByEmailOrUsername(createUserRequest.getEmail(), createUserRequest.getUsername()).isPresent()){
             throw new ApplicationException("User da ton tai");
         }
-        if(!createUserRequest.getPassword().equals(createUserRequest.getConfirmPassword())){
+        if(!createUserRequest.getPassWord().equals(createUserRequest.getConfirmPassword())){
             throw new ApplicationException("Password không khớp");
         }
         User user =UserMapper.map(createUserRequest);
-        user.setPassword(passwordEncoder.encode(createUserRequest.getPassword()));
+        user.setPassword(passwordEncoder.encode(createUserRequest.getPassWord()));
         User savedUser = userRepository.save(user);
         UserResponseDTO userResponseDTO = UserMapper.map(savedUser);
         return userResponseDTO;
     }
 
     @Override
-    public UserResponseDTO updateUser(Long id, CustomerUpdateRequest customerUpdateRequest) {
-        Optional<User> user = userRepository.findById(id);
+    public UserResponseDTO getCurrentUser() {
+        String username = SecurityUtils.getCurrentUsername();
+        Optional<User> user = userRepository.findByUsername(username);
         if(user.isEmpty()){
             throw new ApplicationException("User not found");
         }
-
-        Optional<User> updatedUser = userRepository.findByUsername(customerUpdateRequest.getEmail());
-        if(updatedUser.isEmpty()){
-            throw new ApplicationException("Email da ton tai");
-        }
-
-        User users = user.get();
-        UserMapper.map(customerUpdateRequest, users);
-        users.setPassword(passwordEncoder.encode(customerUpdateRequest.getPassword()));
-        UserResponseDTO userResponseDTO = UserMapper.map( userRepository.save(users));
-        return userResponseDTO;
+        return UserMapper.map(user.get());
     }
+
+    @Override
+    public UserResponseDTO updateMyProfile( UserUpdateRequest userUpdateRequest) {
+        String username = SecurityUtils.getCurrentUsername();
+        Optional<User> user = userRepository.findByUsername(username);
+       if(user.isEmpty()){
+           throw new ApplicationException("User not found");
+       }
+        User users = user.get();
+        UserMapper.map(userUpdateRequest, users);
+        return UserMapper.map( userRepository.save(users));
+    }
+
+
     @Override
     public String deleteUser(Long id){
         Optional<User> user = userRepository.findById(id);
@@ -79,4 +88,5 @@ public class UserServiceImpl implements com.example.project_back.service.UserSer
         userRepository.deleteById(id);
         return "User has been deleted";
     }
+
 }

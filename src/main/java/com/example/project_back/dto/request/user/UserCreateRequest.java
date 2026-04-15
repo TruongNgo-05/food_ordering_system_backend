@@ -20,8 +20,8 @@ public class UserCreateRequest {
     private String email;
 
     @NotNull(message = "Password not null")
-    private String password;
+    private String passWord;
 
     @NotNull(message = "ConfirmPassword not null")
-    private String ConfirmPassword;
+    private String confirmPassword;
 }

@@ -1,8 +1,5 @@
 package com.example.project_back.config;
 
-//import com.example.examprepbackend.entity.User;
-//import com.example.examprepbackend.exception.ApplicationException;
-//import com.example.examprepbackend.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,8 +19,6 @@ import java.util.Optional;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
-
-//    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -49,23 +44,16 @@ public class JwtFilter extends OncePerRequestFilter {
 
                 String username = jwtUtils.getUsernameFromToken(token);
 
-//                Optional<User> userOpt = userRepository.findByUsername(username);
-//
-//                User user = userOpt.orElseThrow(() ->
-//                        new ApplicationException("User not found")
-//                );
-//
-//                if(user != null){
-//
-//                    UsernamePasswordAuthenticationToken authentication =
-//                            new UsernamePasswordAuthenticationToken(
-//                                    username,
-//                                    null,
-//                                    Collections.emptyList()
-//                            );
-//
-//                    SecurityContextHolder.getContext().setAuthentication(authentication);
-//                }
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                                username,
+                                null,
+                                Collections.emptyList()
+                        );
+
+                SecurityContextHolder
+                        .getContext()
+                        .setAuthentication(authentication);
             }
         }
 
