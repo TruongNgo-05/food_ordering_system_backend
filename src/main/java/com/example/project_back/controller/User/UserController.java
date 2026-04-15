@@ -96,11 +96,9 @@ private final UserRepository userRepository;
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 🔥 1. XÓA ẢNH CŨ (nếu có)
         if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
             String oldAvatarUrl = user.getAvatar();
 
-            // lấy tên file từ URL
             String oldFileName = oldAvatarUrl.substring(oldAvatarUrl.lastIndexOf("/") + 1);
 
             Path oldFilePath = Paths.get("uploads").resolve(oldFileName);
@@ -108,7 +106,6 @@ private final UserRepository userRepository;
             Files.deleteIfExists(oldFilePath);
         }
 
-        // 🔥 2. VALIDATE FILE
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("File is empty");
         }
@@ -117,7 +114,6 @@ private final UserRepository userRepository;
             return ResponseEntity.badRequest().body("File must be image");
         }
 
-        // 🔥 3. TẠO FILE MỚI
         String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
 
         Path uploadPath = Paths.get("uploads");
@@ -128,7 +124,6 @@ private final UserRepository userRepository;
         Path filePath = uploadPath.resolve(fileName);
         Files.copy(file.getInputStream(), filePath);
 
-        // 🔥 4. LƯU URL MỚI
         String avatarUrl = "http://localhost:8080/uploads/" + fileName;
 
         user.setAvatar(avatarUrl);
