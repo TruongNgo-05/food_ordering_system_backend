@@ -1,9 +1,6 @@
 package com.example.project_back.entity;
-import com.example.project_back.constant.PaymentMethod;
+import com.example.project_back.constant.PaymentMethodType;
 import com.example.project_back.constant.PaymentStatus;
-import com.example.project_back.constant.Role;
-import com.example.project_back.constant.Status;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,12 +13,13 @@ import java.time.LocalDateTime;
 @Setter
 public class Payment {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Enumerated(EnumType.STRING)
-    private PaymentMethod method;
+    private PaymentMethodType method;
 
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;

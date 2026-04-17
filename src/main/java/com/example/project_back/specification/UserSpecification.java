@@ -1,10 +1,6 @@
 package com.example.project_back.specification;
 
-import org.springframework.data.jpa.domain.Specification;
-
-import java.time.LocalDate;
-
-public class QuestionSpecification {
+public class UserSpecification {
 
 //    public static Specification<Question> hasContentLike(String content) {
 //        return (root, query, cb) -> {

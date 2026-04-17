@@ -4,23 +4,7 @@ CREATE
 DATABASE food_ordering_system;
 USE
 food_ordering_system;
--- KHUYẾN MÃI
-CREATE TABLE vouchers
-(
-    id         INT PRIMARY KEY AUTO_INCREMENT,
-    code       VARCHAR(50) UNIQUE,
-    discount   DECIMAL(5, 2),
-    type       ENUM('PERCENT','FIXED'),
-    expired_at DATE
-);
 
-
-CREATE TABLE branches
-(
-    id      INT PRIMARY KEY AUTO_INCREMENT,
-    name    VARCHAR(100),
-    address TEXT
-);
 -- ================= USERS =================
 CREATE TABLE users
 (
@@ -28,86 +12,168 @@ CREATE TABLE users
     email       VARCHAR(255) NOT NULL UNIQUE,
     username    VARCHAR(255) NOT NULL UNIQUE,
     password    VARCHAR(255) NOT NULL,
-    first_name  VARCHAR(255) NOT NULL,
-    last_name   VARCHAR(255) NOT NULL,
-    role        ENUM ('ADMIN','STAFF','CUSTOMER') NOT NULL,
-    is_active   BOOLEAN      NOT NULL DEFAULT TRUE,
-    status      ENUM ('ACTIVED','LOCKED')          NOT NULL DEFAULT 'ACTIVED',
-    create_date DATETIME,
-    fail_count  INT                   DEFAULT 0,
+    first_name  VARCHAR(255),
+    last_name   VARCHAR(255),
+    role        ENUM('ADMIN','CUSTOMER') DEFAULT 'CUSTOMER',
+    avatar      VARCHAR(255),
+    phone       VARCHAR(20),
+    is_active   BOOLEAN  DEFAULT TRUE,
+    status      ENUM('ACTIVED','LOCKED') DEFAULT 'ACTIVED',
+    create_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    fail_count  INT      DEFAULT 0,
     lock_time   DATETIME
 );
+
+-- ================= CATEGORY =================
 CREATE TABLE categories
 (
-    id   INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100)
+    id          INT PRIMARY KEY AUTO_INCREMENT,
+    name        VARCHAR(100) UNIQUE,
+    description TEXT,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ================= TABLE =================
+CREATE TABLE table_details
+(
+    id           INT PRIMARY KEY AUTO_INCREMENT,
+    table_number VARCHAR(10) UNIQUE,
+    capacity     INT,
+    location     VARCHAR(100),
+    qr_code      TEXT,
+    status       ENUM('AVAILABLE','OCCUPIED','RESERVED','MAINTENANCE') DEFAULT 'AVAILABLE',
+    created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at   DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- ================= PAYMENT METHOD =================
+CREATE TABLE payment_methods
+(
+    id        INT PRIMARY KEY AUTO_INCREMENT,
+    name      VARCHAR(50),
+    code      ENUM('COD','ONLINE','AT_TABLE'),
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+-- ================= VOUCHERS =================
+CREATE TABLE vouchers
+(
+    id              INT PRIMARY KEY AUTO_INCREMENT,
+    code            VARCHAR(50) UNIQUE,
+    discount        DECIMAL(10, 2),
+    type            ENUM('PERCENT','FIXED'),
+    min_order_value DECIMAL(10, 2),
+    max_discount    DECIMAL(10, 2),
+    expired_at      DATETIME,
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ================= FOODS =================
 CREATE TABLE foods
 (
     id          INT PRIMARY KEY AUTO_INCREMENT,
-    name        VARCHAR(100)   NOT NULL,
+    name        VARCHAR(255),
     description TEXT,
-    price       DECIMAL(10, 2) NOT NULL,
+    price       DECIMAL(10, 2),
     image       VARCHAR(255),
-    category_id INT            NOT NULL,
-    branch_id   INT            NOT NULL,
-    status      BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (category_id) REFERENCES categories (id),
-    FOREIGN KEY (branch_id) REFERENCES branches (id)
+    category_id INT,
+    rating      DECIMAL(3, 2) DEFAULT 0,
+    sold_count  INT           DEFAULT 0,
+    status      BOOLEAN       DEFAULT TRUE,
+    created_at  DATETIME      DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES categories (id)
 );
 
+-- ================= FOOD IMAGES =================
+CREATE TABLE food_images
+(
+    id         INT PRIMARY KEY AUTO_INCREMENT,
+    food_id    INT,
+    image_url  VARCHAR(255),
+    is_primary BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (food_id) REFERENCES foods (id) ON DELETE CASCADE
+);
+
+-- ================= CART =================
 CREATE TABLE carts
 (
-    id      INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT UNIQUE,
-    FOREIGN KEY (user_id) REFERENCES users (id)
+    id         INT PRIMARY KEY AUTO_INCREMENT,
+    user_id    INT UNIQUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
+
 CREATE TABLE cart_items
 (
     id       INT PRIMARY KEY AUTO_INCREMENT,
     cart_id  INT,
     food_id  INT,
-    quantity INT,
-    FOREIGN KEY (cart_id) REFERENCES carts (id),
+    quantity INT DEFAULT 1,
+    UNIQUE (cart_id, food_id),
+    FOREIGN KEY (cart_id) REFERENCES carts (id) ON DELETE CASCADE,
     FOREIGN KEY (food_id) REFERENCES foods (id)
 );
 
+-- ================= ORDERS =================
 CREATE TABLE orders
 (
-    id          INT PRIMARY KEY AUTO_INCREMENT,
-    user_id     INT NOT NULL,
-    branch_id   INT NOT NULL,
-    total_price DECIMAL(10, 2) DEFAULT 0,
-    status      ENUM('PENDING','PREPARING','DELIVERING','COMPLETED','CANCELED') DEFAULT 'PENDING',
-    created_at  TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
-    voucher_id  INT,
+    id                INT PRIMARY KEY AUTO_INCREMENT,
+    order_code        VARCHAR(50) UNIQUE,
+    user_id           INT,
+
+    customer_name     VARCHAR(255),
+    customer_phone    VARCHAR(20),
+    delivery_address  TEXT,
+
+    order_type        ENUM('DELIVERY','DINE_IN') DEFAULT 'DELIVERY',
+
+    subtotal          DECIMAL(10, 2),
+    discount          DECIMAL(10, 2),
+    shipping_fee      DECIMAL(10, 2),
+    total_price       DECIMAL(10, 2),
+
+    status            ENUM('PENDING','PREPARING','DELIVERING','COMPLETED','CANCELED') DEFAULT 'PENDING',
+
+    payment_method_id INT,
+    payment_status    ENUM('PENDING','PAID','FAILED') DEFAULT 'PENDING',
+
+    voucher_id        INT,
+    table_id          INT,
+
+    created_at        DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at        DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
     FOREIGN KEY (user_id) REFERENCES users (id),
-    FOREIGN KEY (branch_id) REFERENCES branches (id),
-    FOREIGN KEY (voucher_id) REFERENCES vouchers (id)
+    FOREIGN KEY (payment_method_id) REFERENCES payment_methods (id),
+    FOREIGN KEY (voucher_id) REFERENCES vouchers (id),
+    FOREIGN KEY (table_id) REFERENCES table_details (id)
 );
--- CHI TIẾT ĐƠN HÀNG
+
+-- ================= ORDER DETAILS =================
 CREATE TABLE order_details
 (
-    id       INT PRIMARY KEY AUTO_INCREMENT,
-    order_id INT            NOT NULL,
-    food_id  INT            NOT NULL,
-    quantity INT            NOT NULL,
-    price    DECIMAL(10, 2) NOT NULL,
+    id         INT PRIMARY KEY AUTO_INCREMENT,
+    order_id   INT,
+    food_id    INT,
+    quantity   INT,
+    unit_price DECIMAL(10, 2),
+    subtotal   DECIMAL(10, 2),
     FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE,
     FOREIGN KEY (food_id) REFERENCES foods (id)
 );
--- THANH TOÁN
+
+-- ================= PAYMENTS =================
 CREATE TABLE payments
 (
     id       INT PRIMARY KEY AUTO_INCREMENT,
     order_id INT,
-    method   ENUM('COD','ONLINE'),
+    method   ENUM('COD','ONLINE','AT_TABLE'),
     status   ENUM('PENDING','PAID','FAILED'),
-    paid_at  TIMESTAMP,
+    paid_at  DATETIME,
     FOREIGN KEY (order_id) REFERENCES orders (id)
 );
--- YÊU THÍCH
+
+-- ================= FAVORITES =================
 CREATE TABLE favorites
 (
     id      INT PRIMARY KEY AUTO_INCREMENT,
@@ -117,7 +183,8 @@ CREATE TABLE favorites
     FOREIGN KEY (user_id) REFERENCES users (id),
     FOREIGN KEY (food_id) REFERENCES foods (id)
 );
--- KHO VÀ NGUYÊN LIỆU
+
+-- ================= INGREDIENTS =================
 CREATE TABLE ingredients
 (
     id   INT PRIMARY KEY AUTO_INCREMENT,
@@ -127,154 +194,154 @@ CREATE TABLE ingredients
 CREATE TABLE inventory
 (
     id            INT PRIMARY KEY AUTO_INCREMENT,
-    ingredient_id INT,
-    branch_id     INT,
+    ingredient_id INT UNIQUE,
     quantity      INT DEFAULT 0,
-    UNIQUE (ingredient_id, branch_id),
-    FOREIGN KEY (ingredient_id) REFERENCES ingredients (id),
-    FOREIGN KEY (branch_id) REFERENCES branches (id)
+    FOREIGN KEY (ingredient_id) REFERENCES ingredients (id)
 );
 
--- ================= OTP TABLE =================
+-- ================= OTP =================
 CREATE TABLE otps
 (
     id         INT AUTO_INCREMENT PRIMARY KEY,
-    email      VARCHAR(255) NOT NULL,
-    otp        INT          NOT NULL,
+    email      VARCHAR(255),
+    otp        VARCHAR(10),
     type       VARCHAR(50),
     expire_at  DATETIME,
-    created_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (email) REFERENCES users (email)
 );
 
-INSERT INTO vouchers (code, discount, type, expired_at)
-VALUES ('SALE10', 10, 'PERCENT', '2026-12-31'),
-       ('SALE20', 20, 'PERCENT', '2026-12-31'),
-       ('FIX50', 50, 'FIXED', '2026-12-31'),
-       ('FIX100', 100, 'FIXED', '2026-12-31'),
-       ('NEWUSER', 15, 'PERCENT', '2026-12-31'),
-       ('VIP', 25, 'PERCENT', '2026-12-31');
+-- ================= DỮ LIỆU MẪU =================
+-- ================= PAYMENT METHODS =================
+INSERT INTO payment_methods (name, code)
+VALUES ('Tiền mặt', 'COD'),
+       ('Chuyển khoản', 'ONLINE'),
+       ('Tại bàn', 'AT_TABLE');
 
-INSERT INTO branches (name, address)
-VALUES ('Chi nhánh Hà Nội', 'Hà Nội'),
-       ('Chi nhánh Hồ Chí Minh', 'TP.HCM'),
-       ('Chi nhánh Đà Nẵng', 'Đà Nẵng'),
-       ('Chi nhánh Hải Phòng', 'Hải Phòng'),
-       ('Chi nhánh Cần Thơ', 'Cần Thơ'),
-       ('Chi nhánh Huế', 'Huế');
+-- ================= USERS =================
+INSERT INTO users (email, username, password, first_name, last_name, role, phone)
+VALUES ('admin@gmail.com', 'admin', '$2a$10$nlMnkBVDx81dyJ9puJyf8.FWUOiOjJTb4M4RggYlPDuxFDgtxb.ne', 'Ngo', 'Truong',
+        'ADMIN', '0900000001'),
+       ('user1@gmail.com', 'user1', '$2a$10$nlMnkBVDx81dyJ9puJyf8.FWUOiOjJTb4M4RggYlPDuxFDgtxb.ne', 'Le', 'Van A',
+        'CUSTOMER', '0900000002'),
+       ('user2@gmail.com', 'user2', '$2a$10$nlMnkBVDx81dyJ9puJyf8.FWUOiOjJTb4M4RggYlPDuxFDgtxb.ne', 'Pham', 'Van B',
+        'CUSTOMER', '0900000003'),
+       ('user3@gmail.com', 'user3', '$2a$10$nlMnkBVDx81dyJ9puJyf8.FWUOiOjJTb4M4RggYlPDuxFDgtxb.ne', 'Hoang', 'Van C',
+        'CUSTOMER', '0900000004');
 
-INSERT INTO users (email, username, password, first_name, last_name, role)
-VALUES ('admin@gmail.com', 'admin', '1234', 'Ngo', 'Trupng', 'ADMIN'),
-       ('staff1@gmail.com', 'staff1', '1234', 'Nguyen', 'Van A', 'STAFF'),
-       ('staff2@gmail.com', 'staff2', '1234', 'Tran', 'Van B', 'STAFF'),
-       ('user1@gmail.com', 'user1', '1234', 'Le', 'Van C', 'CUSTOMER'),
-       ('user2@gmail.com', 'user2', '1234', 'Pham', 'Van D', 'CUSTOMER'),
-       ('user3@gmail.com', 'user3', '1234', 'Hoang', 'Van E', 'CUSTOMER');
-
+-- ================= CATEGORIES =================
 INSERT INTO categories (name)
 VALUES ('Đồ ăn nhanh'),
        ('Đồ uống'),
-       ('Món chính'),
-       ('Tráng miệng'),
-       ('Ăn vặt'),
-       ('Combo');
+       ('Món chính');
 
-INSERT INTO foods (name, description, price, category_id, branch_id)
-VALUES ('Hamburger', 'Burger bò', 50000, 1, 1),
-       ('Pizza', 'Pizza hải sản', 120000, 3, 1),
-       ('Trà sữa', 'Trà sữa trân châu', 40000, 2, 2),
-       ('Cơm gà', 'Cơm gà chiên', 60000, 3, 3),
-       ('Bánh ngọt', 'Bánh kem', 45000, 4, 2),
-       ('Khoai tây chiên', 'Snack', 30000, 5, 1);
+-- ================= TABLE =================
+INSERT INTO table_details (table_number, capacity, location)
+VALUES ('T01', 2, 'Cửa sổ'),
+       ('T02', 4, 'Giữa phòng'),
+       ('T03', 6, 'Phòng VIP');
 
+-- ================= VOUCHERS =================
+INSERT INTO vouchers (code, discount, type, min_order_value, max_discount, expired_at)
+VALUES ('SALE10', 10, 'PERCENT', 50000, 50000, '2026-12-31'),
+       ('SALE20', 20, 'PERCENT', 100000, 100000, '2026-12-31'),
+       ('FIX50', 50000, 'FIXED', 150000, 50000, '2026-12-31');
+
+-- ================= FOODS =================
+INSERT INTO foods (name, description, price, category_id, rating, sold_count)
+VALUES ('Hamburger', 'Burger bò ngon', 50000, 1, 4.5, 100),
+       ('Pizza Hải Sản', 'Pizza tôm mực', 120000, 3, 4.8, 200),
+       ('Trà sữa', 'Trà sữa trân châu', 40000, 2, 4.7, 300),
+       ('Cơm gà', 'Cơm gà chiên', 60000, 3, 4.6, 150);
+
+-- ================= FOOD IMAGES =================
+INSERT INTO food_images (food_id, image_url, is_primary)
+VALUES (1, 'burger.jpg', TRUE),
+       (2, 'pizza.jpg', TRUE),
+       (3, 'trasua.jpg', TRUE),
+       (4, 'comga.jpg', TRUE);
+
+-- ================= CART =================
 INSERT INTO carts (user_id)
-VALUES (4),
-       (5),
-       (6),
-       (2),
+VALUES (2),
        (3),
+       (4),
        (1);
 
 INSERT INTO cart_items (cart_id, food_id, quantity)
 VALUES (1, 1, 2),
        (1, 2, 1),
-       (2, 3, 2),
-       (3, 4, 1),
-       (4, 5, 3),
-       (5, 6, 2);
+       (2, 2, 2),
+       (2, 3, 1),
+       (3, 1, 1),
+       (3, 4, 2);
 
-INSERT INTO orders (user_id, branch_id, total_price, status, voucher_id)
-VALUES (4, 1, 100000, 'PENDING', 1),
-       (5, 2, 150000, 'PREPARING', 2),
-       (6, 3, 200000, 'DELIVERING', 3),
-       (4, 1, 120000, 'COMPLETED', 4),
-       (5, 2, 90000, 'CANCELED', NULL),
-       (6, 3, 300000, 'PENDING', 5);
+-- ================= ORDERS =================
+INSERT INTO orders
+(order_code, user_id, subtotal, discount, shipping_fee, total_price, status, payment_method_id, payment_status,
+ voucher_id)
+VALUES ('ORD001', 2, 150000, 15000, 10000, 145000, 'COMPLETED', 1, 'PAID', 1),
+       ('ORD002', 3, 200000, 40000, 10000, 170000, 'DELIVERING', 2, 'PAID', 2),
+       ('ORD003', 4, 100000, 0, 10000, 110000, 'PENDING', 1, 'PENDING', NULL),
+       ('ORD004', 2, 120000, 50000, 0, 70000, 'COMPLETED', 3, 'PAID', 3);
 
-INSERT INTO order_details (order_id, food_id, quantity, price)
-VALUES (1, 1, 2, 50000),
-       (2, 2, 1, 120000),
-       (3, 3, 2, 40000),
-       (4, 4, 2, 60000),
-       (5, 5, 1, 45000),
-       (6, 6, 3, 30000);
+-- ================= ORDER DETAILS =================
+INSERT INTO order_details (order_id, food_id, quantity, unit_price, subtotal)
+VALUES (1, 1, 2, 50000, 100000),
+       (1, 3, 1, 50000, 50000),
 
-INSERT INTO payments (order_id, method, status)
-VALUES (1, 'COD', 'PENDING'),
-       (2, 'ONLINE', 'PAID'),
-       (3, 'ONLINE', 'PAID'),
-       (4, 'COD', 'PAID'),
-       (5, 'COD', 'FAILED'),
-       (6, 'ONLINE', 'PENDING');
+       (2, 2, 1, 120000, 120000),
+       (2, 3, 2, 40000, 80000),
 
+       (3, 4, 1, 60000, 60000),
+       (3, 1, 1, 50000, 50000),
+
+       (4, 2, 1, 120000, 120000);
+
+-- ================= PAYMENTS =================
+INSERT INTO payments (order_id, method, status, paid_at)
+VALUES (1, 'COD', 'PAID', NOW()),
+       (2, 'ONLINE', 'PAID', NOW()),
+       (3, 'COD', 'PENDING', NULL),
+       (4, 'AT_TABLE', 'PAID', NOW());
+
+-- ================= FAVORITES =================
 INSERT INTO favorites (user_id, food_id)
-VALUES (4, 1),
-       (4, 2),
-       (5, 3),
-       (5, 4),
-       (6, 5),
-       (6, 6);
+VALUES (2, 1),
+       (2, 2),
+       (3, 2),
+       (3, 3),
+       (4, 1),
+       (4, 4);
 
+-- ================= INGREDIENTS =================
 INSERT INTO ingredients (name)
 VALUES ('Thịt bò'),
        ('Bột mì'),
        ('Sữa'),
        ('Trà'),
-       ('Gà'),
-       ('Khoai tây');
+       ('Gà');
 
-INSERT INTO inventory (ingredient_id, branch_id, quantity)
-VALUES (1, 1, 100),
-       (2, 1, 200),
-       (3, 2, 150),
-       (4, 2, 120),
-       (5, 3, 180),
-       (6, 1, 300);
+-- ================= INVENTORY =================
+INSERT INTO inventory (ingredient_id, quantity)
+VALUES (1, 100),
+       (2, 200),
+       (3, 150),
+       (4, 120),
+       (5, 180);
 
+-- Xem user
+SELECT *
+FROM users;
 
-update users
-set password ='$2a$10$nlMnkBVDx81dyJ9puJyf8.FWUOiOjJTb4M4RggYlPDuxFDgtxb.ne'
-where id = 1; -- ADMIN:1234
-update users
-set password ='$2a$10$nlMnkBVDx81dyJ9puJyf8.FWUOiOjJTb4M4RggYlPDuxFDgtxb.ne'
-where id = 2; -- STAFF:1234
-update users
-set password ='$2a$10$nlMnkBVDx81dyJ9puJyf8.FWUOiOjJTb4M4RggYlPDuxFDgtxb.ne'
-where id = 3; -- STAFF:1234
-update users
-set password ='$2a$10$nlMnkBVDx81dyJ9puJyf8.FWUOiOjJTb4M4RggYlPDuxFDgtxb.ne'
-where id = 4; -- CUSTOMER:1234
-update users
-set password ='$2a$10$nlMnkBVDx81dyJ9puJyf8.FWUOiOjJTb4M4RggYlPDuxFDgtxb.ne'
-where id = 5; -- CUSTOMER:1234
-update users
-set password ='$2a$10$nlMnkBVDx81dyJ9puJyf8.FWUOiOjJTb4M4RggYlPDuxFDgtxb.ne'
-where id = 6; -- CUSTOMER:1234
+-- Xem đơn hàng + user
+SELECT o.order_code, u.username, o.total_price, o.status
+FROM orders o
+         JOIN users u ON o.user_id = u.id;
 
-
-update users
-set email ='ngoquangtruongjk05@gmail.com'
-where id = 1;
-
-select*
-from users
+-- Xem giỏ hàng
+SELECT u.username, f.name, ci.quantity
+FROM cart_items ci
+         JOIN carts c ON ci.cart_id = c.id
+         JOIN users u ON c.user_id = u.id
+         JOIN foods f ON ci.food_id = f.id;

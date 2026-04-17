@@ -3,6 +3,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "foods")
 @Getter
@@ -21,10 +23,16 @@ public class Food {
 
     private String image;
 
+    private Double rating;
+
+    private Integer soldCount;
+
     private Boolean status;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
-
 }

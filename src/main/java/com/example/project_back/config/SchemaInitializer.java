@@ -1,4 +1,4 @@
-// Create a startup runner that ensures the `fail_count` column exists on the `users` table.
+
 package com.example.project_back.config;
 
 import org.springframework.beans.factory.annotation.Autowired;

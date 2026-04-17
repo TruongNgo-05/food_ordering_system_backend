@@ -1,5 +1,5 @@
 package com.example.project_back.constant;
 
-public enum PaymentMethod {
-    COD, ONLINE
+public enum OrderType {
+    DELIVERY, DINE_IN
 }

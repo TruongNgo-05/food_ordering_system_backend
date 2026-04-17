@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -13,16 +14,21 @@ import java.time.LocalDate;
 @Table(name="vouchers")
 public class Voucher {
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
     private String code;
-
     private Double discount;
 
     @Enumerated(EnumType.STRING)
     private VoucherType type;
 
+    @Column(name = "min_order_value")
+    private Double minOrderValue;
+
+    @Column(name = "max_discount")
+    private Double maxDiscount;
+
     @Column(name = "expired_at")
-    private LocalDate expiredAt;
+    private LocalDateTime expiredAt;
 }

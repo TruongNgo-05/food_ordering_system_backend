@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -37,6 +38,8 @@ public class User {
     @Column(columnDefinition = "LONGTEXT")
     private String avatar;
 
+    private String phone;
+
     @Column(name="is_active")
     private Boolean isActive;
 
@@ -52,4 +55,6 @@ public class User {
     @Column(name = "lock_time")
     private LocalDateTime lockTime;
 
+    @OneToMany(mappedBy = "user")
+    private List<Order> orders;
 }

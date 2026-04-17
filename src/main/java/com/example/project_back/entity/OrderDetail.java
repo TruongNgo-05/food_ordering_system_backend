@@ -14,7 +14,11 @@ public class OrderDetail {
     private Integer id;
 
     private Integer quantity;
-    private Double price;
+
+    @Column(name = "unit_price")
+    private Double unitPrice;
+
+    private Double subtotal;
 
     @ManyToOne
     @JoinColumn(name = "order_id")

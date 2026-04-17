@@ -46,32 +46,19 @@ public static void map(UserUpdateRequest request, User user){
     if(request.getAvatar() != null){
         user.setAvatar(request.getAvatar());
     }
-    //  TÁCH fullName
+    //  Tách fullName
     if(request.getFullName() != null){
 
-        String fullName =
-                request.getFullName().trim();
+        String fullName = request.getFullName().trim();
 
-        String[] parts =
-                fullName.split(" ");
+        String[] parts = fullName.split(" ");
 
-        String firstName =
-                parts[0];
+        String firstName = parts[0];
 
         String lastName = "";
 
         if(parts.length > 1){
-
-            lastName =
-                    String.join(
-                            " ",
-                            java.util.Arrays
-                                    .copyOfRange(
-                                            parts,
-                                            1,
-                                            parts.length
-                                    )
-                    );
+            lastName = String.join(" ", java.util.Arrays.copyOfRange(parts, 1, parts.length));
         }
 
         user.setFirstName(firstName);
@@ -80,9 +67,7 @@ public static void map(UserUpdateRequest request, User user){
     }
 
     if(request.getEmail() != null){
-        user.setEmail(
-                request.getEmail()
-        );
+        user.setEmail(request.getEmail());
     }
 }
 }
