@@ -10,11 +10,11 @@ public class UserCreateRequest {
     @NotNull(message = "Username not null")
     private String username;
 
-    @NotNull(message = "FirstName not null")
-    private String firstName;
+    @NotNull(message = "fullName not null")
+    private String fullName;
 
-    @NotNull(message = "LastName not null")
-    private String lastName;
+    @NotNull(message = "Phone not null")
+    private String phone;
 
     @NotNull(message = "Email not null")
     private String email;

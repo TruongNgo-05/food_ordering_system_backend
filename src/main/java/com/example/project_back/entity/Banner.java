@@ -1,28 +1,30 @@
 package com.example.project_back.entity;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
-@Table(name = "categories")
+@Table(name = "banners")
 @Getter
 @Setter
-public class Category {
+public class Banner {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private String name;
+    @Column(nullable = false)
+    private String title;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @Column(name = "image_url", nullable = false)
+    private String imageUrl;
 
-    @OneToMany(mappedBy = "category")
-    private List<Food> foods;
+    @Column(name = "is_active")
+    private Boolean isActive;
 }

@@ -13,7 +13,7 @@ public class Food {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     private String name;
 
@@ -34,5 +34,5 @@ public class Food {
 
     @ManyToOne
     @JoinColumn(name = "category_id")
-    private Category category;
+    private Categories categories;
 }

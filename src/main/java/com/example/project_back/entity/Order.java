@@ -1,6 +1,7 @@
 package com.example.project_back.entity;
 import com.example.project_back.constant.OrderStatus;
 import com.example.project_back.constant.OrderType;
+
 import com.example.project_back.constant.PaymentMethodType;
 import com.example.project_back.constant.PaymentStatus;
 import jakarta.persistence.*;
@@ -68,7 +69,7 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name = "payment_method_id")
-    private PaymentMethodType paymentMethodType;
+    private PaymentMethod paymentMethod;
 
     @ManyToOne
     @JoinColumn(name = "table_id")

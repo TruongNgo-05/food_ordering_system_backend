@@ -1,9 +1,9 @@
 package com.example.project_back.service.Impl;
 
 import com.example.project_back.config.SecurityUtils;
-import com.example.project_back.dto.request.user.UserUpdateRequest;
 import com.example.project_back.dto.request.user.UserCreateRequest;
-import com.example.project_back.dto.response.user.UserResponseDTO;
+import com.example.project_back.dto.request.user.UserUpdateRequest;
+import com.example.project_back.dto.response.user.UserResponse;
 import com.example.project_back.entity.User;
 import com.example.project_back.exception.ApplicationException;
 import com.example.project_back.mapper.UserMapper;
@@ -31,13 +31,13 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public Page<UserResponseDTO> findAllUsers(Pageable pageable){
+    public Page<UserResponse> findAllUsers(Pageable pageable) {
         Page<User> users = userRepository.findAll(pageable);
         return users.map(UserMapper::map);
     }
 
     @Override
-    public UserResponseDTO findUserById(Long id){
+    public UserResponse findUserById(Long id) {
         Optional<User> user = userRepository.findById(id);
         if(user.isEmpty()){
             throw new ApplicationException("User not found");
@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public UserResponseDTO createUser(UserCreateRequest createUserRequest) {
+    public UserResponse createUser(UserCreateRequest createUserRequest) {
         if(userRepository.findByEmailOrUsername(createUserRequest.getEmail(), createUserRequest.getUsername()).isPresent()){
             throw new ApplicationException("User da ton tai");
         }
@@ -57,12 +57,12 @@ public class UserServiceImpl implements UserService {
         User user =UserMapper.map(createUserRequest);
         user.setPassword(passwordEncoder.encode(createUserRequest.getPassWord()));
         User savedUser = userRepository.save(user);
-        UserResponseDTO userResponseDTO = UserMapper.map(savedUser);
-        return userResponseDTO;
+        UserResponse userResponse = UserMapper.map(savedUser);
+        return userResponse;
     }
 
     @Override
-    public UserResponseDTO getCurrentUser() {
+    public UserResponse getCurrentUser() {
         String username = SecurityUtils.getCurrentUsername();
         Optional<User> user = userRepository.findByUsername(username);
         if(user.isEmpty()){
@@ -73,7 +73,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public UserResponseDTO updateMyProfile( UserUpdateRequest userUpdateRequest) {
+    public UserResponse updateMyProfile(UserUpdateRequest userUpdateRequest) {
         String username = SecurityUtils.getCurrentUsername();
         Optional<User> user = userRepository.findByUsername(username);
        if(user.isEmpty()){

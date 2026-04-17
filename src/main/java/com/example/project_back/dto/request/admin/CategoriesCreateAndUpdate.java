@@ -5,5 +5,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class AdminRequestDTO {
+public class CategoriesCreateAndUpdate {
+
+    private String name;
+
+    private String description;
+
 }
