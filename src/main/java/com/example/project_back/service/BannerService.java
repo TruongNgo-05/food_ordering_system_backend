@@ -2,7 +2,7 @@ package com.example.project_back.service;
 
 import com.example.project_back.dto.request.admin.BannerCreateAndUpdateRequest;
 import com.example.project_back.dto.response.admin.BannerAdminResponse;
-import com.example.project_back.dto.response.custommer.BannerCustomerResponse;
+import com.example.project_back.dto.response.user.BannerResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface BannerService {
     //   user
-    List<BannerCustomerResponse> getAllBannerCustomer();
+    List<BannerResponse> getAllBannerCustomer();
 
     // admin
     Page<BannerAdminResponse> getAllBannerAdmin(Pageable pageable);

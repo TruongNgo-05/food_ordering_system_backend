@@ -1,5 +1,6 @@
 package com.example.project_back.service;
 
+import com.example.project_back.dto.request.spec.UserRequestParam;
 import com.example.project_back.dto.request.user.UserUpdateRequest;
 import com.example.project_back.dto.request.user.UserCreateRequest;
 import com.example.project_back.dto.response.user.UserResponse;
@@ -21,7 +22,7 @@ UserResponse updateMyProfile(UserUpdateRequest userUpdateRequest);
 
 String deleteUser(Long id);
 //    admin
-Page<UserResponse> findAllUsers(Pageable pageable);
+Page<UserResponse> findAllUsers(UserRequestParam param, Pageable pageable);
 
 UserResponse findUserById(Long id);
 

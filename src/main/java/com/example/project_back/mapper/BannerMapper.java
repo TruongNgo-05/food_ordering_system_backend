@@ -2,13 +2,13 @@ package com.example.project_back.mapper;
 
 import com.example.project_back.dto.request.admin.BannerCreateAndUpdateRequest;
 import com.example.project_back.dto.response.admin.BannerAdminResponse;
-import com.example.project_back.dto.response.custommer.BannerCustomerResponse;
+import com.example.project_back.dto.response.user.BannerResponse;
 import com.example.project_back.entity.Banner;
 import org.springframework.beans.BeanUtils;
 
 public class BannerMapper {
-    public static BannerCustomerResponse toCustomerResponse(Banner banner) {
-        BannerCustomerResponse dto = new BannerCustomerResponse();
+    public static BannerResponse toCustomerResponse(Banner banner) {
+        BannerResponse dto = new BannerResponse();
         BeanUtils.copyProperties(banner,dto);
         return dto;
     }

@@ -1,10 +1,15 @@
-package com.example.project_back.dto.response.custommer;
+package com.example.project_back.dto.response.admin;
 
 import com.example.project_back.entity.Categories;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
-
-public class FoodCustomerResponse {
+@Getter
+@Setter
+@JsonPropertyOrder({"id","name","description","price","image","rating","soldCount","status","createdAt","categories"})
+public class FoodAdminResponse {
 
     private Long id;
 

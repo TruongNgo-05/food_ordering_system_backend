@@ -1,16 +1,22 @@
 package com.example.project_back.service.Impl;
 
 import com.example.project_back.dto.request.admin.CategoriesCreateAndUpdate;
+import com.example.project_back.dto.request.spec.CategoriesRequestParam;
 import com.example.project_back.dto.response.user.CategoriesResponse;
 import com.example.project_back.entity.Categories;
 import com.example.project_back.mapper.CategoriesMapper;
 import com.example.project_back.repository.CategoriesRepository;
 import com.example.project_back.service.CategoriesService;
+import com.example.project_back.specification.CategoriesSpecification;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -19,11 +25,19 @@ public class CategoriesImpl implements CategoriesService {
     private final CategoriesRepository  categoriesRepository;
 
 @Override
-public Page<CategoriesResponse> getCategories(Pageable pageable){
-    Page<Categories> categories = categoriesRepository.findAll(pageable);
-    return categories.map(CategoriesMapper::toResponse);
+public Page<CategoriesResponse> getCategories(CategoriesRequestParam param , Pageable pageable){
+
+    String name = param.getName();
+
+    Specification<Categories> spec = Specification.unrestricted();
+
+    if(param.getName()!=null  && !name.trim().isEmpty() ){
+        spec=spec.and(CategoriesSpecification.hasCategoriesName(name));
+    }
+    return categoriesRepository.findAll(spec,pageable).map(CategoriesMapper::toResponse);
 }
 
+@Transactional
 @Override
 public CategoriesResponse createCategories(CategoriesCreateAndUpdate create){
     if(categoriesRepository.existsByName(create.getName())){
@@ -35,6 +49,7 @@ public CategoriesResponse createCategories(CategoriesCreateAndUpdate create){
     return categoriesResponse;
 }
 
+@Transactional
 @Override
 public CategoriesResponse updateCategories(CategoriesCreateAndUpdate update, Integer id){
     Optional<Categories> categorie = categoriesRepository.findById(id);
@@ -49,6 +64,7 @@ public CategoriesResponse updateCategories(CategoriesCreateAndUpdate update, Int
     return  CategoriesMapper.toResponse(categoriesRepository.save(categories));
 }
 
+@Transactional
 @Override
 public String deleteCategories(Integer id){
     Optional<Categories> categorie = categoriesRepository.findById(id);

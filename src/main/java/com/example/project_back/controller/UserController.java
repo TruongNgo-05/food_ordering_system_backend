@@ -1,14 +1,18 @@
-package com.example.project_back.controller.User;
+package com.example.project_back.controller;
 
 
 import com.example.project_back.common.BaseResponse;
+import com.example.project_back.dto.request.spec.CategoriesRequestParam;
+import com.example.project_back.dto.request.spec.FoodRequestParam;
 import com.example.project_back.dto.request.user.UserUpdateRequest;
 import com.example.project_back.dto.request.user.UserCreateRequest;
-import com.example.project_back.dto.response.custommer.BannerCustomerResponse;
+import com.example.project_back.dto.response.user.BannerResponse;
 import com.example.project_back.dto.response.user.CategoriesResponse;
+import com.example.project_back.dto.response.user.FoodResponse;
 import com.example.project_back.dto.response.user.UserResponse;
 import com.example.project_back.service.BannerService;
 import com.example.project_back.service.CategoriesService;
+import com.example.project_back.service.FoodService;
 import com.example.project_back.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,22 +37,7 @@ public class UserController {
     private final UserService usersService;
     private final BannerService bannerService;
     private final CategoriesService categoriesService;
-
-    @GetMapping
-    public ResponseEntity<BaseResponse<Page<UserResponse>>> getAllUsers(@PageableDefault(size = 5, sort="id" ,direction = Sort.Direction.DESC) Pageable pageable ) {
-        return ResponseEntity.ok(new BaseResponse<>(
-                usersService.findAllUsers(pageable),
-                "Get All succsess full"
-        ));
-    }
-
-    @GetMapping("{id}")
-    public ResponseEntity<BaseResponse<UserResponse>> getUserById(@PathVariable Long id) {
-        return ResponseEntity.ok(new BaseResponse<>(
-                usersService.findUserById(id),
-                "Get By id User succsess full"
-        ));
-    }
+    private final FoodService foodService;
 
     @PostMapping()
     public ResponseEntity<BaseResponse <UserResponse>> createUser (@RequestBody @Valid UserCreateRequest createUserRequest){
@@ -89,7 +78,7 @@ public class UserController {
 
 
     @GetMapping("/banner")
-    public ResponseEntity<BaseResponse<List<BannerCustomerResponse>>> getAllBannerCustommer(){
+    public ResponseEntity<BaseResponse<List<BannerResponse>>> getAllBannerCustommer(){
         return ResponseEntity.ok(new BaseResponse<>(
                 bannerService.getAllBannerCustomer(),
                 "Get All Banner succsess full"
@@ -97,13 +86,22 @@ public class UserController {
     }
 
     @GetMapping("/categories")
-    public ResponseEntity<BaseResponse<Page<CategoriesResponse>>> getAllcategories(@PageableDefault(size =5 ,sort = "id",direction = Sort.Direction.DESC) Pageable pageable) {
+    public ResponseEntity<BaseResponse<Page<CategoriesResponse>>> getAllcategories(CategoriesRequestParam param,Pageable pageable) {
         return ResponseEntity.ok(new BaseResponse<>(
-                categoriesService.getCategories(pageable),
+                categoriesService.getCategories(param,pageable),
                 "get All Categories successfully!"
         ));
     }
+
+    @GetMapping("/food")
+    public ResponseEntity<BaseResponse<Page<FoodResponse>>> getAllFood(FoodRequestParam param, @PageableDefault(size = 5, sort="id" ,direction = Sort.Direction.DESC) Pageable pageable ) {
+        return ResponseEntity.ok(new BaseResponse<>(
+                foodService.getAllFoodCustomer(param,pageable),
+                "Get All succsess full"
+        ));
     }
+
+}
 
 
 

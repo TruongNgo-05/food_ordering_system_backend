@@ -2,7 +2,7 @@ package com.example.project_back.service.Impl;
 
 import com.example.project_back.dto.request.admin.BannerCreateAndUpdateRequest;
 import com.example.project_back.dto.response.admin.BannerAdminResponse;
-import com.example.project_back.dto.response.custommer.BannerCustomerResponse;
+import com.example.project_back.dto.response.user.BannerResponse;
 import com.example.project_back.entity.Banner;
 import com.example.project_back.exception.ApplicationException;
 import com.example.project_back.mapper.BannerMapper;
@@ -25,11 +25,12 @@ public class BannerServiceImpl implements BannerService {
 
     //   user
     @Override
-    public List<BannerCustomerResponse> getAllBannerCustomer() {
+    public List<BannerResponse> getAllBannerCustomer() {
         List<Banner> banners = bannerRespository.findAll();
-        List<BannerCustomerResponse> dto = new ArrayList<>();
+        List<BannerResponse> dto = new ArrayList<>();
         for (Banner banner : banners) {
-            dto.add(BannerMapper.toCustomerResponse(banner));
+            if(banner.getIsActive()==true){
+            dto.add(BannerMapper.toCustomerResponse(banner));}
         }
         return dto;
     }

@@ -5,10 +5,6 @@ import com.example.project_back.dto.request.admin.CategoriesCreateAndUpdate;
 import com.example.project_back.dto.response.user.CategoriesResponse;
 import com.example.project_back.service.CategoriesService;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

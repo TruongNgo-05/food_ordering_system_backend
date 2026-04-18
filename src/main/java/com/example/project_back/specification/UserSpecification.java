@@ -1,50 +1,41 @@
 package com.example.project_back.specification;
 
+import com.example.project_back.constant.Role;
+import com.example.project_back.constant.Status;
+import com.example.project_back.entity.User;
+import org.springframework.data.jpa.domain.Specification;
+
+import java.time.LocalDate;
+
 public class UserSpecification {
 
-//    public static Specification<Question> hasContentLike(String content) {
-//        return (root, query, cb) -> {
-//            if (content == null || content.isEmpty()) return null;
-//
-//            return cb.like(
-//                    cb.upper(root.get("content")),
-//                    "%" + content.toUpperCase() + "%"
-//            );
-//        };
-//    }
-//
-//    public static Specification<Question> hasDifficulty(DifficultyLevel difficulty) {
-//        return (root, query, cb) -> {
-//            if (difficulty == null) return null;
-//
-//            return cb.equal(root.get("difficultyLevel"), difficulty);
-//        };
-//    }
-//
-//    public static Specification<Question> hasCategoryId(Integer categoryId) {
-//        return (root, query, cb) -> {
-//            if (categoryId == null) return null;
-//
-//            return cb.equal(root.get("category").get("id"), categoryId);
-//        };
-//    }
-//
-//    public static Specification<Question> hasCreatorId(Integer creatorId) {
-//        return (root, query, cb) -> {
-//            if (creatorId == null) return null;
-//
-//            return cb.equal(root.get("creator").get("id"), creatorId);
-//        };
-//    }
-//
-//    public static Specification<Question> hasCreateDate(LocalDate minDate, LocalDate maxDate) {
-//        return (root, query, criteriaBuilder) -> {
-//            return criteriaBuilder.between(root.get("createDate"), minDate, maxDate);
-//        };
-//    }
-//    //lọc theo name
-//    public static Specification<Question> hasCreatorUsername(String username) {
-//        return (root, query, cb) ->
-//                cb.equal(root.get("creator").get("username"), username);
-//    }
+    public static Specification<User> hasEmail(String email){
+        return (root, query, cb) -> {
+            return cb.like(cb.upper(root.get("email")),"%"+ email.toUpperCase()+"%");
+        };
+    }
+
+    public static Specification<User> hasFullName(String fullName){
+        return (root,query,cb)->{
+            return cb.like(cb.upper(root.get("fullName")),"%"+ fullName.toUpperCase()+"%");
+        };
+    }
+
+    public static Specification<User> hasRole(Role role){
+        return (root, query, criteriaBuilder) -> {
+            return criteriaBuilder.equal(root.get("role"), role);
+        };
+    }
+
+    public static Specification<User> hasStatus(Status status){
+        return  (root, query, criteriaBuilder) -> {
+            return criteriaBuilder.equal(root.get("status"), status);
+        };
+    }
+
+    public static Specification<User> hasCreateDate(LocalDate minDate, LocalDate maxDate) {
+        return (root, query, criteriaBuilder) -> {
+            return criteriaBuilder.between(root.get("createDate"), minDate, maxDate);
+        };
+    }
 }
