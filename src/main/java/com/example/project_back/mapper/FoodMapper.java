@@ -29,6 +29,7 @@ public class FoodMapper {
         food.setStatus(true);
         food.setRating(0.0);
         food.setSoldCount(0);
+        food.setStatus(true);
         food.setCreatedAt(LocalDateTime.now());
         return food;
     }
@@ -45,6 +46,9 @@ public class FoodMapper {
         }
         if(dto.getImage() != null){
             food.setImage(dto.getImage());
+        }
+        if(dto.getStatus()!= null){
+            food.setStatus(dto.getStatus());
         }
     }
 }

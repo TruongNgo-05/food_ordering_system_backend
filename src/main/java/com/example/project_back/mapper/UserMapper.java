@@ -2,6 +2,7 @@ package com.example.project_back.mapper;
 
 import com.example.project_back.constant.Role;
 import com.example.project_back.constant.Status;
+import com.example.project_back.dto.request.admin.AdminUpdateUserRequest;
 import com.example.project_back.dto.request.user.UserUpdateRequest;
 import com.example.project_back.dto.request.user.UserCreateRequest;
 import com.example.project_back.dto.response.user.UserResponse;
@@ -21,7 +22,6 @@ public static User map(UserCreateRequest userCreateRequest){
     BeanUtils.copyProperties(userCreateRequest,user);
     user.setStatus(Status.ACTIVED);
     user.setFailCount(0);
-    user.setRole(Role.CUSTOMER);
     user.setIsActive(true);
     user.setCreatedDate(LocalDateTime.now());
     return user;
@@ -42,4 +42,13 @@ public static User map(UserCreateRequest userCreateRequest){
         }
     }
 
+
+    public static void adminUpdate(AdminUpdateUserRequest request , User user){
+    if(request.getEmail() !=null){
+        user.setEmail(request.getEmail());
+    }
+    if(request.getRole() !=null){
+        user.setRole(request.getRole());
+    }
+    }
 }

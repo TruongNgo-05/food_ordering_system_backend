@@ -1,5 +1,6 @@
 package com.example.project_back.dto.request.user;
 
+import com.example.project_back.constant.Role;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,4 +25,6 @@ public class UserCreateRequest {
 
     @NotNull(message = "ConfirmPassword not null")
     private String confirmPassword;
+
+    private Role role;
 }

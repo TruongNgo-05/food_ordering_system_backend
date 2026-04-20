@@ -4,6 +4,7 @@ import com.example.project_back.dto.request.admin.CategoriesCreateAndUpdate;
 import com.example.project_back.dto.request.spec.CategoriesRequestParam;
 import com.example.project_back.dto.response.user.CategoriesResponse;
 import com.example.project_back.entity.Categories;
+import com.example.project_back.exception.ApplicationException;
 import com.example.project_back.mapper.CategoriesMapper;
 import com.example.project_back.repository.CategoriesRepository;
 import com.example.project_back.service.CategoriesService;
@@ -37,6 +38,14 @@ public Page<CategoriesResponse> getCategories(CategoriesRequestParam param , Pag
     return categoriesRepository.findAll(spec,pageable).map(CategoriesMapper::toResponse);
 }
 
+@Override
+public CategoriesResponse getCategoryById(Integer id){
+    Optional<Categories> categories = categoriesRepository.findById(id);
+    if(categories.isEmpty()){
+       throw new ApplicationException("Category not found");
+    }
+    return CategoriesMapper.toResponse(categories.get());
+}
 @Transactional
 @Override
 public CategoriesResponse createCategories(CategoriesCreateAndUpdate create){

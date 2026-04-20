@@ -20,6 +20,10 @@ public class FoodSpecification {
             return criteriaBuilder.between(root.get("rating"), minRating, maxRating);
         });
     }
+    public static Specification<Food> hasStatus(Boolean status) {
+        return (root, query, cb) ->
+                cb.equal(root.get("status"), status);
+    }
 
     public static Specification<Food> hasCategories(String category) {
         return ((root, query, criteriaBuilder) ->  {

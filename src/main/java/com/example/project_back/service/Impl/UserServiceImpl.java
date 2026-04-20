@@ -3,6 +3,7 @@ package com.example.project_back.service.Impl;
 import com.example.project_back.config.SecurityUtils;
 import com.example.project_back.constant.Role;
 import com.example.project_back.constant.Status;
+import com.example.project_back.dto.request.admin.AdminUpdateUserRequest;
 import com.example.project_back.dto.request.spec.UserRequestParam;
 import com.example.project_back.dto.request.user.UserCreateRequest;
 import com.example.project_back.dto.request.user.UserUpdateRequest;
@@ -85,9 +86,16 @@ public class UserServiceImpl implements UserService {
         if (!createUserRequest.getPassWord().equals(createUserRequest.getConfirmPassword())) {
             throw new ApplicationException("Password không khớp");
         }
+        if (userRepository.findByPhone(createUserRequest.getPhone()).isPresent()) {
+            throw new ApplicationException("Số điện thoại đã tồn tại");
+        }
         User user = UserMapper.map(createUserRequest);
+        if (createUserRequest.getRole() == null) {
+            user.setRole(Role.CUSTOMER);
+        }
         user.setPassword(passwordEncoder.encode(createUserRequest.getPassWord()));
         User savedUser = userRepository.save(user);
+
         UserResponse userResponse = UserMapper.map(savedUser);
         return userResponse;
     }
@@ -163,6 +171,17 @@ public class UserServiceImpl implements UserService {
         return avatarUrl;
     }
 
+    @Transactional
+    @Override
+    public UserResponse adminUpdateUser(AdminUpdateUserRequest updateUserRequest, Long id) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isEmpty()) {
+            throw new ApplicationException("User not found");
+        }
+        User users = user.get();
+        UserMapper.adminUpdate(updateUserRequest, users);
+        return UserMapper.map(userRepository.save(users));
+    }
 
     @Transactional
     @Override

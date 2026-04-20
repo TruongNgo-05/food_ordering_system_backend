@@ -11,6 +11,8 @@ import java.util.List;
 public interface CategoriesService {
    Page<CategoriesResponse> getCategories(CategoriesRequestParam param, Pageable pageable);
 
+   CategoriesResponse getCategoryById(Integer id);
+
     CategoriesResponse createCategories(CategoriesCreateAndUpdate create);
 
     CategoriesResponse updateCategories(CategoriesCreateAndUpdate update, Integer id);

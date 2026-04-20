@@ -1,9 +1,11 @@
 package com.example.project_back.controller.Admin;
 
 import com.example.project_back.common.BaseResponse;
+import com.example.project_back.dto.request.admin.AdminUpdateUserRequest;
 import com.example.project_back.dto.request.spec.UserRequestParam;
 import com.example.project_back.dto.response.user.UserResponse;
 import com.example.project_back.service.UserService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +35,15 @@ public class AdminUserController {
                 "Get By id User succsess full"
         ));
     }
+
+    @PutMapping("{id}")
+    public  ResponseEntity<BaseResponse<UserResponse>> adminUpdateUser(@RequestBody @Valid AdminUpdateUserRequest request, @PathVariable Long id) {
+        return ResponseEntity.ok(new BaseResponse<>(
+                usersService.adminUpdateUser(request,id),
+                "Updtae User succsess full"
+        ));
+    }
+
 
     @DeleteMapping("{id}")
     public ResponseEntity<BaseResponse<String>> deleteUser(@PathVariable Long id) {

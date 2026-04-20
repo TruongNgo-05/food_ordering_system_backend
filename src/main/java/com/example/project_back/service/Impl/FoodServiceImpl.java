@@ -30,30 +30,32 @@
         private final CategoriesRepository categoriesRepository;
 
         @Override
-        public Page<FoodResponse> getAllFoodCustomer(FoodRequestParam param, Pageable pageable){
-                String name = param.getName();
-                Double minPrice =  param.getMinPrice();
-                Double maxPrice =  param.getMaxPrice();
-                Double minRating =  param.getMinRating();
-                Double maxRating =  param.getMaxRating();
-                String categories = param.getCategories();
+        public Page<FoodResponse> getAllFoodCustomer(
+                FoodRequestParam param,
+                Pageable pageable
+        ) {
+            String name = param.getName();
+            Double minPrice = param.getMinPrice();
+            Double maxPrice = param.getMaxPrice();
+            Double minRating = param.getMinRating();
+            Double maxRating = param.getMaxRating();
+            String categories = param.getCategories();
+            Specification<Food> spec = Specification.where(FoodSpecification.hasStatus(true));
 
-            Specification<Food> spec =Specification.unrestricted();
-            if(name!=null && !name.isEmpty()){
-                spec=spec.and(FoodSpecification.hasName(name));
+            if (name != null && !name.isEmpty()) {
+                spec = spec.and(FoodSpecification.hasName(name));
             }
-            if(minPrice != null && maxPrice != null){
-                spec=spec.and(FoodSpecification.hasPrice(minPrice, maxPrice));
+            if (minPrice != null && maxPrice != null) {
+                spec = spec.and(FoodSpecification.hasPrice(minPrice, maxPrice));
             }
-            if(minRating != null && maxRating != null){
-                spec=spec.and(FoodSpecification.hasRating(minRating, maxRating));
+            if (minRating != null && maxRating != null) {
+                spec = spec.and(FoodSpecification.hasRating(minRating, maxRating));
             }
-            if(categories != null){
-                spec=spec.and(FoodSpecification.hasCategories(categories));
+            if (categories != null && !categories.isEmpty()) {spec = spec.and(
+                        FoodSpecification.hasCategories(categories));
             }
-            return foodRepository.findAll(spec,pageable).map(FoodMapper::toMapperCustomer);
+            return foodRepository.findAll(spec, pageable).map(FoodMapper::toMapperCustomer);
         }
-
         @Override
         public Page<FoodAdminResponse> getAllFoodAdmin(FoodRequestParam param, Pageable pageable){
             String name = param.getName();

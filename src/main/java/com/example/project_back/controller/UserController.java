@@ -6,6 +6,7 @@ import com.example.project_back.dto.request.spec.CategoriesRequestParam;
 import com.example.project_back.dto.request.spec.FoodRequestParam;
 import com.example.project_back.dto.request.user.UserUpdateRequest;
 import com.example.project_back.dto.request.user.UserCreateRequest;
+import com.example.project_back.dto.response.admin.FoodAdminResponse;
 import com.example.project_back.dto.response.user.BannerResponse;
 import com.example.project_back.dto.response.user.CategoriesResponse;
 import com.example.project_back.dto.response.user.FoodResponse;
@@ -40,14 +41,15 @@ public class UserController {
     private final FoodService foodService;
 
     @PostMapping()
-    public ResponseEntity<BaseResponse <UserResponse>> createUser (@RequestBody @Valid UserCreateRequest createUserRequest){
-       return ResponseEntity.status(HttpStatus.CREATED).body(new BaseResponse<>(
+    public ResponseEntity<BaseResponse<UserResponse>> createUser(@RequestBody @Valid UserCreateRequest createUserRequest) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(new BaseResponse<>(
                 usersService.createUser(createUserRequest),
                 "Create Account Successfully")
-        ) ;
+        );
     }
+
     @GetMapping("/me")
-    public ResponseEntity<BaseResponse<UserResponse>> getCurrentUser(){
+    public ResponseEntity<BaseResponse<UserResponse>> getCurrentUser() {
         return ResponseEntity.ok(new BaseResponse<>(
                 usersService.getCurrentUser(),
                 "Get By Current User sucsess full"
@@ -78,7 +80,7 @@ public class UserController {
 
 
     @GetMapping("/banner")
-    public ResponseEntity<BaseResponse<List<BannerResponse>>> getAllBannerCustommer(){
+    public ResponseEntity<BaseResponse<List<BannerResponse>>> getAllBannerCustommer() {
         return ResponseEntity.ok(new BaseResponse<>(
                 bannerService.getAllBannerCustomer(),
                 "Get All Banner succsess full"
@@ -86,21 +88,37 @@ public class UserController {
     }
 
     @GetMapping("/categories")
-    public ResponseEntity<BaseResponse<Page<CategoriesResponse>>> getAllcategories(CategoriesRequestParam param,Pageable pageable) {
+    public ResponseEntity<BaseResponse<Page<CategoriesResponse>>> getAllcategories(CategoriesRequestParam param, Pageable pageable) {
         return ResponseEntity.ok(new BaseResponse<>(
-                categoriesService.getCategories(param,pageable),
+                categoriesService.getCategories(param, pageable),
                 "get All Categories successfully!"
         ));
     }
 
-    @GetMapping("/food")
-    public ResponseEntity<BaseResponse<Page<FoodResponse>>> getAllFood(FoodRequestParam param, @PageableDefault(size = 5, sort="id" ,direction = Sort.Direction.DESC) Pageable pageable ) {
+    @GetMapping("/categories/{id}")
+    public ResponseEntity<BaseResponse<CategoriesResponse>> getByIdCategory(@PathVariable Integer id) {
         return ResponseEntity.ok(new BaseResponse<>(
-                foodService.getAllFoodCustomer(param,pageable),
+                categoriesService.getCategoryById(id),
+                "get Category successfully!"
+        ));
+    }
+
+    @GetMapping("/food")
+    public ResponseEntity<BaseResponse<Page<FoodResponse>>> getAllFood(FoodRequestParam param, @PageableDefault(size = 5, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(new BaseResponse<>(
+                foodService.getAllFoodCustomer(param, pageable),
                 "Get All succsess full"
         ));
     }
 
+    @GetMapping("/food/{id}")
+    public ResponseEntity<BaseResponse<FoodAdminResponse>> getByIdFood(@PathVariable Long id) {
+        return ResponseEntity.ok(new BaseResponse<>(
+                foodService.getById(id),
+                "Get ByID succsess full"
+        ));
+
+    }
 }
 
 

@@ -15,5 +15,7 @@ public class FoodCreateAndUpdateRequest {
 
     private String image;
 
+    private Boolean status;
+
     private Integer categoryId;
 }
