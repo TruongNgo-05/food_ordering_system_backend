@@ -28,7 +28,9 @@ public class Voucher {
 
     @Column(name = "max_discount")
     private Double maxDiscount;
-
+    private Integer usageLimit;
+    private Integer usedCount = 0;
     @Column(name = "expired_at")
     private LocalDateTime expiredAt;
+    private LocalDateTime createdAt;
 }

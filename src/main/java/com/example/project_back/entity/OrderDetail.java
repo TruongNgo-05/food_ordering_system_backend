@@ -14,10 +14,8 @@ public class OrderDetail {
     private Integer id;
 
     private Integer quantity;
-
     @Column(name = "unit_price")
     private Double unitPrice;
-
     private Double subtotal;
 
     @ManyToOne

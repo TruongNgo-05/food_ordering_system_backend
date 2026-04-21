@@ -22,5 +22,5 @@ public class FoodRequestParam {
 
     private Integer soldCount;
 
-    private String categories;
+    private Integer categoryId;
 }

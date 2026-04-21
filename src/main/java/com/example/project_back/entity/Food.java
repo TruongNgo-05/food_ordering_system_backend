@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "foods")
@@ -17,16 +18,13 @@ public class Food {
 
     private String name;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
-
     private Double price;
-
     private String image;
 
     private Double rating;
-
     private Integer soldCount;
-
     private Boolean status;
 
     @Column(name = "created_at")
@@ -35,4 +33,10 @@ public class Food {
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Categories categories;
+
+    @OneToMany(mappedBy = "food", cascade = CascadeType.ALL)
+    private List<FoodImage> images;
+
+    @OneToMany(mappedBy = "food", cascade = CascadeType.ALL)
+    private List<Review> reviews;
 }

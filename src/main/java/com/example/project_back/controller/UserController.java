@@ -7,10 +7,8 @@ import com.example.project_back.dto.request.spec.FoodRequestParam;
 import com.example.project_back.dto.request.user.UserUpdateRequest;
 import com.example.project_back.dto.request.user.UserCreateRequest;
 import com.example.project_back.dto.response.admin.FoodAdminResponse;
-import com.example.project_back.dto.response.user.BannerResponse;
-import com.example.project_back.dto.response.user.CategoriesResponse;
-import com.example.project_back.dto.response.user.FoodResponse;
-import com.example.project_back.dto.response.user.UserResponse;
+import com.example.project_back.dto.response.admin.FoodDetailAdminRespone;
+import com.example.project_back.dto.response.user.*;
 import com.example.project_back.service.BannerService;
 import com.example.project_back.service.CategoriesService;
 import com.example.project_back.service.FoodService;
@@ -103,7 +101,7 @@ public class UserController {
         ));
     }
 
-    @GetMapping("/food")
+    @GetMapping("/foods")
     public ResponseEntity<BaseResponse<Page<FoodResponse>>> getAllFood(FoodRequestParam param, @PageableDefault(size = 5, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(new BaseResponse<>(
                 foodService.getAllFoodCustomer(param, pageable),
@@ -111,13 +109,18 @@ public class UserController {
         ));
     }
 
-    @GetMapping("/food/{id}")
-    public ResponseEntity<BaseResponse<FoodAdminResponse>> getByIdFood(@PathVariable Long id) {
+    @GetMapping("/foods/{id}")
+    public ResponseEntity<BaseResponse<FoodDetailAdminRespone>> getByIdFood(@PathVariable Long id) {
         return ResponseEntity.ok(new BaseResponse<>(
                 foodService.getById(id),
                 "Get ByID succsess full"
         ));
 
+    }
+
+    @GetMapping("/foods/{id}/detail")
+    public FoodDetailResponse getFoodDetail(@PathVariable Long id){
+        return foodService.getFoodDetail(id);
     }
 }
 

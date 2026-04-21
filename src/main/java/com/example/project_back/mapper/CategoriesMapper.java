@@ -22,8 +22,5 @@ public class CategoriesMapper {
         if(update.getName() != null && !update.getName().isEmpty()){
             categories.setName(update.getName());
         }
-        if(update.getDescription() != null && !update.getDescription().isEmpty()){
-            categories.setDescription(update.getDescription());
-        }
     }
 }

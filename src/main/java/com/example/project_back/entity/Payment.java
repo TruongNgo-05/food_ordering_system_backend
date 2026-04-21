@@ -18,6 +18,10 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    private Order order;
+
     @Enumerated(EnumType.STRING)
     private PaymentMethodType method;
 
@@ -27,7 +31,5 @@ public class Payment {
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
 
-    @ManyToOne
-    @JoinColumn(name = "order_id")
-    private Order order;
+
 }

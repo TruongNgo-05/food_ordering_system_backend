@@ -10,10 +10,4 @@ public class CategoriesSpecification {
             return cb.like(cb.upper(root.get("name")),"%"+name.toUpperCase()+"%");
         };
     }
-
-    public static Specification<Categories> hasCategoriesId(Integer id){
-        return (root, query, cb) -> {
-            return cb.equal(root.get("id"), id);
-        };
-    }
 }

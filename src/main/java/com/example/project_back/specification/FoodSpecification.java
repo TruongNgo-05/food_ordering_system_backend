@@ -1,5 +1,6 @@
 package com.example.project_back.specification;
 
+import com.example.project_back.entity.Categories;
 import com.example.project_back.entity.Food;
 import org.springframework.data.jpa.domain.Specification;
 public class FoodSpecification {
@@ -25,9 +26,10 @@ public class FoodSpecification {
                 cb.equal(root.get("status"), status);
     }
 
-    public static Specification<Food> hasCategories(String category) {
-        return ((root, query, criteriaBuilder) ->  {
-            return criteriaBuilder.like(root.get("category"),"%"+ category+"%");
-        });
+    public static Specification<Food> hasCategoryId(Integer categoryId) {
+        return (root, query, cb) ->
+                cb.equal(root.get("categories").get("id"), categoryId);
     }
+
+
 }

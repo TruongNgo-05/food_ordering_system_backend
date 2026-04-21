@@ -26,10 +26,8 @@ public class Order {
 
     @Column(name = "customer_name")
     private String customerName;
-
     @Column(name = "customer_phone")
     private String customerPhone;
-
     @Column(name = "delivery_address")
     private String deliveryAddress;
 
@@ -37,43 +35,39 @@ public class Order {
     @Column(name = "order_type")
     private OrderType orderType;
 
-    private Double subtotal;
     private Double discount;
-
     @Column(name = "shipping_fee")
     private Double shippingFee;
-
     @Column(name = "total_price")
     private Double totalPrice;
 
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status")
     private PaymentStatus paymentStatus;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "voucher_id")
+    private Voucher voucher;
 
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "table_id")
+    private TableDetail table;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "voucher_id")
-    private Voucher voucher;
-
-    @ManyToOne
     @JoinColumn(name = "payment_method_id")
     private PaymentMethod paymentMethod;
-
-    @ManyToOne
-    @JoinColumn(name = "table_id")
-    private TableDetail table;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderDetail> orderDetails;

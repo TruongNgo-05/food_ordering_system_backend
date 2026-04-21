@@ -1,28 +1,25 @@
 package com.example.project_back.entity;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-
 @Entity
-@Table(name = "carts")
+@Table(name = "user_addresses")
 @Getter
 @Setter
-public class Cart {
+public class UserAddress {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    private LocalDateTime createdAt;
+    @Column(columnDefinition = "TEXT")
+    private String address;
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
-    private List<CartItem> items;
+    private Boolean is_default;
 }

@@ -3,6 +3,8 @@
     import com.example.project_back.dto.request.admin.FoodCreateAndUpdateRequest;
     import com.example.project_back.dto.request.spec.FoodRequestParam;
     import com.example.project_back.dto.response.admin.FoodAdminResponse;
+    import com.example.project_back.dto.response.admin.FoodDetailAdminRespone;
+    import com.example.project_back.dto.response.user.FoodDetailResponse;
     import com.example.project_back.dto.response.user.FoodResponse;
     import com.example.project_back.entity.Categories;
     import com.example.project_back.entity.Food;
@@ -16,6 +18,7 @@
     import lombok.AllArgsConstructor;
     import org.springframework.data.domain.Page;
     import org.springframework.data.domain.Pageable;
+    import org.springframework.data.jpa.domain.PredicateSpecification;
     import org.springframework.data.jpa.domain.Specification;
     import org.springframework.stereotype.Service;
 
@@ -39,7 +42,7 @@
             Double maxPrice = param.getMaxPrice();
             Double minRating = param.getMinRating();
             Double maxRating = param.getMaxRating();
-            String categories = param.getCategories();
+            Integer categories = param.getCategoryId();
             Specification<Food> spec = Specification.where(FoodSpecification.hasStatus(true));
 
             if (name != null && !name.isEmpty()) {
@@ -51,8 +54,8 @@
             if (minRating != null && maxRating != null) {
                 spec = spec.and(FoodSpecification.hasRating(minRating, maxRating));
             }
-            if (categories != null && !categories.isEmpty()) {spec = spec.and(
-                        FoodSpecification.hasCategories(categories));
+            if (categories != null) {
+                spec = spec.and(FoodSpecification.hasCategoryId(categories));
             }
             return foodRepository.findAll(spec, pageable).map(FoodMapper::toMapperCustomer);
         }
@@ -63,7 +66,7 @@
             Double maxPrice =  param.getMaxPrice();
             Double minRating =  param.getMinRating();
             Double maxRating =  param.getMaxRating();
-            String categories = param.getCategories();
+            Integer categories = param.getCategoryId();
 
             Specification<Food> spec =Specification.unrestricted();
             if(name!=null && !name.isEmpty()){
@@ -76,18 +79,26 @@
                 spec=spec.and(FoodSpecification.hasRating(minRating, maxRating));
             }
             if(categories != null){
-                spec=spec.and(FoodSpecification.hasCategories(categories));
+                spec=spec.and( FoodSpecification.hasCategoryId(categories));
             }
             return foodRepository.findAll(spec,pageable).map(FoodMapper::toMapperAdmin);
         }
 
         @Override
-        public FoodAdminResponse getById(Long id){
+        public FoodDetailAdminRespone getById(Long id){
             Optional<Food> food = foodRepository.findById(id);
             if(food.isEmpty()){
                 throw new ApplicationException(" K Tim thay id ");
             }
-            return FoodMapper.toMapperAdmin(food.get());
+            return FoodMapper.toMapperAdminDetail(food.get());
+        }
+
+        @Override
+        public FoodDetailResponse getFoodDetail(Long id){
+            Food food = foodRepository.findById(id)
+                    .orElseThrow(() -> new ApplicationException("Không tìm thấy food"));
+
+            return FoodMapper.toMapperDetail(food);
         }
 
         @Transactional

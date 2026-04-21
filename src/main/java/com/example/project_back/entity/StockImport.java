@@ -1,5 +1,5 @@
 package com.example.project_back.entity;
-import com.example.project_back.constant.InventoryStatus;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -7,23 +7,27 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "inventory")
+@Table(name = "stock_imports")
 @Getter
 @Setter
-public class Inventory {
-
+public class StockImport {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @OneToOne
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "food_id")
     private Food food;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id")
+    private User admin;
+
     private Integer quantity;
+    private Double importPrice;
 
-    @Enumerated(EnumType.STRING)
-    private InventoryStatus status;
+    private String note;
 
-    private LocalDateTime updatedAt;
+    private LocalDateTime createdAt;
 }

@@ -24,11 +24,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -129,42 +132,47 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // XÓA ẢNH CŨ
-        if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
-            String oldAvatarUrl = user.getAvatar();
-
-            String oldFileName = oldAvatarUrl.substring(oldAvatarUrl.lastIndexOf("/") + 1);
-
-            Path oldFilePath = Paths.get("uploads").resolve(oldFileName);
-
-            Files.deleteIfExists(oldFilePath);
-        }
-
-        // VALIDATE FILE
+        // 1. validate file
         if (file.isEmpty()) {
             throw new RuntimeException("File is empty");
         }
 
-        if (!file.getContentType().startsWith("image/")) {
-            throw new RuntimeException("File must be image");
+        List<String> allowed = List.of("image/png", "image/jpeg", "image/jpg", "image/webp");
+        if (!allowed.contains(file.getContentType())) {
+            throw new RuntimeException("Invalid image type");
         }
 
-        // TẠO TÊN FILE
-        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        // 2. delete old avatar safely
+        if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+            try {
+                URI uri = URI.create(user.getAvatar());
+                String oldFileName = Paths.get(uri.getPath()).getFileName().toString();
 
-        // TẠO FOLDER nếu chưa có
+                Path oldFilePath = Paths.get("uploads").resolve(oldFileName);
+                Files.deleteIfExists(oldFilePath);
+            } catch (Exception e) {
+                // không crash nếu xóa fail
+                System.out.println("Cannot delete old avatar: " + e.getMessage());
+            }
+        }
+
+        // 3. create file name
+        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+
+        // 4. create folder
         Path uploadPath = Paths.get("uploads");
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
         }
 
-        // LƯU FILE
+        // 5. save file
         Path filePath = uploadPath.resolve(fileName);
         Files.copy(file.getInputStream(), filePath);
 
-        // URL
+        // 6. build URL
         String avatarUrl = "http://localhost:8080/uploads/" + fileName;
 
+        // 7. save DB
         user.setAvatar(avatarUrl);
         userRepository.save(user);
 

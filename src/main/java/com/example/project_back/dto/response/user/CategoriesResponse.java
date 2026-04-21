@@ -13,6 +13,5 @@ public class CategoriesResponse {
 
     private String name;
 
-    private String description;
 
 }
