@@ -5,6 +5,7 @@
     import com.example.project_back.dto.response.admin.FoodAdminResponse;
     import com.example.project_back.dto.response.admin.FoodDetailAdminRespone;
     import com.example.project_back.dto.response.user.FoodDetailResponse;
+    import com.example.project_back.dto.response.user.FoodOderTableResponse;
     import com.example.project_back.dto.response.user.FoodResponse;
     import com.example.project_back.entity.Categories;
     import com.example.project_back.entity.Food;
@@ -58,6 +59,11 @@
                 spec = spec.and(FoodSpecification.hasCategoryId(categories));
             }
             return foodRepository.findAll(spec, pageable).map(FoodMapper::toMapperCustomer);
+        }
+
+        Page<FoodOderTableResponse> getAllFoodToTable(Pageable pageable) {
+            Page<Food>  foods = foodRepository.findAll(pageable);
+            return foods.map(FoodMapper::toMapTable);
         }
         @Override
         public Page<FoodAdminResponse> getAllFoodAdmin(FoodRequestParam param, Pageable pageable){

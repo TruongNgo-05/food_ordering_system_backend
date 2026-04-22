@@ -4,6 +4,7 @@ import com.example.project_back.dto.request.admin.FoodCreateAndUpdateRequest;
 import com.example.project_back.dto.response.admin.FoodAdminResponse;
 import com.example.project_back.dto.response.admin.FoodDetailAdminRespone;
 import com.example.project_back.dto.response.user.FoodDetailResponse;
+import com.example.project_back.dto.response.user.FoodOderTableResponse;
 import com.example.project_back.dto.response.user.FoodResponse;
 import com.example.project_back.entity.Food;
 import com.example.project_back.entity.FoodImage;
@@ -15,11 +16,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class FoodMapper {
+    //user
     public static FoodResponse toMapperCustomer(Food food){
         FoodResponse foodResponse = new FoodResponse();
         BeanUtils.copyProperties(food, foodResponse);
         foodResponse.setCategoryId(food.getCategories().getId());
         return foodResponse;
+    }
+
+    public static FoodOderTableResponse toMapTable(Food food){
+        FoodOderTableResponse dto = new FoodOderTableResponse();
+        BeanUtils.copyProperties(food, dto);
+        return dto;
     }
 
 //    admin
