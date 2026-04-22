@@ -27,6 +27,5 @@ Page<UserResponse> findAllUsers(UserRequestParam param, Pageable pageable);
 
 UserResponse findUserById(Long id);
 
-
-    UserResponse adminUpdateUser(AdminUpdateUserRequest updateUserRequest, Long id);
+UserResponse adminUpdateUser(AdminUpdateUserRequest updateUserRequest, Long id);
 }

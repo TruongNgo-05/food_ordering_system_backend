@@ -30,7 +30,7 @@ import org.springframework.http.MediaType;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService usersService;
@@ -108,19 +108,13 @@ public class UserController {
                 "Get All succsess full"
         ));
     }
-
     @GetMapping("/foods/{id}")
-    public ResponseEntity<BaseResponse<FoodDetailAdminRespone>> getByIdFood(@PathVariable Long id) {
+    public ResponseEntity<BaseResponse<FoodDetailResponse>> getFoodDetail(@PathVariable Long id){
+
         return ResponseEntity.ok(new BaseResponse<>(
-                foodService.getById(id),
-                "Get ByID succsess full"
+                foodService.getFoodDetail(id),
+                "Get Food Detail successfully!"
         ));
-
-    }
-
-    @GetMapping("/foods/{id}/detail")
-    public FoodDetailResponse getFoodDetail(@PathVariable Long id){
-        return foodService.getFoodDetail(id);
     }
 }
 

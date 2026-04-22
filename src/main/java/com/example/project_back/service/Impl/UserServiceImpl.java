@@ -86,7 +86,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse createUser(UserCreateRequest createUserRequest) {
         if (userRepository.findByEmailOrUsername(createUserRequest.getEmail(), createUserRequest.getUsername()).isPresent()) {
-            throw new ApplicationException("User da ton tai");
+            throw new ApplicationException("User đã tồn tại ");
         }
         if (!createUserRequest.getPassWord().equals(createUserRequest.getConfirmPassword())) {
             throw new ApplicationException("Password không khớp");
