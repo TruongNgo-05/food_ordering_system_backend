@@ -2,6 +2,7 @@ package com.example.project_back.service;
 
 import com.example.project_back.dto.request.admin.AdminUpdateUserRequest;
 import com.example.project_back.dto.request.spec.UserRequestParam;
+import com.example.project_back.dto.request.user.ChangePasswordRequest;
 import com.example.project_back.dto.request.user.UserCreateRequest;
 import com.example.project_back.dto.request.user.UserUpdateRequest;
 import com.example.project_back.dto.response.user.UserResponse;
@@ -20,6 +21,8 @@ UserResponse getCurrentUser();
 String uploadAvatar(Long id, MultipartFile file) throws IOException;
 
 UserResponse updateMyProfile(UserUpdateRequest userUpdateRequest);
+
+Boolean changePassword(ChangePasswordRequest change);
 
 String deleteUser(Long id);
 //    admin

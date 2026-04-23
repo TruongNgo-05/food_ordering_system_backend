@@ -1,6 +1,7 @@
 package com.example.project_back.mapper;
 
 import com.example.project_back.dto.request.customer.ReviewRequest;
+import com.example.project_back.dto.request.customer.ReviewUpdateRequest;
 import com.example.project_back.dto.response.user.ReviewResponse;
 import com.example.project_back.entity.Review;
 import org.springframework.beans.BeanUtils;
@@ -22,5 +23,14 @@ public class ReviewMapper {
         BeanUtils.copyProperties(reviewRequest, review);
         review.setCreatedAt(LocalDateTime.now());
         return  review;
+    }
+
+    public static void update(ReviewUpdateRequest reviewUpdateRequest , Review review){
+       if(reviewUpdateRequest.getRating()!=null){
+           review.setRating(reviewUpdateRequest.getRating());
+       }
+       if(reviewUpdateRequest.getComment()!=null){
+           review.setComment(reviewUpdateRequest.getComment());
+       }
     }
 }

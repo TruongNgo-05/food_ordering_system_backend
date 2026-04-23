@@ -31,5 +31,5 @@ public class FoodDetailAdminRespone {
 
     private LocalDateTime createdAt;
 
-    private Categories categories;
+    private String categoryName;
 }

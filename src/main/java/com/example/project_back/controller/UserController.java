@@ -4,10 +4,9 @@ package com.example.project_back.controller;
 import com.example.project_back.common.BaseResponse;
 import com.example.project_back.dto.request.spec.CategoriesRequestParam;
 import com.example.project_back.dto.request.spec.FoodRequestParam;
+import com.example.project_back.dto.request.user.ChangePasswordRequest;
 import com.example.project_back.dto.request.user.UserUpdateRequest;
 import com.example.project_back.dto.request.user.UserCreateRequest;
-import com.example.project_back.dto.response.admin.FoodAdminResponse;
-import com.example.project_back.dto.response.admin.FoodDetailAdminRespone;
 import com.example.project_back.dto.response.user.*;
 import com.example.project_back.service.BannerService;
 import com.example.project_back.service.CategoriesService;
@@ -42,7 +41,7 @@ public class UserController {
     public ResponseEntity<BaseResponse<UserResponse>> createUser(@RequestBody @Valid UserCreateRequest createUserRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(new BaseResponse<>(
                 usersService.createUser(createUserRequest),
-                "Create Account Successfully")
+                "Tạo tài khoản thành công")
         );
     }
 
@@ -58,10 +57,17 @@ public class UserController {
     public ResponseEntity<BaseResponse<UserResponse>> updateMyProfile(@RequestBody UserUpdateRequest userUpdateRequest) {
         return ResponseEntity.ok(new BaseResponse<>(
                 usersService.updateMyProfile(userUpdateRequest),
-                "Update Account Successfully"
+                "Cập nhật tài khoản thành công"
         ));
     }
 
+    @PutMapping("/changePassword")
+    public ResponseEntity<BaseResponse<Boolean>> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
+        return ResponseEntity.ok(new BaseResponse<>(
+                usersService.changePassword(changePasswordRequest),
+                "Đổi mật khẩu thành công"
+        ));
+    }
 
     @PostMapping(value = "/upload-avatar/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadAvatar(
@@ -75,7 +81,6 @@ public class UserController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
 
     @GetMapping("/banner")
     public ResponseEntity<BaseResponse<List<BannerResponse>>> getAllBannerCustommer() {

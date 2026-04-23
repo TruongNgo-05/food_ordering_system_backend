@@ -34,7 +34,7 @@ public class Food {
     @JoinColumn(name = "category_id")
     private Categories categories;
 
-    @OneToMany(mappedBy = "food", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "food", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FoodImage> images;
 
     @OneToMany(mappedBy = "food", cascade = CascadeType.ALL)

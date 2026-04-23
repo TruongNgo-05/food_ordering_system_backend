@@ -121,7 +121,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public String sendOtp(ForgotPassword forgetpw) {
         Optional<User> user = userRepository.findByEmail(forgetpw.getEmail());
         if (user.isEmpty()) {
-            throw new ApplicationException("Account not found");
+            throw new ApplicationException("Không tìm thấy tài khoản ");
         }
         //kiểm tra OTP gần nhất xem đã tạo bao giờ
         Optional<Otp> lastOtp = otpRepository
@@ -151,7 +151,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 "Xin chào " + user.get().getUsername() + ",\n\n"
                         + "Mã OTP xác thực của bạn là:\n\n"
                         + otp + "\n\n"
-                        + "Mã OTP này có hiệu lực trong vòng 1 phút.\n\n"
+                        + "Mã OTP này có hiệu lực trong vòng 30s.\n\n"
                         + "Vui lòng không chia sẻ mã này cho bất kỳ ai để đảm bảo an toàn cho tài khoản.\n\n"
                         + "Trân trọng"
         );
@@ -163,11 +163,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         Optional<User> users = userRepository.findByEmail(resetpw.getEmail());
         if (users.isEmpty()) {
-            throw new ApplicationException("Account not found");
+            throw new ApplicationException("Không tìm thấy tài khoản người dùng");
         }
 
-        Otp otp = otpRepository
-                .findByEmailAndOtp(resetpw.getEmail(), resetpw.getOtp());
+        Otp otp = otpRepository.findByEmailAndOtp(resetpw.getEmail(), resetpw.getOtp());
 
         if (otp == null) {
             throw new ApplicationException("OTP không đúng");
@@ -178,7 +177,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         if (!resetpw.getNewPassword().equals(resetpw.getConfirmNewPassword())) {
-            throw new ApplicationException("Confirm password không khớp");
+            throw new ApplicationException("mật khẩu mới không khớp");
         }
 
         User user = users.get();
@@ -202,7 +201,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) {
-            throw new ApplicationException("Account not found ID");
+            throw new ApplicationException("Không tìm thấy tài khoản người dùng");
         }
         User users = user.get();
         users.setStatus(Status.ACTIVED);
@@ -227,7 +226,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public String lockAccount(Long userId) {
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) {
-            throw new ApplicationException("Account not found ID");
+            throw new ApplicationException("Không tìm thấy mã tài khoản người dùng");
         }
         User users = user.get();
         users.setStatus(Status.LOCKED);

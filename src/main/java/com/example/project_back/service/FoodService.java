@@ -8,6 +8,9 @@ import com.example.project_back.dto.response.user.FoodDetailResponse;
 import com.example.project_back.dto.response.user.FoodResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 public interface FoodService {
     Page<FoodResponse> getAllFoodCustomer(FoodRequestParam param, Pageable pageable);
@@ -18,9 +21,20 @@ public interface FoodService {
 
     FoodDetailResponse getFoodDetail(Long id);
 
-    FoodAdminResponse createFood(FoodCreateAndUpdateRequest create);
+//    FoodAdminResponse createFood(FoodCreateAndUpdateRequest create);
+FoodAdminResponse createFood(
+        FoodCreateAndUpdateRequest create,
+        MultipartFile image,
+        List<MultipartFile> images
+);
 
-    FoodAdminResponse updateFood(FoodCreateAndUpdateRequest update, Long id);
+//    FoodAdminResponse updateFood(FoodCreateAndUpdateRequest update, Long id);
+FoodAdminResponse updateFood(
+        Long id,
+        FoodCreateAndUpdateRequest update,
+        MultipartFile image,
+        List<MultipartFile> images
+);
 
     String deleteFood(Long id);
 }

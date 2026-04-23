@@ -19,8 +19,8 @@ public class FoodDetailResponse {
 
 
     private Double rating;
-    private Integer reviewCount;
+    private Long reviewCount;
     private Integer soldCount;
 
-    private String category;
+    private String categoryName;
 }

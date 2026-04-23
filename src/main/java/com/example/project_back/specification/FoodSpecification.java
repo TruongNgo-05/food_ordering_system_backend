@@ -1,6 +1,5 @@
 package com.example.project_back.specification;
 
-import com.example.project_back.entity.Categories;
 import com.example.project_back.entity.Food;
 import org.springframework.data.jpa.domain.Specification;
 public class FoodSpecification {

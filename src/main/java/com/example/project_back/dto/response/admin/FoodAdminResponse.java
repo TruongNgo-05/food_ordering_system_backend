@@ -23,5 +23,5 @@ public class FoodAdminResponse {
 
     private Boolean status;
 
-    private Categories categories;
+    private String categoryName;
 }

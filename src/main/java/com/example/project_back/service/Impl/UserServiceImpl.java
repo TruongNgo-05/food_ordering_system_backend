@@ -5,6 +5,7 @@ import com.example.project_back.constant.Role;
 import com.example.project_back.constant.Status;
 import com.example.project_back.dto.request.admin.AdminUpdateUserRequest;
 import com.example.project_back.dto.request.spec.UserRequestParam;
+import com.example.project_back.dto.request.user.ChangePasswordRequest;
 import com.example.project_back.dto.request.user.UserCreateRequest;
 import com.example.project_back.dto.request.user.UserUpdateRequest;
 import com.example.project_back.dto.response.user.UserResponse;
@@ -22,9 +23,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -110,7 +109,7 @@ public class UserServiceImpl implements UserService {
         String username = SecurityUtils.getCurrentUsername();
         Optional<User> user = userRepository.findByUsername(username);
         if (user.isEmpty()) {
-            throw new ApplicationException("User not found");
+            throw new ApplicationException("Không tìm thấy tài khoản người dùng");
         }
         return UserMapper.map(user.get());
     }
@@ -121,12 +120,36 @@ public class UserServiceImpl implements UserService {
         String username = SecurityUtils.getCurrentUsername();
         Optional<User> user = userRepository.findByUsername(username);
         if (user.isEmpty()) {
-            throw new ApplicationException("User not found");
+            throw new ApplicationException("Không tìm thấy tài khoản người dùng");
         }
         User users = user.get();
         UserMapper.map(userUpdateRequest, users);
         return UserMapper.map(userRepository.save(users));
     }
+
+    @Override
+    public Boolean changePassword(ChangePasswordRequest change) {
+        String username = SecurityUtils.getCurrentUsername();
+        Optional<User> user = userRepository.findByUsername(username);
+        if (user.isEmpty()) {
+            throw new ApplicationException("Bạn phải login");
+        }
+        User users = user.get();
+        if (!passwordEncoder.matches(change.getCurrentPassword(), users.getPassword())) {
+            throw new ApplicationException("Mật khẩu không đúng , vui lòng kiểm tra lại");
+        }
+
+        if (passwordEncoder.matches(change.getNewPassword(), users.getPassword())) {
+            throw new ApplicationException("Bạn hãy thay đổi mật khẩu khác");
+        }
+        if (!change.getNewPassword().equals(change.getConfirmNewPassword())) {
+            throw new ApplicationException("Mật khẩu không hợp lệ");
+        }
+        users.setPassword(passwordEncoder.encode(change.getNewPassword()));
+        userRepository.save(users);
+        return true;
+    }
+
 
 //    @Override
 //    public String uploadAvatar(Long id, MultipartFile file) throws IOException {
@@ -184,7 +207,7 @@ public class UserServiceImpl implements UserService {
     public String uploadAvatar(Long id, MultipartFile file) throws IOException {
 
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản người dùng"));
 
         if (file == null || file.isEmpty()) {
             throw new RuntimeException("File is empty");
@@ -196,7 +219,6 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("Invalid image type");
         }
 
-        // 🔥 FIX ROOT PATH
         Path uploadPath = Paths.get(UPLOAD_DIR).toAbsolutePath().normalize();
 
         if (!Files.exists(uploadPath)) {
@@ -236,7 +258,7 @@ public class UserServiceImpl implements UserService {
     public UserResponse adminUpdateUser(AdminUpdateUserRequest updateUserRequest, Long id) {
         Optional<User> user = userRepository.findById(id);
         if (user.isEmpty()) {
-            throw new ApplicationException("User not found");
+            throw new ApplicationException("Không tìm thấy tài khoản người dùng");
         }
         User users = user.get();
         UserMapper.adminUpdate(updateUserRequest, users);
@@ -248,10 +270,10 @@ public class UserServiceImpl implements UserService {
     public String deleteUser(Long id) {
         Optional<User> user = userRepository.findById(id);
         if (user.isEmpty()) {
-            throw new ApplicationException("User not found");
+            throw new ApplicationException("Không tìm thấy tài khoản người dùng");
         }
         userRepository.deleteById(id);
-        return "User has been deleted";
+        return "Xóa tài khoản thành công ";
     }
 
 }

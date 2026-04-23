@@ -6,12 +6,10 @@ import com.example.project_back.dto.response.user.CategoriesResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
-
 public interface CategoriesService {
-   Page<CategoriesResponse> getCategories(CategoriesRequestParam param, Pageable pageable);
+    Page<CategoriesResponse> getCategories(CategoriesRequestParam param, Pageable pageable);
 
-   CategoriesResponse getCategoryById(Integer id);
+    CategoriesResponse getCategoryById(Integer id);
 
     CategoriesResponse createCategories(CategoriesCreateAndUpdate create);
 
