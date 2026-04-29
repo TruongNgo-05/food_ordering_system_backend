@@ -39,7 +39,10 @@ public class FoodMapper {
         BeanUtils.copyProperties(food, foodAdminResponse);
         if (food.getCategories() != null) {
             foodAdminResponse.setCategoryName(food.getCategories().getName());
+            foodAdminResponse.setCategoryId(food.getCategories().getId());
+            foodAdminResponse.setImages(FoodImageMapper.toResponseList(food.getImages()));
         }
+
         return foodAdminResponse;
     }
 
@@ -76,9 +79,6 @@ public class FoodMapper {
         if(dto.getPrice() != null){
             food.setPrice(dto.getPrice());
         }
-//        if(dto.getImage() != null){
-////            food.setImage(dto.getImage());
-//        }
         if(dto.getStatus()!= null){
             food.setStatus(dto.getStatus());
         }

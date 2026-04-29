@@ -21,9 +21,9 @@ public class FoodCreateAndUpdateRequest {
 
     private Integer categoryId;
 
-    //  thêm option link ảnh
     private String imageUrl;
 
-    //  list link ảnh
     private List<String> imageUrls;
+
+    private Boolean removeImage;
 }

@@ -13,6 +13,7 @@ import com.example.project_back.entity.User;
 import com.example.project_back.exception.ApplicationException;
 import com.example.project_back.mapper.UserMapper;
 import com.example.project_back.repository.UserRepository;
+import com.example.project_back.service.FileService;
 import com.example.project_back.service.UserService;
 import com.example.project_back.specification.UserSpecification;
 import jakarta.transaction.Transactional;
@@ -38,9 +39,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private static final String UPLOAD_DIR =
-            System.getProperty("user.dir") + "/uploads";
-    private static final String BASE_URL = "http://localhost:8080/uploads/";
+private final FileService fileService;
     @Override
     public Page<UserResponse> findAllUsers(UserRequestParam param, Pageable pageable) {
         String email = param.getEmail();
@@ -126,6 +125,29 @@ public class UserServiceImpl implements UserService {
         UserMapper.map(userUpdateRequest, users);
         return UserMapper.map(userRepository.save(users));
     }
+    @Transactional
+    @Override
+    public UserResponse updateUser(UserUpdateRequest request, MultipartFile avatar) {
+
+        String username = SecurityUtils.getCurrentUsername();
+        Optional<User> users = userRepository.findByUsername(username);
+        if (users.isEmpty()) {
+            throw new ApplicationException("Không tìm thấy tài khoản người dùng");
+        }
+        User user = users.get();
+        UserMapper.map(request, user);
+
+        if (avatar != null && !avatar.isEmpty()) {
+            if (user.getAvatar() != null && user.getAvatar().startsWith("/uploads/")) {
+                fileService.deleteFile(user.getAvatar());
+            }
+            String url = fileService.uploadFile(avatar);
+            user.setAvatar(url);
+        } else if (request.getAvatar() != null) {
+            user.setAvatar(request.getAvatar());
+        }
+        return UserMapper.map(userRepository.save(user));
+    }
 
     @Override
     public Boolean changePassword(ChangePasswordRequest change) {
@@ -150,108 +172,6 @@ public class UserServiceImpl implements UserService {
         return true;
     }
 
-
-//    @Override
-//    public String uploadAvatar(Long id, MultipartFile file) throws IOException {
-//
-//        User user = userRepository.findById(id)
-//                .orElseThrow(() -> new RuntimeException("User not found"));
-//
-//        // 1. validate file
-//        if (file.isEmpty()) {
-//            throw new RuntimeException("File is empty");
-//        }
-//
-//        List<String> allowed = List.of("image/png", "image/jpeg", "image/jpg", "image/webp");
-//        if (!allowed.contains(file.getContentType())) {
-//            throw new RuntimeException("Invalid image type");
-//        }
-//
-//        // 2. delete old avatar safely
-//        if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
-//            try {
-//                URI uri = URI.create(user.getAvatar());
-//                String oldFileName = Paths.get(uri.getPath()).getFileName().toString();
-//
-//                Path oldFilePath = Paths.get("uploads").resolve(oldFileName);
-//                Files.deleteIfExists(oldFilePath);
-//            } catch (Exception e) {
-//                // không crash nếu xóa fail
-//                System.out.println("Cannot delete old avatar: " + e.getMessage());
-//            }
-//        }
-//
-//        // 3. create file name
-//        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-//
-//        // 4. create folder
-//        Path uploadPath = Paths.get("uploads");
-//        if (!Files.exists(uploadPath)) {
-//            Files.createDirectories(uploadPath);
-//        }
-//
-//        // 5. save file
-//        Path filePath = uploadPath.resolve(fileName);
-//        Files.copy(file.getInputStream(), filePath);
-//
-//        // 6. build URL
-//        String avatarUrl = "http://localhost:8080/uploads/" + fileName;
-//
-//        // 7. save DB
-//        user.setAvatar(avatarUrl);
-//        userRepository.save(user);
-//
-//        return avatarUrl;
-//    }
-    @Override
-    public String uploadAvatar(Long id, MultipartFile file) throws IOException {
-
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản người dùng"));
-
-        if (file == null || file.isEmpty()) {
-            throw new RuntimeException("File is empty");
-        }
-
-        List<String> allowedTypes = List.of("image/png", "image/jpeg", "image/jpg", "image/webp");
-
-        if (!allowedTypes.contains(file.getContentType())) {
-            throw new RuntimeException("Invalid image type");
-        }
-
-        Path uploadPath = Paths.get(UPLOAD_DIR).toAbsolutePath().normalize();
-
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
-
-        // 🔥 DELETE OLD FILE (ĐÃ FIX ĐÚNG TARGET)
-        if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
-            try {
-                Path oldFilePath = uploadPath.resolve(user.getAvatar()).normalize();
-
-                System.out.println("DELETE OLD FILE: " + oldFilePath);
-
-                Files.deleteIfExists(oldFilePath);
-
-            } catch (Exception e) {
-                System.out.println("DELETE FAIL: " + e.getMessage());
-            }
-        }
-
-        // SAVE NEW FILE
-        String fileName = UUID.randomUUID() + "_" +
-                file.getOriginalFilename().replaceAll("\\s+", "_");
-
-        Path newFilePath = uploadPath.resolve(fileName).normalize();
-
-        Files.copy(file.getInputStream(), newFilePath);
-
-        user.setAvatar(fileName);
-        userRepository.save(user);
-
-        return BASE_URL + fileName;
-    }
 
     @Transactional
     @Override

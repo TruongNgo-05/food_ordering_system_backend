@@ -28,9 +28,6 @@ public static User map(UserCreateRequest userCreateRequest){
 }
 
     public static void map (UserUpdateRequest userUpdateRequest, User user){
-        if(userUpdateRequest.getAvatar() !=null){
-            user.setAvatar(userUpdateRequest.getAvatar());
-        }
         if(userUpdateRequest.getFullName() !=null){
             user.setFullName(userUpdateRequest.getFullName());
         }

@@ -1,5 +1,6 @@
 package com.example.project_back.mapper;
 
+import com.example.project_back.dto.response.admin.FoodImageResponse;
 import com.example.project_back.entity.Food;
 import com.example.project_back.entity.FoodImage;
 
@@ -45,6 +46,29 @@ public class FoodImageMapper {
         for (FoodImage img : images) {
             result.add(img.getImageUrl());
         }
+        return result;
+    }
+
+    // Entity -> DTO (có id)
+    public static FoodImageResponse toResponse(FoodImage img) {
+        FoodImageResponse res = new FoodImageResponse();
+        res.setId(img.getId());
+        res.setUrl(img.getImageUrl());
+        return res;
+    }
+
+    // List<Entity> -> List<DTO>
+    public static List<FoodImageResponse> toResponseList(List<FoodImage> images) {
+        List<FoodImageResponse> result = new ArrayList<>();
+
+        if (images == null || images.isEmpty()) {
+            return result;
+        }
+
+        for (FoodImage img : images) {
+            result.add(toResponse(img));
+        }
+
         return result;
     }
 }

@@ -10,12 +10,14 @@ import java.util.List;
 
 @Getter
 @Setter
-@JsonPropertyOrder({"id","name","price","image","status","categories"})
+@JsonPropertyOrder({"id","name","description","price","image","status","categoryId","categoryName"})
 public class FoodAdminResponse {
 
     private Long id;
 
     private String name;
+
+    private String description;
 
     private Double price;
 
@@ -24,4 +26,8 @@ public class FoodAdminResponse {
     private Boolean status;
 
     private String categoryName;
+
+    private Integer categoryId;
+
+    private List<FoodImageResponse> images;
 }

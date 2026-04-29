@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 @Getter
 @Setter
-@JsonPropertyOrder({"id","name","description","price","image","images","rating","soldCount","status","createdAt","categories"})
+@JsonPropertyOrder({"id","name","description","price","image","images","rating","soldCount","status","createdAt","categoryId","categoryName"})
 public class FoodDetailAdminRespone {
     private Long id;
 
@@ -21,7 +21,7 @@ public class FoodDetailAdminRespone {
 
     private String image;
 
-    private List<String> images;
+    private List<FoodImageResponse> images;
 
     private Double rating;
 
@@ -30,6 +30,8 @@ public class FoodDetailAdminRespone {
     private Boolean status;
 
     private LocalDateTime createdAt;
+
+    private Integer categoryId;
 
     private String categoryName;
 }

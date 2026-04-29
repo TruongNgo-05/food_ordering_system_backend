@@ -42,13 +42,6 @@ public class AdminFoodController {
         ));
     }
 
-//    @PostMapping
-//    public ResponseEntity<BaseResponse<FoodAdminResponse>> create(@RequestBody FoodCreateAndUpdateRequest create) {
-//        return ResponseEntity.ok(new BaseResponse<>(
-//                foodService.createFood(create),
-//                "Create succsess full"
-//        ));
-//    }
 @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 public ResponseEntity<BaseResponse<FoodAdminResponse>> create(
         @RequestPart("data") String data,
@@ -66,14 +59,6 @@ public ResponseEntity<BaseResponse<FoodAdminResponse>> create(
             )
     );
 }
-
-//    @PutMapping("{id}")
-//    public ResponseEntity<BaseResponse<FoodAdminResponse>> update(@RequestBody FoodCreateAndUpdateRequest update , @PathVariable Long id) {
-//        return ResponseEntity.ok(new BaseResponse<>(
-//                foodService.updateFood(update,id),
-//                "Update succsess full"
-//        ));
-//    }
 @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 public ResponseEntity<BaseResponse<FoodAdminResponse>> update(
         @PathVariable Long id,
@@ -100,4 +85,18 @@ public ResponseEntity<BaseResponse<FoodAdminResponse>> update(
                 "Delete succsess full"
         ));
     }
+
+//    // ===== XÓA ẢNH CHÍNH =====
+//    @DeleteMapping("/{id}/main-image")
+//    public ResponseEntity<?> deleteMainImage(@PathVariable Long id) {
+//        foodService.deleteMainImage(id);
+//        return ResponseEntity.ok("Deleted main image");
+//    }
+//
+//    // ===== XÓA ẢNH PHỤ =====
+//    @DeleteMapping("/images/{imageId}")
+//    public ResponseEntity<?> deleteSubImage(@PathVariable Long imageId) {
+//        foodService.deleteSubImage(imageId);
+//        return ResponseEntity.ok("Deleted sub image");
+//    }
 }

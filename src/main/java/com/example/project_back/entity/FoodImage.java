@@ -11,13 +11,11 @@ import lombok.Setter;
 public class FoodImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     private String imageUrl;
 
     @ManyToOne
     @JoinColumn(name = "food_id")
     private Food food;
-
-    private Boolean isPrimary = false;
 }

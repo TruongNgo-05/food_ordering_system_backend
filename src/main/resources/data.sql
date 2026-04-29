@@ -94,10 +94,9 @@ CREATE TABLE foods
 -- ================= FOOD IMAGES (ảnh phụ) =================
 CREATE TABLE food_images
 (
-    id         INT PRIMARY KEY AUTO_INCREMENT,
-    food_id    INT,
-    image_url  VARCHAR(255),
-    is_primary BOOLEAN DEFAULT FALSE,
+    id        INT PRIMARY KEY AUTO_INCREMENT,
+    food_id   INT,
+    image_url VARCHAR(255),
     FOREIGN KEY (food_id) REFERENCES foods (id) ON DELETE CASCADE
 );
 
@@ -307,18 +306,114 @@ INSERT INTO vouchers (code, discount, type, min_order_value, max_discount, usage
 VALUES ('WELCOME10', 10.00, 'PERCENT', 100000, 50000, 100, '2025-12-31 23:59:59'),
        ('GIAM50K', 50000, 'FIXED', 200000, 50000, 50, '2025-06-30 23:59:59'),
        ('SALE20', 20.00, 'PERCENT', 150000, 80000, 200, '2025-09-30 23:59:59');
-
--- ================= FOODS =================
+-- ================= FOODS (10 món mới) =================
 INSERT INTO foods (name, description, price, image, category_id, rating, sold_count, status)
-VALUES ('Phở bò đặc biệt', 'Phở bò tái chín với nước dùng hầm 12 tiếng', 85000, 'pho-bo.jpg', 1, 4.8, 320, TRUE),
-       ('Cơm tấm sườn bì', 'Cơm tấm kèm sườn nướng, bì, chả trứng', 75000, 'com-tam.jpg', 1, 4.6, 210, TRUE),
-       ('Trà sữa trân châu', 'Trà sữa Đài Loan, topping trân châu đen', 45000, 'tra-sua.jpg', 2, 4.7, 540, TRUE);
+VALUES
 
+-- Món chính (category_id = 3)
+('Bún bò Huế',
+ 'Bún bò cay đặc trưng xứ Huế, nước dùng đậm đà với sả và mắm ruốc',
+ 75000,
+ 'https://images.unsplash.com/photo-1555126634-323283e090fa?w=600&auto=format&fit=crop',
+ 3, 4.7, 180, TRUE),
+
+('Bánh mì thịt',
+ 'Bánh mì giòn nhân thịt nguội, chả lụa, rau sống và tương ớt',
+ 35000,
+ 'https://images.unsplash.com/photo-1600628421066-f6bfd0aa1dbb?w=600&auto=format&fit=crop',
+ 3, 4.5, 420, false),
+
+('Cơm chiên dương châu',
+ 'Cơm chiên với tôm, thịt, trứng và rau củ tươi ngon',
+ 65000,
+ 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=600&auto=format&fit=crop',
+ 3, 4.3, 150, TRUE),
+
+('Mì Quảng',
+ 'Mì Quảng trứ danh với nước lèo đậm vị, tôm thịt và bánh đa',
+ 70000,
+ 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600&auto=format&fit=crop',
+ 3, 4.6, 95, TRUE),
+
+('Bún chả Hà Nội',
+ 'Bún chả đặc sản Hà Nội, chả nướng thơm ngon chấm nước mắm chua ngọt',
+ 80000,
+ 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=600&auto=format&fit=crop',
+ 3, 4.8, 260, TRUE),
+
+-- Đồ ăn nhanh (category_id = 1)
+('Gỏi cuốn tôm thịt',
+ 'Gỏi cuốn tươi nhân tôm, thịt heo, bún và rau thơm, chấm tương đậu phộng',
+ 45000,
+ 'https://images.unsplash.com/photo-1562802378-063ec186a863?w=600&auto=format&fit=crop',
+ 1, 4.4, 310, TRUE),
+
+('Chả giò chiên',
+ 'Chả giò vàng giòn nhân thịt heo, miến, mộc nhĩ và rau củ',
+ 40000,
+ 'https://images.unsplash.com/photo-1607330289024-1535c6b4e1c1?w=600&auto=format&fit=crop',
+ 1, 4.2, 275, TRUE),
+
+('Bánh xèo miền Nam',
+ 'Bánh xèo giòn rụm nhân tôm thịt, giá đỗ, cuốn với rau sống và nước chấm',
+ 55000,
+ 'https://images.unsplash.com/photo-1585032226651-759b368d7246?w=600&auto=format&fit=crop',
+ 1, 4.5, 130, TRUE),
+
+-- Đồ uống (category_id = 2)
+('Cà phê sữa đá',
+ 'Cà phê phin truyền thống pha với sữa đặc, phục vụ với đá viên',
+ 35000,
+ 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=600&auto=format&fit=crop',
+ 2, 4.9, 680, TRUE),
+
+('Sinh tố bơ',
+ 'Sinh tố bơ béo ngậy xay kem với sữa đặc, thơm ngon bổ dưỡng',
+ 45000,
+ 'https://images.unsplash.com/photo-1638176066666-ffb2f013c7dd?w=600&auto=format&fit=crop',
+ 2, 4.6, 220, TRUE);
 -- ================= FOOD IMAGES =================
-INSERT INTO food_images (food_id, image_url, is_primary)
-VALUES (1, 'pho-bo-1.jpg', TRUE),
-       (1, 'pho-bo-2.jpg', FALSE),
-       (2, 'com-tam-1.jpg', TRUE);
+-- ================= FOOD IMAGES (ảnh phụ) =================
+-- Food ID 1: Bún bò Huế
+INSERT INTO food_images (food_id, image_url)
+VALUES (1, 'https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=600&auto=format&fit=crop'),
+       (1, 'https://images.unsplash.com/photo-1569058242272-fb78b5bea6c0?w=600&auto=format&fit=crop'),
+
+-- Food ID 2: Bánh mì thịt
+       (2, 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&auto=format&fit=crop'),
+       (2, 'https://images.unsplash.com/photo-1509722747041-616f39b57569?w=600&auto=format&fit=crop'),
+
+-- Food ID 3: Cơm chiên dương châu
+       (3, 'https://images.unsplash.com/photo-1596560548464-f010c64e46c3?w=600&auto=format&fit=crop'),
+       (3, 'https://images.unsplash.com/photo-1512058564366-18510be2db19?w=600&auto=format&fit=crop'),
+
+-- Food ID 4: Mì Quảng
+       (4, 'https://images.unsplash.com/photo-1614563637806-1d0e645e0940?w=600&auto=format&fit=crop'),
+       (4, 'https://images.unsplash.com/photo-1527477396000-e27163b481c2?w=600&auto=format&fit=crop'),
+
+-- Food ID 5: Bún chả Hà Nội
+       (5, 'https://images.unsplash.com/photo-1585273931648-59b23b2f9a6b?w=600&auto=format&fit=crop'),
+       (5, 'https://images.unsplash.com/photo-1519984388953-d2406bc725e1?w=600&auto=format&fit=crop'),
+
+-- Food ID 6: Gỏi cuốn tôm thịt
+       (6, 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?w=600&auto=format&fit=crop'),
+       (6, 'https://images.unsplash.com/photo-1600850056064-a8b29d3afbe6?w=600&auto=format&fit=crop'),
+
+-- Food ID 7: Chả giò chiên
+       (7, 'https://images.unsplash.com/photo-1616645258469-ec681c17f3ee?w=600&auto=format&fit=crop'),
+       (7, 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=600&auto=format&fit=crop'),
+
+-- Food ID 8: Bánh xèo miền Nam
+       (8, 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=600&auto=format&fit=crop'),
+       (8, 'https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=600&auto=format&fit=crop'),
+
+-- Food ID 9: Cà phê sữa đá
+       (9, 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=600&auto=format&fit=crop'),
+       (9, 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&auto=format&fit=crop'),
+
+-- Food ID 10: Sinh tố bơ
+       (10, 'https://images.unsplash.com/photo-1623065422902-30a2d299bbe4?w=600&auto=format&fit=crop'),
+       (10, 'https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=600&auto=format&fit=crop');
 
 -- ================= CARTS =================
 INSERT INTO carts (user_id)
@@ -380,9 +475,9 @@ VALUES (2, 1),
 -- ================= REVIEWS =================
 INSERT INTO reviews (food_id, user_id, rating, comment)
 VALUES (1, 2, 5.0, 'Phở rất ngon, nước dùng đậm đà, sẽ quay lại!'),
-       (2, 3, 4.5, 'Cơm tấm vừa miệng, sườn nướng thơm.'),
-       (3, 2, 4.0, 'Trà sữa ngon nhưng hơi ngọt.');
-
+       (2, 3, 3.0, 'Cơm tấm vừa miệng, sườn nướng thơm.'),
+       (3, 2, 4.0, 'Trà sữa ngon nhưng hơi ngọt.'),
+       (1, 1, 2.0, 'Phở rất ngon, nước dùng đậm đà, sẽ quay lại!');
 -- Banner
 INSERT INTO banners (id, title, description, image_url, is_active)
 VALUES (1,
@@ -410,6 +505,3 @@ select *
 from foods;
 select *
 from food_images;
-
-select *
-from reviews

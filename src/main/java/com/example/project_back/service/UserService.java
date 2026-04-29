@@ -18,10 +18,9 @@ UserResponse createUser(UserCreateRequest createUserRequest);
 
 UserResponse getCurrentUser();
 
-String uploadAvatar(Long id, MultipartFile file) throws IOException;
 
 UserResponse updateMyProfile(UserUpdateRequest userUpdateRequest);
-
+    UserResponse updateUser(UserUpdateRequest request, MultipartFile avatar);
 Boolean changePassword(ChangePasswordRequest change);
 
 String deleteUser(Long id);

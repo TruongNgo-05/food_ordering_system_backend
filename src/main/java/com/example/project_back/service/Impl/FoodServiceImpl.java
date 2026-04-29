@@ -14,8 +14,10 @@
     import com.example.project_back.mapper.FoodImageMapper;
     import com.example.project_back.mapper.FoodMapper;
     import com.example.project_back.repository.CategoriesRepository;
+    import com.example.project_back.repository.FoodImageRepository;
     import com.example.project_back.repository.FoodRepository;
     import com.example.project_back.repository.ReviewRepository;
+    import com.example.project_back.service.FileService;
     import com.example.project_back.service.FoodService;
     import com.example.project_back.specification.FoodSpecification;
     import jakarta.transaction.Transactional;
@@ -39,8 +41,8 @@
         private final FoodRepository foodRepository;
         private final CategoriesRepository categoriesRepository;
         private final ReviewRepository reviewRepository;
-        private final UploadService  uploadService;
-
+        private final FoodImageRepository foodImageRepository;
+        private final FileService fileService;
 
         @Override
         public Page<FoodResponse> getAllFoodCustomer(
@@ -71,7 +73,8 @@
             return foodRepository.findAll(spec, pageable)
                     .map(food -> {
                         FoodResponse res = FoodMapper.toMapperCustomer(food);
-                        res.setRating(reviewRepository.getAverageRatingByFoodId(food.getId()));
+                            Double rating = reviewRepository.getAverageRatingByFoodId(food.getId());
+                            res.setRating(rating != null ? rating : 0);
                         return res;
                     });
         }
@@ -115,7 +118,7 @@
             Food food = foods.get();
             FoodDetailAdminRespone response = FoodMapper.toMapperAdminDetail(food);
 
-            response.setImages(FoodImageMapper.toUrlList(food.getImages()));
+            response.setImages(FoodImageMapper.toResponseList(food.getImages()));
 
             response.setRating(reviewRepository.getAverageRatingByFoodId(id));
             return response;
@@ -147,192 +150,226 @@
             return response;
         }
 
-//        @Transactional
-//        @Override
-//        public FoodAdminResponse createFood(FoodCreateAndUpdateRequest create){
-//            Food food = FoodMapper.toCreate(create);
-//            if(create.getCategoryId() != null){
-//                Optional<Categories> category = categoriesRepository.findById(create.getCategoryId());
-//                if(category.isEmpty()){
-//                    throw new ApplicationException("Không tìm thấy Danh mục");
-//                }
-//                food.setCategories(category.get());
-//            }
-//
-//            if (create.getImages() != null && !create.getImages().isEmpty()) {
-//                food.setImages(
-//                        FoodImageMapper.toEntityList(create.getImages(), food)
-//                );
-//            }
-//            Food savedFood = foodRepository.save(food);
-//            return FoodMapper.toMapperAdmin(savedFood);
-//        }
-@Transactional
-@Override
-public FoodAdminResponse createFood(
-        FoodCreateAndUpdateRequest create,
-        MultipartFile image,
-        List<MultipartFile> images
-) {
+        @Transactional
+        @Override
+        public FoodAdminResponse createFood(
+                FoodCreateAndUpdateRequest create,
+                MultipartFile image,
+                List<MultipartFile> images
+        ) {
 
-    Food food = FoodMapper.toCreate(create);
+            Food food = FoodMapper.toCreate(create);
 
-    // CATEGORY
-    if (create.getCategoryId() != null) {
-        Categories category = categoriesRepository.findById(create.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục"));
-        food.setCategories(category);
-    }
-
-    // ===== MAIN IMAGE (FILE + URL) =====
-    if (image != null && !image.isEmpty()) {
-        String url = uploadService.saveFile(image);
-        food.setImage(url);
-    } else if (create.getImageUrl() != null) {
-        food.setImage(create.getImageUrl());
-    }
-
-    // LIST IMAGES
-    if (images != null && !images.isEmpty()) {
-        List<FoodImage> imageList = new ArrayList<>();
-
-        for (MultipartFile file : images) {
-            if (file.isEmpty()) continue;
-
-            String url = uploadService.saveFile(file);
-
-            FoodImage img = new FoodImage();
-            img.setImageUrl(url);
-            img.setFood(food);
-            img.setIsPrimary(false);
-
-            imageList.add(img);
-        }
-
-        // URL LIST
-        if (create.getImageUrls() != null) {
-            for (String url : create.getImageUrls()) {
-
-                FoodImage img = new FoodImage();
-                img.setImageUrl(url);
-                img.setFood(food);
-                img.setIsPrimary(false);
-
-                imageList.add(img);
+            // CATEGORY
+            if (create.getCategoryId() != null) {
+                Categories category = categoriesRepository.findById(create.getCategoryId())
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục"));
+                food.setCategories(category);
             }
-        }
 
-        if (!imageList.isEmpty()) {
-            food.setImages(imageList);
-        }
-    }
-
-    Food saved = foodRepository.save(food);
-
-    return FoodMapper.toMapperAdmin(saved);
-}
-//        @Transactional
-//        @Override
-//        public FoodAdminResponse updateFood(FoodCreateAndUpdateRequest update, Long id){
-//            Optional<Food> foods = foodRepository.findById(id);
-//            if(foods.isEmpty()){
-//                throw new ApplicationException("Không tìm thấy món ăn");
-//            }
-//            Food food = foods.get();
-//            FoodMapper.toUpdate(update,food);
-//            if(update.getCategoryId() != null){
-//                Optional<Categories> category = categoriesRepository.findById(update.getCategoryId());
-//                if(category.isEmpty()){
-//                    throw new ApplicationException("Không tìm thấy danh mục");
-//                }
-//                food.setCategories(category.get());
-//            }
-////
-////            if (update.getImages() != null) {
-////                food.getImages().clear();
-////                food.getImages().addAll(
-////                        FoodImageMapper.toEntityList(update.getImages(), food)
-////                );
-////            }
-//
-//            return FoodMapper.toMapperAdmin(foodRepository.save(food));
-//        }
-
-@Transactional
-@Override
-public FoodAdminResponse updateFood(
-        Long id,
-        FoodCreateAndUpdateRequest update,
-        MultipartFile image,
-        List<MultipartFile> images
-) {
-
-    Food food = foodRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy food"));
-
-    // BASIC INFO
-    FoodMapper.toUpdate(update, food);
-
-    // CATEGORY
-    if (update.getCategoryId() != null) {
-        Categories category = categoriesRepository.findById(update.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục"));
-        food.setCategories(category);
-    }
-
-    // MAIN IMAGE
-    if (image != null && !image.isEmpty()) {
-        food.setImage(uploadService.saveFile(image));
-    } else if (update.getImageUrl() != null) {
-        food.setImage(update.getImageUrl());
-    }
-
-    // ===== GALLERY IMAGE REPLACE =====
-    if ((images != null && !images.isEmpty()) ||
-            (update.getImageUrls() != null && !update.getImageUrls().isEmpty())) {
-        food.getImages().clear();
-        List<FoodImage> newImages = new ArrayList<>();
-
-        // FILE
-        if (images != null) {
-            for (MultipartFile file : images) {
-                if (file.isEmpty()) continue;
-
-                FoodImage img = new FoodImage();
-                img.setImageUrl(uploadService.saveFile(file));
-                img.setFood(food);
-
-                newImages.add(img);
+            // ===== MAIN IMAGE =====
+            if (image != null && !image.isEmpty()) {
+                food.setImage(fileService.uploadFile(image));
+            } else if (create.getImageUrl() != null) {
+                food.setImage(create.getImageUrl());
             }
-        }
 
-        // URL
-        if (update.getImageUrls() != null) {
-            for (String url : update.getImageUrls()) {
+            // ===== GALLERY IMAGES =====
+            List<FoodImage> imageList = new ArrayList<>();
 
-                FoodImage img = new FoodImage();
-                img.setImageUrl(url);
-                img.setFood(food);
+            // FILE
+            if (images != null) {
+                for (MultipartFile file : images) {
+                    if (file.isEmpty()) continue;
 
-                newImages.add(img);
+                    FoodImage img = new FoodImage();
+                    img.setImageUrl(fileService.uploadFile(file));
+                    img.setFood(food);
+                    imageList.add(img);
+                }
             }
+
+            // URL
+            if (create.getImageUrls() != null) {
+                for (String url : create.getImageUrls()) {
+                    FoodImage img = new FoodImage();
+                    img.setImageUrl(url);
+                    img.setFood(food);
+
+
+                    imageList.add(img);
+                }
+            }
+            if (!imageList.isEmpty()) {
+                food.setImages(imageList);
+            }
+
+            Food saved = foodRepository.save(food);
+
+            return FoodMapper.toMapperAdmin(saved);
         }
+        @Transactional
+        @Override
+        public FoodAdminResponse updateFood(
+                Long id,
+                FoodCreateAndUpdateRequest update,
+                MultipartFile image,
+                List<MultipartFile> images
+        ) {
 
-        // 🔥 ADD ALL (KHÔNG SET NEW LIST)
-        food.getImages().addAll(newImages);
-    }
+            Food food = foodRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy food"));
 
-    return FoodMapper.toMapperAdmin(foodRepository.save(food));
-}
+            // ===== BASIC =====
+            FoodMapper.toUpdate(update, food);
+
+            // ===== CATEGORY =====
+            if (update.getCategoryId() != null) {
+                Categories category = categoriesRepository.findById(update.getCategoryId())
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục"));
+                food.setCategories(category);
+            }
+
+            // ================= MAIN IMAGE =================
+
+            // ❌ XÓA ẢNH
+            if (Boolean.TRUE.equals(update.getRemoveImage())) {
+                if (food.getImage() != null) {
+                    fileService.deleteFile(food.getImage());
+                }
+                food.setImage(null);
+            }
+
+            // 📤 UPLOAD FILE
+            else if (image != null && !image.isEmpty()) {
+                if (food.getImage() != null) {
+                    fileService.deleteFile(food.getImage());
+                }
+                food.setImage(fileService.uploadFile(image));
+            }
+
+            // 🔗 SET URL
+            else if (update.getImageUrl() != null && !update.getImageUrl().isEmpty()) {
+                food.setImage(update.getImageUrl());
+            }
+
+            // ================= GALLERY =================
+
+            List<String> newUrls = update.getImageUrls() != null
+                    ? update.getImageUrls()
+                    : new ArrayList<>();
+
+            if (food.getImages() == null) {
+                food.setImages(new ArrayList<>());
+            }
+
+            List<FoodImage> currentImages = food.getImages();
+
+            // ===== 1. REMOVE OLD =====
+            for (FoodImage oldImg : new ArrayList<>(currentImages)) {
+
+                if (!newUrls.contains(oldImg.getImageUrl())) {
+
+                    fileService.deleteFile(oldImg.getImageUrl());
+                    foodImageRepository.delete(oldImg);
+                    currentImages.remove(oldImg);
+                }
+            }
+
+            // ===== 2. ADD FILE =====
+            if (images != null) {
+                for (MultipartFile file : images) {
+                    if (file.isEmpty()) continue;
+
+                    String url = fileService.uploadFile(file);
+
+                    FoodImage img = new FoodImage();
+                    img.setImageUrl(url);
+                    img.setFood(food);
+
+                    currentImages.add(img);
+                }
+            }
+
+            // ===== 3. ADD URL =====
+            for (String url : newUrls) {
+
+                if (url == null || url.isEmpty()) continue;
+
+                boolean exists = currentImages.stream()
+                        .anyMatch(img -> img.getImageUrl().equals(url));
+
+                if (!exists) {
+                    FoodImage img = new FoodImage();
+                    img.setImageUrl(url);
+                    img.setFood(food);
+
+                    currentImages.add(img);
+                }
+            }
+
+            food.setImages(currentImages);
+
+            // ===== SAVE =====
+            Food saved = foodRepository.save(food);
+
+            return FoodMapper.toMapperAdmin(saved);
+        }
 
         @Transactional
         @Override
         public String deleteFood(Long id){
-            Optional<Food> foods = foodRepository.findById(id);
-            if(foods.isEmpty()){
-                throw new ApplicationException("Không tìm thấy món ăn ");
+            Food food = foodRepository.findById(id)
+                    .orElseThrow(() -> new ApplicationException("Không tìm thấy món ăn"));
+
+            // ===== DELETE MAIN IMAGE =====
+            if (food.getImage() != null) {
+                fileService.deleteFile(food.getImage());
             }
-            foodRepository.deleteById(id);
+
+            // ===== DELETE GALLERY IMAGES =====
+            if (food.getImages() != null && !food.getImages().isEmpty()) {
+                List<String> urls = new ArrayList<>();
+
+                for (FoodImage img : food.getImages()) {
+                    urls.add(img.getImageUrl());
+                }
+
+                // xóa file thật
+                fileService.deleteFiles(urls);
+
+                // xóa DB
+                foodImageRepository.deleteByFoodId(id);
+            }
+
+            // ===== DELETE FOOD =====
+            foodRepository.delete(food);
+
             return "delete successfully";
         }
+
+//        @Override
+//        public void deleteMainImage(Long foodId) {
+//            Food food = foodRepository.findById(foodId)
+//                    .orElseThrow(() -> new RuntimeException("Food không tồn tại"));
+//
+//            if (food.getImage() != null) {
+//                fileService.deleteFile(food.getImage());
+//            }
+//
+//            food.setImage(null);
+//            foodRepository.save(food);
+//        }
+//
+//        // ================= XÓA ẢNH PHỤ =================
+//        @Override
+//        public void deleteSubImage(Long imageId) {
+//            FoodImage image = foodImageRepository.findById(imageId)
+//                    .orElseThrow(() -> new RuntimeException("Ảnh không tồn tại"));
+//
+//            // xóa file thật
+//            fileService.deleteFile(image.getImageUrl());
+//
+//            foodImageRepository.delete(image);
+//        }
     }

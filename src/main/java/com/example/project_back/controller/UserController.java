@@ -12,6 +12,7 @@ import com.example.project_back.service.BannerService;
 import com.example.project_back.service.CategoriesService;
 import com.example.project_back.service.FoodService;
 import com.example.project_back.service.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -53,13 +54,22 @@ public class UserController {
         ));
     }
 
-    @PutMapping("/me")
-    public ResponseEntity<BaseResponse<UserResponse>> updateMyProfile(@RequestBody UserUpdateRequest userUpdateRequest) {
-        return ResponseEntity.ok(new BaseResponse<>(
-                usersService.updateMyProfile(userUpdateRequest),
-                "Cập nhật tài khoản thành công"
-        ));
-    }
+@PutMapping(value = "/me", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+public ResponseEntity<BaseResponse<UserResponse>> updateUser(
+        @RequestPart("data") String data,
+        @RequestPart(value = "avatar", required = false) MultipartFile avatar
+) throws Exception {
+
+    UserUpdateRequest request =
+            new ObjectMapper().readValue(data, UserUpdateRequest.class);
+
+    return ResponseEntity.ok(
+            new BaseResponse<>(
+                    usersService.updateUser(request, avatar),
+                    "Update success"
+            )
+    );
+}
 
     @PutMapping("/changePassword")
     public ResponseEntity<BaseResponse<Boolean>> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
@@ -67,19 +77,6 @@ public class UserController {
                 usersService.changePassword(changePasswordRequest),
                 "Đổi mật khẩu thành công"
         ));
-    }
-
-    @PostMapping(value = "/upload-avatar/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadAvatar(
-            @PathVariable Long id,
-            @RequestParam("file") MultipartFile file
-    ) {
-        try {
-            String avatarUrl = usersService.uploadAvatar(id, file);
-            return ResponseEntity.ok(avatarUrl);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
     }
 
     @GetMapping("/banner")

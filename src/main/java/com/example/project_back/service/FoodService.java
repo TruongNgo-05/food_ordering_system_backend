@@ -37,4 +37,10 @@ FoodAdminResponse updateFood(
 );
 
     String deleteFood(Long id);
+
+//    // xóa ảnh chính
+//    void deleteMainImage(Long foodId);
+//
+//    // xóa ảnh phụ theo id
+//    void deleteSubImage(Long imageId);
 }
