@@ -50,35 +50,34 @@ public CategoriesResponse getCategoryById(Integer id){
 @Override
 public CategoriesResponse createCategories(CategoriesCreateAndUpdate create){
     if(categoriesRepository.existsByName(create.getName())){
-        throw new RuntimeException("Category already exists");
+        throw new ApplicationException("Category already exists");
     }
     Categories categories = CategoriesMapper.toEntity(create);
     Categories Saved = categoriesRepository.save(categories);
-    CategoriesResponse categoriesResponse = CategoriesMapper.toResponse(Saved);
-    return categoriesResponse;
+    return CategoriesMapper.toResponse(Saved);
 }
 
 @Transactional
 @Override
 public CategoriesResponse updateCategories(CategoriesCreateAndUpdate update, Integer id){
-    Optional<Categories> categorie = categoriesRepository.findById(id);
-    if(categorie.isEmpty()){
-        throw new RuntimeException("Category does not exist");
+    Optional<Categories> categories = categoriesRepository.findById(id);
+    if(categories.isEmpty()){
+        throw new ApplicationException("Category does not exist");
     }
     if (categoriesRepository.existsByNameAndIdNot(update.getName(),id)){
-        throw new RuntimeException("Category already exists");
+        throw new ApplicationException("Category already exists");
     }
-    Categories categories = categorie.get();
-    CategoriesMapper.updateEntity(update,categories);
-    return  CategoriesMapper.toResponse(categoriesRepository.save(categories));
+    Categories category = categories.get();
+    CategoriesMapper.updateEntity(update,category);
+    return CategoriesMapper.toResponse(categoriesRepository.save(category));
 }
 
 @Transactional
 @Override
 public String deleteCategories(Integer id){
-    Optional<Categories> categorie = categoriesRepository.findById(id);
-    if(categorie.isEmpty()){
-        throw new RuntimeException("Category does not exist");
+    Optional<Categories> categories = categoriesRepository.findById(id);
+    if(categories.isEmpty()){
+        throw new ApplicationException("Category does not exist");
     }
     categoriesRepository.deleteById(id);
     return "Deleted";

@@ -38,7 +38,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserRepository userRepository;
     private final OtpRepository otpRepository;
     private final MailService mailService;
-    private final ModelMapper modelMapper;
 
     //fomat giờ vn
     ZoneId vnZone = ZoneId.of("Asia/Ho_Chi_Minh");

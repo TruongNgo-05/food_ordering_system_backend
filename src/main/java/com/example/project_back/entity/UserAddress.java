@@ -14,12 +14,11 @@ public class UserAddress {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @Column(name = "user_id")
+    private Long userId;
 
     @Column(columnDefinition = "TEXT")
     private String address;
 
-    private Boolean is_default;
+    private Boolean isDefault;
 }

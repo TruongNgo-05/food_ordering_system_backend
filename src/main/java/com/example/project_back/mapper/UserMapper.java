@@ -11,7 +11,8 @@ import org.springframework.beans.BeanUtils;
 
 import java.time.LocalDateTime;
 
-public class UserMapper {
+public class    UserMapper {
+
 public static UserResponse map(User user){
     UserResponse userResponse = new UserResponse();
     BeanUtils.copyProperties(user, userResponse);

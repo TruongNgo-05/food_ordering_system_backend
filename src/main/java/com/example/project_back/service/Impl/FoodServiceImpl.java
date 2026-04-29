@@ -348,28 +348,4 @@
             return "delete successfully";
         }
 
-//        @Override
-//        public void deleteMainImage(Long foodId) {
-//            Food food = foodRepository.findById(foodId)
-//                    .orElseThrow(() -> new RuntimeException("Food không tồn tại"));
-//
-//            if (food.getImage() != null) {
-//                fileService.deleteFile(food.getImage());
-//            }
-//
-//            food.setImage(null);
-//            foodRepository.save(food);
-//        }
-//
-//        // ================= XÓA ẢNH PHỤ =================
-//        @Override
-//        public void deleteSubImage(Long imageId) {
-//            FoodImage image = foodImageRepository.findById(imageId)
-//                    .orElseThrow(() -> new RuntimeException("Ảnh không tồn tại"));
-//
-//            // xóa file thật
-//            fileService.deleteFile(image.getImageUrl());
-//
-//            foodImageRepository.delete(image);
-//        }
     }

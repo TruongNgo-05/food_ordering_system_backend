@@ -1,12 +1,15 @@
 package com.example.project_back.controller.customer;
 
 import com.example.project_back.common.BaseResponse;
+import com.example.project_back.dto.request.customer.AddressRequest;
 import com.example.project_back.dto.request.customer.ReviewRequest;
 import com.example.project_back.dto.request.customer.ReviewUpdateRequest;
+import com.example.project_back.dto.response.user.AddressResponse;
 import com.example.project_back.dto.response.user.FoodDetailResponse;
 import com.example.project_back.dto.response.user.ReviewResponse;
 import com.example.project_back.service.FoodService;
 import com.example.project_back.service.ReviewService;
+import com.example.project_back.service.UserAddressService;
 import com.example.project_back.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,6 +19,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/customer")
 @RequiredArgsConstructor
@@ -23,6 +28,8 @@ public class CustomerController {
 
     private final UserService userService;
     private final ReviewService reviewService;
+    private final UserAddressService userAddressService;
+
 //    user
     @DeleteMapping("{id}")
     public ResponseEntity<BaseResponse<String>> deleteUser(@PathVariable Long id) {
@@ -58,6 +65,37 @@ public class CustomerController {
     public ResponseEntity<BaseResponse<String>> deleteReview(@PathVariable Long id){
         return ResponseEntity.ok(new BaseResponse<>(
                 reviewService.deleteReview(id),
+                "DeleteReview sucess full "
+        ));
+    }
+//    address
+
+    @GetMapping("/address")
+    public ResponseEntity<BaseResponse<List<AddressResponse>>> getMyAddress(){
+        return ResponseEntity.ok(new BaseResponse<>(
+                userAddressService.getMyAddresses(),
+                "getMyAddress sucess full "
+        ));
+    }
+    @PostMapping("/address")
+    public ResponseEntity<BaseResponse<AddressResponse>> createAddress(@RequestBody AddressRequest request){
+        return ResponseEntity.ok(new BaseResponse<>(
+                userAddressService.createAddress(request),
+                "createAddress sucess full "
+        ));
+    }
+
+    @PutMapping("/address/{id}")
+    public ResponseEntity<BaseResponse<AddressResponse>> updateRequest(@PathVariable Integer id ,@RequestBody AddressRequest request){
+        return ResponseEntity.ok(new BaseResponse<>(
+                userAddressService.updateAddress(id,request),
+                "update sucess full "
+        ));
+    }
+    @DeleteMapping("/address/{id}")
+    public ResponseEntity<BaseResponse<String>> deleteAddress(@PathVariable Integer id){
+        return ResponseEntity.ok(new BaseResponse<>(
+                userAddressService.deleteAddress(id),
                 "DeleteReview sucess full "
         ));
     }

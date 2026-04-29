@@ -3,6 +3,7 @@ package com.example.project_back.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -14,25 +15,23 @@ public class Voucher {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
     private String code;
-    private Double discount;
+    private String description;
 
+    private Double discount;
     @Column(name = "min_order_value")
     private Double minOrderValue;
 
-    @Column(name = "max_discount")
-    private Double maxDiscount;
-
     @Column(name = "usage_limit")
     private Integer usageLimit;
+    @Column(name="used_count")
+    private Integer usedCount ;
 
-    @Column(name="usage_count")
-    private Integer usedCount = 0;
-
-    @Column(name = "expired_at")
-    private LocalDateTime expiredAt;
-
+    @Column(name = "start_date")
+    private LocalDateTime startDate;
+    @Column(name = "end_date")
+    private LocalDateTime endDate;
     @Column(name = "created_at")
+    @CreationTimestamp()
     private LocalDateTime createdAt;
 }
