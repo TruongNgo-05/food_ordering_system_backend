@@ -1,6 +1,7 @@
 package com.example.project_back.mapper;
 
 import com.example.project_back.dto.request.admin.VoucherCreateAndUpdateRequest;
+import com.example.project_back.dto.response.admin.VoucherAdminDetailResponse;
 import com.example.project_back.dto.response.admin.VoucherAdminResponse;
 import com.example.project_back.entity.Voucher;
 import org.springframework.beans.BeanUtils;
@@ -16,6 +17,12 @@ public class VoucherMapper {
         return voucherAdminResponse;
     }
 
+    public static VoucherAdminDetailResponse toVoucherAdminDetailResponse(Voucher voucher){
+        VoucherAdminDetailResponse  voucherAdminDetailResponse = new VoucherAdminDetailResponse();
+        BeanUtils.copyProperties(voucher, voucherAdminDetailResponse);
+        voucherAdminDetailResponse.setVoucherCode(voucher.getCode());
+        return voucherAdminDetailResponse;
+    }
     public static Voucher toVoucherAdminCreateResponse(VoucherCreateAndUpdateRequest create){
         Voucher voucher = new Voucher();
 
@@ -38,6 +45,9 @@ public class VoucherMapper {
         if(update.getVoucherCode()!=null){
             voucher.setCode(update.getVoucherCode());
         }
+        if(update.getDescription()!=null){
+            voucher.setDescription(update.getDescription());
+        }
         if(update.getDiscount()!=null){
             voucher.setDiscount(update.getDiscount());
         }
@@ -46,6 +56,12 @@ public class VoucherMapper {
         }
         if(update.getUsageLimit()!=null){
             voucher.setUsageLimit(update.getUsageLimit());
+        }
+        if(update.getStartDate()!=null){
+            voucher.setStartDate(update.getStartDate());
+        }
+        if(update.getEndDate()!=null){
+            voucher.setEndDate(update.getEndDate());
         }
     }
 }

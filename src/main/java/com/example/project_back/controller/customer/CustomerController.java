@@ -4,13 +4,11 @@ import com.example.project_back.common.BaseResponse;
 import com.example.project_back.dto.request.customer.AddressRequest;
 import com.example.project_back.dto.request.customer.ReviewRequest;
 import com.example.project_back.dto.request.customer.ReviewUpdateRequest;
+import com.example.project_back.dto.response.customer.VoucherResponse;
 import com.example.project_back.dto.response.user.AddressResponse;
 import com.example.project_back.dto.response.user.FoodDetailResponse;
 import com.example.project_back.dto.response.user.ReviewResponse;
-import com.example.project_back.service.FoodService;
-import com.example.project_back.service.ReviewService;
-import com.example.project_back.service.UserAddressService;
-import com.example.project_back.service.UserService;
+import com.example.project_back.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +27,7 @@ public class CustomerController {
     private final UserService userService;
     private final ReviewService reviewService;
     private final UserAddressService userAddressService;
+    private final VoucherService voucherService;
 
 //    user
     @DeleteMapping("{id}")
@@ -97,6 +96,15 @@ public class CustomerController {
         return ResponseEntity.ok(new BaseResponse<>(
                 userAddressService.deleteAddress(id),
                 "DeleteReview sucess full "
+        ));
+    }
+//    voucher
+    @PostMapping("/voucher/apply")
+    public ResponseEntity<BaseResponse<VoucherResponse>> voucherApply(@RequestParam String code,
+                                                                      @RequestParam Double total) {
+        return ResponseEntity.ok(new BaseResponse<>(
+                voucherService.usedVoucher(code, total),
+                "success"
         ));
     }
 }

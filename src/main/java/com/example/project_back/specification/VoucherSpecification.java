@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 public class VoucherSpecification {
     public static Specification<Voucher> hasVoucherCode(String code){
         return (root, query, criteriaBuilder) ->{
-            return criteriaBuilder.like(root.get("voucherCode"),"%"+ code.toUpperCase()+"%");
+            return criteriaBuilder.like(root.get("code"),"%"+ code.toUpperCase()+"%");
         };
     }
 

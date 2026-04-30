@@ -3,6 +3,7 @@ package com.example.project_back.controller.Admin;
 import com.example.project_back.common.BaseResponse;
 import com.example.project_back.dto.request.admin.VoucherCreateAndUpdateRequest;
 import com.example.project_back.dto.request.spec.VoucherRequestParam;
+import com.example.project_back.dto.response.admin.VoucherAdminDetailResponse;
 import com.example.project_back.dto.response.admin.VoucherAdminResponse;
 import com.example.project_back.service.VoucherService;
 import jakarta.validation.Valid;
@@ -31,7 +32,7 @@ public class AdminVoucherController {
     }
 
     @GetMapping("{voucherId}")
-    public ResponseEntity<BaseResponse<VoucherAdminResponse>> getVoucherById(@PathVariable Integer voucherId) {
+    public ResponseEntity<BaseResponse<VoucherAdminDetailResponse>> getVoucherById(@PathVariable Integer voucherId) {
         return ResponseEntity.ok(new BaseResponse<>(
                 voucherService.getVoucherById(voucherId),
                 "get id vouchers successfully"

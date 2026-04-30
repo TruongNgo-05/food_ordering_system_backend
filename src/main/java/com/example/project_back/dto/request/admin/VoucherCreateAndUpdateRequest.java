@@ -16,15 +16,12 @@ public class VoucherCreateAndUpdateRequest {
 
     private Double discount;
 
-    @DecimalMin(value = "0.0", message = "Minimum order value must >= 0")
     private Double minOrderValue;
 
     @Min(value = 0, message = "Usage limit must >= 0")
     private Integer usageLimit;
 
-    @NotNull(message = "Start date must not be null")
     private LocalDateTime startDate;
 
-    @NotNull(message = "End date must not be null")
     private LocalDateTime endDate;
 }
