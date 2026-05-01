@@ -27,12 +27,12 @@ public class UserAddressServiceImpl implements UserAddressService {
     @Override
     public List<AddressResponse> getMyAddresses(){
         String username = SecurityUtils.getCurrentUsername();
-        if(username == null){
-            throw new ApplicationException("Unauthenticated");
+        if (username == null || username.equals("anonymousUser")) {
+            throw new ApplicationException("Bạn chưa đăng nhập");
         }
         Optional<User> users = userRepository.findByUsername(username);
-        if(users.isEmpty()){
-            throw new ApplicationException("User not found");
+        if(users.isEmpty()) {
+            throw new ApplicationException("User không tồn tại");
         }
         User user = users.get();
         List<AddressResponse> responseList = new ArrayList<>();
@@ -46,12 +46,12 @@ public class UserAddressServiceImpl implements UserAddressService {
     @Override
     public AddressResponse createAddress(AddressRequest request){
         String username = SecurityUtils.getCurrentUsername();
-        if(username == null){
-            throw new ApplicationException("Unauthenticated");
+        if (username == null || username.equals("anonymousUser")) {
+            throw new ApplicationException("Bạn chưa đăng nhập");
         }
         Optional<User> users = userRepository.findByUsername(username);
-        if(users.isEmpty()){
-            throw new ApplicationException("User not found");
+        if(users.isEmpty()) {
+            throw new ApplicationException("User không tồn tại");
         }
         User user = users.get();
         Long userId = user.getId();
@@ -74,17 +74,17 @@ public class UserAddressServiceImpl implements UserAddressService {
     @Override
     public AddressResponse updateAddress(Integer id,AddressRequest request){
         String username = SecurityUtils.getCurrentUsername();
-        if(username == null){
-            throw new ApplicationException("Unauthenticated");
+        if (username == null || username.equals("anonymousUser")) {
+            throw new ApplicationException("Bạn chưa đăng nhập");
         }
         Optional<User> users = userRepository.findByUsername(username);
-        if(users.isEmpty()){
-            throw new ApplicationException("User not found");
+        if(users.isEmpty()) {
+            throw new ApplicationException("User không tồn tại");
         }
         User user = users.get();
         Optional<UserAddress> userAddress = userAddressRepository.findById(id);
         if(userAddress.isEmpty()){
-            throw new ApplicationException("Address not found");
+            throw new ApplicationException("Address không tồn tại");
         }
         UserAddress address= userAddress.get();
         if(!address.getUserId().equals(user.getId())){
@@ -112,18 +112,18 @@ public class UserAddressServiceImpl implements UserAddressService {
     @Override
     public String deleteAddress(Integer id){
         String username = SecurityUtils.getCurrentUsername();
-        if(username == null){
-            throw new ApplicationException("Unauthenticated");
+        if (username == null || username.equals("anonymousUser")) {
+            throw new ApplicationException("Bạn chưa đăng nhập");
         }
         Optional<User> users = userRepository.findByUsername(username);
-        if(users.isEmpty()){
-            throw new ApplicationException("User not found");
+        if(users.isEmpty()) {
+            throw new ApplicationException("User không tồn tại");
         }
         User user = users.get();
 
         Optional<UserAddress> userAddress = userAddressRepository.findById(id);
         if(userAddress.isEmpty()){
-            throw new ApplicationException("UserAddress not found");
+            throw new ApplicationException("UserAddress không tồn tại");
         }
         UserAddress address = userAddress.get();
         if(!address.getUserId().equals(user.getId())){

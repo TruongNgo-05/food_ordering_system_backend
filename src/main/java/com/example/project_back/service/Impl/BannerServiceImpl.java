@@ -41,7 +41,21 @@ public class BannerServiceImpl implements BannerService {
         Page<Banner> banners = bannerRespository.findAll(pageable);
         return banners.map(BannerMapper::toAdminResponse);
     }
-
+//@Override
+//public List<BannerAdminResponse> getAllBannerAdmin() {
+//
+//    List<Banner> banners = bannerRespository.findAll();
+//
+//    //  sort id giảm dần
+//    banners.sort((a, b) -> b.getId().compareTo(a.getId()));
+//
+//    List<BannerAdminResponse> result = new ArrayList<>();
+//    for (Banner banner : banners) {
+//        result.add(BannerMapper.toAdminResponse(banner));
+//    }
+//
+//    return result;
+//}v
     @Transactional
     @Override
     public BannerAdminResponse createBanner(BannerCreateAndUpdateRequest create){

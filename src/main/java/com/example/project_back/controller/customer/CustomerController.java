@@ -4,7 +4,10 @@ import com.example.project_back.common.BaseResponse;
 import com.example.project_back.dto.request.customer.AddressRequest;
 import com.example.project_back.dto.request.customer.ReviewRequest;
 import com.example.project_back.dto.request.customer.ReviewUpdateRequest;
+import com.example.project_back.dto.request.customer.cart.AddToCartRequest;
+import com.example.project_back.dto.request.customer.cart.UpdateCartRequest;
 import com.example.project_back.dto.response.customer.VoucherResponse;
+import com.example.project_back.dto.response.customer.cart.CartResponse;
 import com.example.project_back.dto.response.user.AddressResponse;
 import com.example.project_back.dto.response.user.FoodDetailResponse;
 import com.example.project_back.dto.response.user.ReviewResponse;
@@ -28,6 +31,7 @@ public class CustomerController {
     private final ReviewService reviewService;
     private final UserAddressService userAddressService;
     private final VoucherService voucherService;
+    private final CartService cartService;
 
 //    user
     @DeleteMapping("{id}")
@@ -67,8 +71,43 @@ public class CustomerController {
                 "DeleteReview sucess full "
         ));
     }
-//    address
+    // cart
 
+    @GetMapping("cart")
+    public ResponseEntity<BaseResponse<CartResponse>> getCart() {
+        return ResponseEntity.ok(new BaseResponse<>(
+                cartService.getCart(),
+                "getCartSucess full "
+        ));
+    }
+
+    @PostMapping("cart")
+    public ResponseEntity<BaseResponse<CartResponse>> addToCart(@RequestBody AddToCartRequest request) {
+        return ResponseEntity.ok(new BaseResponse<>(
+                cartService.addToCart(request),
+                "thêm món ăn vào giỏ success full "
+        ));
+    }
+
+    @PutMapping("cart/{itemId}")
+    public ResponseEntity<BaseResponse<CartResponse>> updateCart(@PathVariable Integer itemId, @RequestBody UpdateCartRequest request) {
+        return ResponseEntity.ok(new BaseResponse<>(
+                cartService.updateCartItem(itemId, request),
+                "updateCartItem sucess full "
+        ));
+    }
+
+    @DeleteMapping("cart/{itemId}")
+    public ResponseEntity<BaseResponse<CartResponse>> deleteCart(@PathVariable Integer itemId) {
+        return ResponseEntity.ok(new BaseResponse<>(
+                cartService.removeCartItem(itemId),
+                "deleteCartItem sucess full "
+                ));
+    }
+
+
+
+//    address
     @GetMapping("/address")
     public ResponseEntity<BaseResponse<List<AddressResponse>>> getMyAddress(){
         return ResponseEntity.ok(new BaseResponse<>(
@@ -107,4 +146,6 @@ public class CustomerController {
                 "success"
         ));
     }
+
+
 }
