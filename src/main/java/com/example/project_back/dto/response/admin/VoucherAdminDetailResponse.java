@@ -19,6 +19,7 @@ public class VoucherAdminDetailResponse {
 
     private Integer usageLimit;
     private Integer usedCount;
+    private Integer remaining;
 
     private LocalDateTime startDate;
     private LocalDateTime endDate;

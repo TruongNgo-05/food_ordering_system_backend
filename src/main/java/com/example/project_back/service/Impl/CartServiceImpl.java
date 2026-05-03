@@ -54,7 +54,6 @@ public class CartServiceImpl implements CartService {
         return CartMapper.toResponse(cartOptional.get());
     }
 
-
     @Transactional
     @Override
     public CartResponse addToCart(AddToCartRequest request) {
@@ -64,23 +63,31 @@ public class CartServiceImpl implements CartService {
         if (username == null || username.equals("anonymousUser")) {
             throw new ApplicationException("Bạn chưa đăng nhập");
         }
+
         Optional<User> users = userRepository.findByUsername(username);
-        if(users.isEmpty()) {
+        if (users == null) {
             throw new ApplicationException("User không tồn tại");
         }
         User user = users.get();
-        Cart cart = cartRepository.findByUser_Id(user.getId())
-                .orElseGet(() -> {
-                    Cart c = new Cart();
-                    c.setUser(user);
-                    c.setCreatedAt(LocalDateTime.now());
-                    c.setItems(new ArrayList<>());
-                    return c;
-                });
+        //  Tìm cart theo user
+        Optional<Cart> carts = cartRepository.findByUser_Id(user.getId());
+        Cart cart = carts.get();
+        // Nếu chưa có cart thì tạo mới
+        if (cart == null) {
+            cart = new Cart();
+            cart.setUser(user);
+            cart.setCreatedAt(LocalDateTime.now());
+            cart.setItems(new ArrayList<>());
+        }
 
-        Food food = foodRepository.findById(request.getFoodId())
-                .orElseThrow(() -> new ApplicationException("Food not found"));
+        // Tìm food
+        Optional<Food> foods = foodRepository.findById(request.getFoodId());
+        Food food = foods.get();
+        if (food == null) {
+            throw new ApplicationException("Food không tồn tại");
+        }
 
+        //  Kiểm tra item đã tồn tại trong cart chưa
         CartItem existItem = null;
 
         for (CartItem item : cart.getItems()) {
@@ -89,10 +96,13 @@ public class CartServiceImpl implements CartService {
                 break;
             }
         }
-
+        // Nếu đã có thì tăng số lượng
         if (existItem != null) {
-            existItem.setQuantity(existItem.getQuantity() + request.getQuantity());
-        } else {
+            int newQuantity = existItem.getQuantity() + request.getQuantity();
+            existItem.setQuantity(newQuantity);
+        }
+        // Nếu chưa có thì thêm mới
+        else {
             CartItem newItem = new CartItem();
             newItem.setCart(cart);
             newItem.setFood(food);
@@ -100,9 +110,7 @@ public class CartServiceImpl implements CartService {
 
             cart.getItems().add(newItem);
         }
-
         cartRepository.save(cart);
-
         return CartMapper.toResponse(cart);
     }
 
@@ -120,18 +128,28 @@ public class CartServiceImpl implements CartService {
             throw new ApplicationException("User không tồn tại");
         }
         User user = users.get();
-        Cart cart = cartRepository.findByUser_Id(user.getId())
-                .orElseThrow(() -> new ApplicationException("Cart not found"));
+        // 3. Tìm cart
+        Optional<Cart> carts = cartRepository.findByUser_Id(user.getId());
+        Cart cart = carts.get();
+        if (cart == null) {
+            throw new ApplicationException("Cart không tồn tại");
+        }
+
+        //  Tìm item trong cart
+        CartItem foundItem = null;
 
         for (CartItem item : cart.getItems()) {
             if (item.getId().equals(cartItemId)) {
-                item.setQuantity(request.getQuantity());
+                foundItem = item;
                 break;
             }
         }
-
+        if (foundItem == null) {
+            throw new ApplicationException("Cart item không tồn tại");
+        }
+        //  Update số lượng
+        foundItem.setQuantity(request.getQuantity());
         cartRepository.save(cart);
-
         return CartMapper.toResponse(cart);
     }
 
@@ -144,13 +162,18 @@ public class CartServiceImpl implements CartService {
         if (username == null || username.equals("anonymousUser")) {
             throw new ApplicationException("Unauthenticated");
         }
-
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ApplicationException("User not found"));
-
-        Cart cart = cartRepository.findByUser_Id(user.getId())
-                .orElseThrow(() -> new ApplicationException("Cart not found"));
-
+        Optional<User> users = userRepository.findByUsername(username);
+        if(users.isEmpty()) {
+            throw new ApplicationException("User không tồn tại");
+        }
+        User user = users.get();
+        // 3. Tìm cart
+        Optional<Cart> carts = cartRepository.findByUser_Id(user.getId());
+        Cart cart = carts.get();
+        if (cart == null) {
+            throw new ApplicationException("Cart không tồn tại");
+        }
+        // Tìm item cần xóa
         CartItem removeItem = null;
 
         for (CartItem item : cart.getItems()) {
@@ -159,13 +182,13 @@ public class CartServiceImpl implements CartService {
                 break;
             }
         }
-
-        if (removeItem != null) {
-            cart.getItems().remove(removeItem);
+        //  Nếu không tìm thấy
+        if (removeItem == null) {
+            throw new ApplicationException("Cart item không tồn tại");
         }
-
+        //  Xóa item
+        cart.getItems().remove(removeItem);
         cartRepository.save(cart);
-
         return CartMapper.toResponse(cart);
     }
 }

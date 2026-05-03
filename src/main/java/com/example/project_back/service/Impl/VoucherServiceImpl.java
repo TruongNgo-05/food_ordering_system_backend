@@ -1,13 +1,20 @@
 package com.example.project_back.service.Impl;
 
+import com.example.project_back.config.SecurityUtils;
 import com.example.project_back.dto.request.admin.VoucherCreateAndUpdateRequest;
 import com.example.project_back.dto.request.spec.VoucherRequestParam;
 import com.example.project_back.dto.response.admin.VoucherAdminDetailResponse;
 import com.example.project_back.dto.response.admin.VoucherAdminResponse;
+import com.example.project_back.dto.response.customer.VoucherGetResponse;
 import com.example.project_back.dto.response.customer.VoucherResponse;
+import com.example.project_back.entity.Cart;
+import com.example.project_back.entity.CartItem;
+import com.example.project_back.entity.User;
 import com.example.project_back.entity.Voucher;
 import com.example.project_back.exception.ApplicationException;
 import com.example.project_back.mapper.VoucherMapper;
+import com.example.project_back.repository.CartRepository;
+import com.example.project_back.repository.UserRepository;
 import com.example.project_back.repository.VoucherRepository;
 import com.example.project_back.service.VoucherService;
 import com.example.project_back.specification.VoucherSpecification;
@@ -19,12 +26,16 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 @AllArgsConstructor
 public class VoucherServiceImpl implements VoucherService {
         private final VoucherRepository voucherRepository;
+        private final CartRepository cartRepository;
+        private final UserRepository userRepository;
 //admin
     @Override
     public Page<VoucherAdminResponse> getVouchers(VoucherRequestParam param, Pageable pageable){
@@ -89,14 +100,46 @@ public class VoucherServiceImpl implements VoucherService {
         return "success";
     };
 
+
 //    customer
-@Override
-    public VoucherResponse usedVoucher(String voucherCode,Double orderTotal){
-        Optional<Voucher> vouchers = voucherRepository.findByCode(voucherCode);
-        if(vouchers.isEmpty()){
-            throw new ApplicationException("không tìm thấy voucher");
+    @Transactional
+    @Override
+    public VoucherResponse checkVoucher(String voucherCode) {
+
+        String username = SecurityUtils.getCurrentUsername();
+
+        if (username == null || username.equals("anonymousUser")) {
+            throw new ApplicationException("Bạn chưa đăng nhập");
         }
-        Voucher voucher = vouchers.get();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ApplicationException("User không tồn tại"));
+
+        Cart cart = cartRepository.findByUser_Id(user.getId())
+                .orElseThrow(() -> new ApplicationException("Cart không tồn tại"));
+
+        //  tổng tiền giỏ hàng
+        double total = 0.0;
+        for (CartItem item : cart.getItems()) {
+            total += item.getFood().getPrice() * item.getQuantity();
+        }
+
+        //  CASE KHÔNG DÙNG VOUCHER
+        if (voucherCode == null || voucherCode.trim().isEmpty()) {
+
+            VoucherResponse res = new VoucherResponse();
+            res.setDescription("Không áp dụng voucher");
+            res.setDiscount(0.0);
+            res.setMinOrderValue(0.0);
+            res.setTotalBefore(total);
+            res.setTotalAfter(total);
+
+            return res;
+        }
+
+        //  có voucher thì xử lý bình thường
+        Voucher voucher = voucherRepository.findByCode(voucherCode)
+                .orElseThrow(() -> new ApplicationException("Không tìm thấy voucher"));
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -107,25 +150,71 @@ public class VoucherServiceImpl implements VoucherService {
         if (voucher.getEndDate() != null && now.isAfter(voucher.getEndDate())) {
             throw new ApplicationException("Voucher đã hết hạn");
         }
-        if(voucher.getMinOrderValue() != null && orderTotal<voucher.getMinOrderValue()){
-            throw new RuntimeException("Chưa đủ giá trị đơn hàng");
+
+        if (voucher.getMinOrderValue() != null && total < voucher.getMinOrderValue()) {
+            throw new ApplicationException("Chưa đủ giá trị đơn hàng");
         }
-        Integer used = voucher.getUsedCount();
+
+        int used = voucher.getUsedCount() == null ? 0 : voucher.getUsedCount();
         Integer limit = voucher.getUsageLimit();
-        if (limit != null && limit > 0) {
-            if (used >= limit) {
-                throw new RuntimeException("Voucher đã hết lượt");
+
+        if (limit != null && limit > 0 && used >= limit) {
+            throw new ApplicationException("Voucher đã hết lượt");
+        }
+
+        //  giảm tiền FIXED
+        double discountAmount = voucher.getDiscount();
+        if (discountAmount > total) {
+            discountAmount = total;
+        }
+
+        double totalAfter = total - discountAmount;
+
+        VoucherResponse res = new VoucherResponse();
+        res.setDescription(voucher.getDescription());
+        res.setMinOrderValue(voucher.getMinOrderValue());
+        res.setTotalBefore(total);
+        res.setDiscount(discountAmount);
+        res.setTotalAfter(totalAfter);
+
+        return res;
+    }
+
+
+    //voucher
+    @Override
+    public List<VoucherGetResponse> getVoucherCustomer() {
+        List<Voucher> vouchers = voucherRepository.findAll();
+        List<VoucherGetResponse> res = new ArrayList<>();
+
+        for (Voucher voucher : vouchers) {
+            if (voucher.getUsedCount() < voucher.getUsageLimit()) {
+                VoucherGetResponse result = new VoucherGetResponse();
+                result.setVoucherCode(voucher.getCode());
+                res.add(result);
             }
-            voucher.setUsedCount(used + 1);
+        }  return res;
+    }
+
+    @Transactional
+    @Override
+    public VoucherResponse usedVoucher(String voucherCode) {
+
+        VoucherResponse res = checkVoucher(voucherCode);
+
+        Voucher voucher = voucherRepository.findByCode(voucherCode)
+                .orElseThrow(() -> new ApplicationException("Không tìm thấy voucher"));
+
+        int used = voucher.getUsedCount() == null ? 0 : voucher.getUsedCount();
+        Integer limit = voucher.getUsageLimit();
+
+        if (limit != null && limit > 0 && used >= limit) {
+            throw new ApplicationException("Voucher đã hết lượt");
         }
+
+        voucher.setUsedCount(used + 1);
         voucherRepository.save(voucher);
-        VoucherResponse voucherResponse = new VoucherResponse();
-        voucherResponse.setVoucherCode(voucher.getCode());
-        voucherResponse.setDiscount(voucher.getDiscount());
-        voucherResponse.setMinOrderValue(voucher.getMinOrderValue());
-        if(limit != null ){
-            voucherResponse.setRemaining(limit - voucher.getUsedCount());
-        }
-        return voucherResponse;
+
+        return res;
     }
 }

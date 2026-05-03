@@ -6,10 +6,13 @@ import com.example.project_back.dto.request.customer.ReviewRequest;
 import com.example.project_back.dto.request.customer.ReviewUpdateRequest;
 import com.example.project_back.dto.request.customer.cart.AddToCartRequest;
 import com.example.project_back.dto.request.customer.cart.UpdateCartRequest;
+import com.example.project_back.dto.response.customer.FavoriteResponse;
+import com.example.project_back.dto.response.customer.VoucherGetResponse;
 import com.example.project_back.dto.response.customer.VoucherResponse;
 import com.example.project_back.dto.response.customer.cart.CartResponse;
 import com.example.project_back.dto.response.user.AddressResponse;
 import com.example.project_back.dto.response.user.FoodDetailResponse;
+import com.example.project_back.dto.response.user.FoodResponse;
 import com.example.project_back.dto.response.user.ReviewResponse;
 import com.example.project_back.service.*;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +35,7 @@ public class CustomerController {
     private final UserAddressService userAddressService;
     private final VoucherService voucherService;
     private final CartService cartService;
-
+    private final FavoriteService favoriteService;
 //    user
     @DeleteMapping("{id}")
     public ResponseEntity<BaseResponse<String>> deleteUser(@PathVariable Long id) {
@@ -40,6 +43,8 @@ public class CustomerController {
                 userService.deleteUser(id),"delete susecfull"
         ));
     }
+
+
 //    review
     @GetMapping("/review/{foodId}")
     public ResponseEntity<BaseResponse<Page<ReviewResponse>>> getAllcomment(
@@ -56,6 +61,7 @@ public class CustomerController {
                 "createReview sucess full "
         ));
     }
+
     @PutMapping("/review/{id}")
     public ResponseEntity<BaseResponse<ReviewResponse>> updateReview(@PathVariable Long id, @RequestBody ReviewUpdateRequest update){
         return ResponseEntity.ok(new BaseResponse<>(
@@ -71,8 +77,9 @@ public class CustomerController {
                 "DeleteReview sucess full "
         ));
     }
-    // cart
 
+
+    // cart
     @GetMapping("cart")
     public ResponseEntity<BaseResponse<CartResponse>> getCart() {
         return ResponseEntity.ok(new BaseResponse<>(
@@ -115,6 +122,7 @@ public class CustomerController {
                 "getMyAddress sucess full "
         ));
     }
+
     @PostMapping("/address")
     public ResponseEntity<BaseResponse<AddressResponse>> createAddress(@RequestBody AddressRequest request){
         return ResponseEntity.ok(new BaseResponse<>(
@@ -130,6 +138,7 @@ public class CustomerController {
                 "update sucess full "
         ));
     }
+
     @DeleteMapping("/address/{id}")
     public ResponseEntity<BaseResponse<String>> deleteAddress(@PathVariable Integer id){
         return ResponseEntity.ok(new BaseResponse<>(
@@ -137,15 +146,50 @@ public class CustomerController {
                 "DeleteReview sucess full "
         ));
     }
-//    voucher
-    @PostMapping("/voucher/apply")
-    public ResponseEntity<BaseResponse<VoucherResponse>> voucherApply(@RequestParam String code,
-                                                                      @RequestParam Double total) {
+
+
+    //    voucher
+    @GetMapping("/voucher")
+    public ResponseEntity<BaseResponse<List<VoucherGetResponse>>> getVoucher() {
         return ResponseEntity.ok(new BaseResponse<>(
-                voucherService.usedVoucher(code, total),
+                voucherService.getVoucherCustomer(),
+                "success"
+        ));
+    }
+
+    @PostMapping("/voucher/apply")
+    public ResponseEntity<BaseResponse<VoucherResponse>> voucherApply(@RequestParam String code) {
+        return ResponseEntity.ok(new BaseResponse<>(
+                voucherService.usedVoucher(code),
                 "success"
         ));
     }
 
 
+// total pice
+    @PostMapping("/check")
+    public ResponseEntity<BaseResponse<VoucherResponse>> checkVoucher(@RequestParam String code) {
+        return ResponseEntity.ok(new BaseResponse<>(
+                voucherService.checkVoucher(code),
+                "success"
+        ));
+    }
+
+
+    //favorite
+    @GetMapping("/favorites")
+    public ResponseEntity<BaseResponse<FavoriteResponse>> getMyFavorites() {
+        return ResponseEntity.ok( new BaseResponse<>(
+                favoriteService.getMyFavorite(),
+                "hiển thị yêu thich thanh cong"
+        ));
+    }
+
+    @PostMapping("/favorites/toggle/{foodId}")
+    public ResponseEntity<BaseResponse<String>> toggleFavorite(@PathVariable Long foodId) {
+        return ResponseEntity.ok( new BaseResponse<>(
+                favoriteService.toggleFavorite(foodId),
+                "ccap nhat yêu thich thanh cong"
+        ));
+    }
 }

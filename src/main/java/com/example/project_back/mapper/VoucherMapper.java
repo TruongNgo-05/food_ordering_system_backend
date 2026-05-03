@@ -54,7 +54,7 @@ public class VoucherMapper {
         if(update.getMinOrderValue()!=null){
         voucher.setMinOrderValue(update.getMinOrderValue());
         }
-        if(update.getUsageLimit()!=null){
+        if(update.getUsageLimit()!=null && update.getUsageLimit()>voucher.getUsedCount()){
             voucher.setUsageLimit(update.getUsageLimit());
         }
         if(update.getStartDate()!=null){

@@ -85,7 +85,7 @@ public ResponseEntity<BaseResponse<FoodAdminResponse>> update(
                 "Delete succsess full"
         ));
     }
-
+//
 //    // ===== XÓA ẢNH CHÍNH =====
 //    @DeleteMapping("/{id}/main-image")
 //    public ResponseEntity<?> deleteMainImage(@PathVariable Long id) {

@@ -232,7 +232,7 @@
 
             // ================= MAIN IMAGE =================
 
-            // ❌ XÓA ẢNH
+            //  XÓA ẢNH
             if (Boolean.TRUE.equals(update.getRemoveImage())) {
                 if (food.getImage() != null) {
                     fileService.deleteFile(food.getImage());
@@ -240,7 +240,7 @@
                 food.setImage(null);
             }
 
-            // 📤 UPLOAD FILE
+            //  UPLOAD FILE
             else if (image != null && !image.isEmpty()) {
                 if (food.getImage() != null) {
                     fileService.deleteFile(food.getImage());
@@ -248,7 +248,7 @@
                 food.setImage(fileService.uploadFile(image));
             }
 
-            // 🔗 SET URL
+            //  SET URL
             else if (update.getImageUrl() != null && !update.getImageUrl().isEmpty()) {
                 food.setImage(update.getImageUrl());
             }
