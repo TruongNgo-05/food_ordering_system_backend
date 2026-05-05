@@ -13,10 +13,10 @@ import com.example.project_back.exception.ApplicationException;
 import com.example.project_back.repository.OtpRepository;
 import com.example.project_back.repository.UserRepository;
 import com.example.project_back.service.AuthenticationService;
+import com.example.project_back.service.MailService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -193,54 +193,5 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         );
 
         return true;
-    }
-
-    @Override
-    public String unlockAccount(Long userId) {
-
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            throw new ApplicationException("Không tìm thấy tài khoản người dùng");
-        }
-        User users = user.get();
-        users.setStatus(Status.ACTIVED);
-        users.setFailCount(0);
-        users.setLockTime(null);
-
-        userRepository.save(users);
-
-        mailService.sendEmail(
-                users.getEmail(),
-                "Tài khoản của bạn đã được mở khóa",
-                "Xin chào " + users.getUsername() + ",\n\n"
-                        + "Tài khoản của bạn đã được quản trị viên mở khóa thành công.\n"
-                        + "Bạn hiện có thể đăng nhập và tiếp tục sử dụng hệ thống như bình thường.\n\n"
-                        + "Nếu bạn gặp bất kỳ vấn đề nào khi đăng nhập, vui lòng liên hệ admin.\n\n"
-                        + "Trân trọng"
-        );
-        return users.getEmail();
-    }
-
-    @Override
-    public String lockAccount(Long userId) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            throw new ApplicationException("Không tìm thấy mã tài khoản người dùng");
-        }
-        User users = user.get();
-        users.setStatus(Status.LOCKED);
-        users.setFailCount(5);
-        users.setLockTime(LocalDateTime.now());
-
-        userRepository.save(users);
-        mailService.sendEmail(
-                users.getEmail(),
-                "Tài khoản của bạn đã bị khóa",
-                "Xin chào " + users.getUsername() + ",\n\n"
-                        + "Tài khoản của bạn đã bị admin khóa.\n"
-                        + "Vui lòng liên hệ quản trị viên để được hỗ trợ mở khóa."
-        );
-
-        return users.getEmail();
     }
 }

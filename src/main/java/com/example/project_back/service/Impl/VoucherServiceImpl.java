@@ -5,8 +5,9 @@ import com.example.project_back.dto.request.admin.VoucherCreateAndUpdateRequest;
 import com.example.project_back.dto.request.spec.VoucherRequestParam;
 import com.example.project_back.dto.response.admin.VoucherAdminDetailResponse;
 import com.example.project_back.dto.response.admin.VoucherAdminResponse;
-import com.example.project_back.dto.response.customer.VoucherGetResponse;
-import com.example.project_back.dto.response.customer.VoucherResponse;
+import com.example.project_back.dto.response.customer.OrderCheckResponse;
+import com.example.project_back.dto.response.customer.voucher.VoucherGetResponse;
+import com.example.project_back.dto.response.customer.voucher.VoucherResponse;
 import com.example.project_back.entity.Cart;
 import com.example.project_back.entity.CartItem;
 import com.example.project_back.entity.User;
@@ -101,120 +102,94 @@ public class VoucherServiceImpl implements VoucherService {
     };
 
 
-//    customer
+//    CUSTOMER
+
+//    voucher
     @Transactional
     @Override
-    public VoucherResponse checkVoucher(String voucherCode) {
+public VoucherResponse checkVoucherCode(String voucherCode){
+    String username = SecurityUtils.getCurrentUsername();
 
-        String username = SecurityUtils.getCurrentUsername();
+    if (username == null || username.equals("anonymousUser")) {
+        throw new ApplicationException("Bạn chưa đăng nhập");
+    }
 
-        if (username == null || username.equals("anonymousUser")) {
-            throw new ApplicationException("Bạn chưa đăng nhập");
-        }
+    User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new ApplicationException("User không tồn tại"));
 
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ApplicationException("User không tồn tại"));
+    Cart cart = cartRepository.findByUser_Id(user.getId())
+            .orElseThrow(() -> new ApplicationException("Cart không tồn tại"));
 
-        Cart cart = cartRepository.findByUser_Id(user.getId())
-                .orElseThrow(() -> new ApplicationException("Cart không tồn tại"));
-
-        //  tổng tiền giỏ hàng
-        double total = 0.0;
-        for (CartItem item : cart.getItems()) {
-            total += item.getFood().getPrice() * item.getQuantity();
-        }
-
+    //  tổng tiền giỏ hàng
+    double total = 0.0;
+    for (CartItem item : cart.getItems()) {
+        total += item.getFood().getPrice() * item.getQuantity();
+    }
         //  CASE KHÔNG DÙNG VOUCHER
         if (voucherCode == null || voucherCode.trim().isEmpty()) {
 
             VoucherResponse res = new VoucherResponse();
             res.setDescription("Không áp dụng voucher");
             res.setDiscount(0.0);
-            res.setMinOrderValue(0.0);
-            res.setTotalBefore(total);
+            res.setTotalPrice(total);
             res.setTotalAfter(total);
-
             return res;
         }
+    //  có voucher thì xử lý bình thường
+    Voucher voucher = voucherRepository.findByCode(voucherCode)
+            .orElseThrow(() -> new ApplicationException("Không tìm thấy voucher"));
 
-        //  có voucher thì xử lý bình thường
-        Voucher voucher = voucherRepository.findByCode(voucherCode)
-                .orElseThrow(() -> new ApplicationException("Không tìm thấy voucher"));
+    LocalDateTime now = LocalDateTime.now();
 
-        LocalDateTime now = LocalDateTime.now();
+    if (voucher.getStartDate() != null && now.isBefore(voucher.getStartDate())) {
+        throw new ApplicationException("Voucher chưa bắt đầu");
+    }
 
-        if (voucher.getStartDate() != null && now.isBefore(voucher.getStartDate())) {
-            throw new ApplicationException("Voucher chưa bắt đầu");
-        }
+    if (voucher.getEndDate() != null && now.isAfter(voucher.getEndDate())) {
+        throw new ApplicationException("Voucher đã hết hạn");
+    }
 
-        if (voucher.getEndDate() != null && now.isAfter(voucher.getEndDate())) {
-            throw new ApplicationException("Voucher đã hết hạn");
-        }
+    if (voucher.getMinOrderValue() != null && total < voucher.getMinOrderValue()) {
+        throw new ApplicationException("Chưa đủ giá trị đơn hàng");
+    }
 
-        if (voucher.getMinOrderValue() != null && total < voucher.getMinOrderValue()) {
-            throw new ApplicationException("Chưa đủ giá trị đơn hàng");
-        }
+    int used = voucher.getUsedCount() == null ? 0 : voucher.getUsedCount();
+    Integer limit = voucher.getUsageLimit();
 
-        int used = voucher.getUsedCount() == null ? 0 : voucher.getUsedCount();
-        Integer limit = voucher.getUsageLimit();
-
-        if (limit != null && limit > 0 && used >= limit) {
-            throw new ApplicationException("Voucher đã hết lượt");
-        }
-
-        //  giảm tiền FIXED
+    if (limit != null && limit > 0 && used >= limit) {
+        throw new ApplicationException("Voucher đã hết lượt");
+    }
+        //  giảm tiền
         double discountAmount = voucher.getDiscount();
         if (discountAmount > total) {
             discountAmount = total;
         }
-
         double totalAfter = total - discountAmount;
-
-        VoucherResponse res = new VoucherResponse();
-        res.setDescription(voucher.getDescription());
-        res.setMinOrderValue(voucher.getMinOrderValue());
-        res.setTotalBefore(total);
-        res.setDiscount(discountAmount);
-        res.setTotalAfter(totalAfter);
-
-        return res;
-    }
-
+    VoucherResponse voucherResponse = new VoucherResponse();
+    voucherResponse.setDescription(voucher.getDescription());
+    voucherResponse.setDiscount(voucher.getDiscount());
+    voucherResponse.setTotalPrice(total);
+    voucherResponse.setTotalAfter(totalAfter);
+    return voucherResponse;
+}
 
     //voucher
     @Override
     public List<VoucherGetResponse> getVoucherCustomer() {
         List<Voucher> vouchers = voucherRepository.findAll();
+
+        // Sắp xếp id giảm dần
+        vouchers.sort((v1, v2) -> Long.compare(v2.getId(), v1.getId()));
+
         List<VoucherGetResponse> res = new ArrayList<>();
 
         for (Voucher voucher : vouchers) {
             if (voucher.getUsedCount() < voucher.getUsageLimit()) {
                 VoucherGetResponse result = new VoucherGetResponse();
+                result.setVoucherId(voucher.getId());
                 result.setVoucherCode(voucher.getCode());
                 res.add(result);
             }
         }  return res;
-    }
-
-    @Transactional
-    @Override
-    public VoucherResponse usedVoucher(String voucherCode) {
-
-        VoucherResponse res = checkVoucher(voucherCode);
-
-        Voucher voucher = voucherRepository.findByCode(voucherCode)
-                .orElseThrow(() -> new ApplicationException("Không tìm thấy voucher"));
-
-        int used = voucher.getUsedCount() == null ? 0 : voucher.getUsedCount();
-        Integer limit = voucher.getUsageLimit();
-
-        if (limit != null && limit > 0 && used >= limit) {
-            throw new ApplicationException("Voucher đã hết lượt");
-        }
-
-        voucher.setUsedCount(used + 1);
-        voucherRepository.save(voucher);
-
-        return res;
     }
 }

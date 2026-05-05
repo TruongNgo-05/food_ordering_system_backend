@@ -21,26 +21,21 @@ public interface FoodService {
 
     FoodDetailResponse getFoodDetail(Long id);
 
-//    FoodAdminResponse createFood(FoodCreateAndUpdateRequest create);
-FoodAdminResponse createFood(
+    FoodAdminResponse createFood(
         FoodCreateAndUpdateRequest create,
         MultipartFile image,
         List<MultipartFile> images
-);
+    );
 
-//    FoodAdminResponse updateFood(FoodCreateAndUpdateRequest update, Long id);
-FoodAdminResponse updateFood(
+    FoodAdminResponse updateFood(
         Long id,
         FoodCreateAndUpdateRequest update,
         MultipartFile image,
         List<MultipartFile> images
-);
+    );
 
     String deleteFood(Long id);
 
-//    // xóa ảnh chính
-//    void deleteMainImage(Long foodId);
-//
 //    // xóa ảnh phụ theo id
 //    void deleteSubImage(Long imageId);
 }

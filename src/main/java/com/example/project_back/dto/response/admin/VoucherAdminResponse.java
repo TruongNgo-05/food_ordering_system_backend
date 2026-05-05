@@ -15,10 +15,9 @@ public class VoucherAdminResponse {
     private String description;
 
     private Double discount;
-
+    private Double minOrderValue;
     private Integer usageLimit;
 
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-
 }

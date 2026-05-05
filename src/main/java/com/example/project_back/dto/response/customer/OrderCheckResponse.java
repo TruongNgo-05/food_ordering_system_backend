@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class VoucherResponse {
+public class OrderCheckResponse {
 //    private String voucherCode;
     private String description;
 

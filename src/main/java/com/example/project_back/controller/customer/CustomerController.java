@@ -7,12 +7,10 @@ import com.example.project_back.dto.request.customer.ReviewUpdateRequest;
 import com.example.project_back.dto.request.customer.cart.AddToCartRequest;
 import com.example.project_back.dto.request.customer.cart.UpdateCartRequest;
 import com.example.project_back.dto.response.customer.FavoriteResponse;
-import com.example.project_back.dto.response.customer.VoucherGetResponse;
-import com.example.project_back.dto.response.customer.VoucherResponse;
+import com.example.project_back.dto.response.customer.voucher.VoucherGetResponse;
 import com.example.project_back.dto.response.customer.cart.CartResponse;
+import com.example.project_back.dto.response.customer.voucher.VoucherResponse;
 import com.example.project_back.dto.response.user.AddressResponse;
-import com.example.project_back.dto.response.user.FoodDetailResponse;
-import com.example.project_back.dto.response.user.FoodResponse;
 import com.example.project_back.dto.response.user.ReviewResponse;
 import com.example.project_back.service.*;
 import lombok.RequiredArgsConstructor;
@@ -32,17 +30,9 @@ public class CustomerController {
 
     private final UserService userService;
     private final ReviewService reviewService;
-    private final UserAddressService userAddressService;
     private final VoucherService voucherService;
     private final CartService cartService;
     private final FavoriteService favoriteService;
-//    user
-    @DeleteMapping("{id}")
-    public ResponseEntity<BaseResponse<String>> deleteUser(@PathVariable Long id) {
-        return ResponseEntity.ok(new BaseResponse<>(
-                userService.deleteUser(id),"delete susecfull"
-        ));
-    }
 
 
 //    review
@@ -118,7 +108,7 @@ public class CustomerController {
     @GetMapping("/address")
     public ResponseEntity<BaseResponse<List<AddressResponse>>> getMyAddress(){
         return ResponseEntity.ok(new BaseResponse<>(
-                userAddressService.getMyAddresses(),
+                userService.getMyAddresses(),
                 "getMyAddress sucess full "
         ));
     }
@@ -126,7 +116,7 @@ public class CustomerController {
     @PostMapping("/address")
     public ResponseEntity<BaseResponse<AddressResponse>> createAddress(@RequestBody AddressRequest request){
         return ResponseEntity.ok(new BaseResponse<>(
-                userAddressService.createAddress(request),
+                userService.createAddress(request),
                 "createAddress sucess full "
         ));
     }
@@ -134,7 +124,7 @@ public class CustomerController {
     @PutMapping("/address/{id}")
     public ResponseEntity<BaseResponse<AddressResponse>> updateRequest(@PathVariable Integer id ,@RequestBody AddressRequest request){
         return ResponseEntity.ok(new BaseResponse<>(
-                userAddressService.updateAddress(id,request),
+                userService.updateAddress(id,request),
                 "update sucess full "
         ));
     }
@@ -142,7 +132,7 @@ public class CustomerController {
     @DeleteMapping("/address/{id}")
     public ResponseEntity<BaseResponse<String>> deleteAddress(@PathVariable Integer id){
         return ResponseEntity.ok(new BaseResponse<>(
-                userAddressService.deleteAddress(id),
+                userService.deleteAddress(id),
                 "DeleteReview sucess full "
         ));
     }
@@ -157,24 +147,30 @@ public class CustomerController {
         ));
     }
 
-    @PostMapping("/voucher/apply")
-    public ResponseEntity<BaseResponse<VoucherResponse>> voucherApply(@RequestParam String code) {
+    @GetMapping("/check-voucher")
+    public ResponseEntity<BaseResponse<VoucherResponse>> checkVoucher(@RequestParam String code){
         return ResponseEntity.ok(new BaseResponse<>(
-                voucherService.usedVoucher(code),
+                voucherService.checkVoucherCode(code),
                 "success"
         ));
     }
 
 
 // total pice
-    @PostMapping("/check")
-    public ResponseEntity<BaseResponse<VoucherResponse>> checkVoucher(@RequestParam String code) {
-        return ResponseEntity.ok(new BaseResponse<>(
-                voucherService.checkVoucher(code),
-                "success"
-        ));
-    }
-
+//    @PostMapping("/check-discount")
+//    public ResponseEntity<BaseResponse<OrderCheckResponse>> checkDiscount(@RequestParam String code) {
+//        return ResponseEntity.ok(new BaseResponse<>(
+//                orderService.checkDiscount(code),
+//                "success"
+//        ));
+//    }
+//    @PostMapping("/order/apply")
+//    public ResponseEntity<BaseResponse<OrderCheckResponse>> orderApply(@RequestParam String code) {
+//        return ResponseEntity.ok(new BaseResponse<>(
+//                voucherService.orderService(code),
+//                "success"
+//        ));
+//    }
 
     //favorite
     @GetMapping("/favorites")

@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("api/admin/users")
-public class AdminUserController {
+@RequestMapping("api/admin/account")
+public class AdminAccountController {
     private final UserService usersService;
 
     @GetMapping
@@ -44,6 +44,18 @@ public class AdminUserController {
         ));
     }
 
+    @PutMapping("/unlock/{id}")
+    public ResponseEntity<BaseResponse<String>> unlock(@PathVariable Long id ) {
+        String email = usersService.unlockAccount(id);
+        return ResponseEntity.ok(new BaseResponse<>( "email :" + email,"Mở khóa thành công" ));
+    }
+    @PutMapping("/lock/{id}")
+    public ResponseEntity<BaseResponse<String>> lock(@PathVariable Long id) {
+        String email = usersService.lockAccount(id);
+        return ResponseEntity.ok(
+                new BaseResponse<>("email: " + email, "Khóa tài khoản thành công")
+        );
+    }
 
     @DeleteMapping("{id}")
     public ResponseEntity<BaseResponse<String>> deleteUser(@PathVariable Long id) {

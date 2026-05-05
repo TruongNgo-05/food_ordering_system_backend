@@ -21,6 +21,7 @@ public class VoucherMapper {
         VoucherAdminDetailResponse  voucherAdminDetailResponse = new VoucherAdminDetailResponse();
         BeanUtils.copyProperties(voucher, voucherAdminDetailResponse);
         voucherAdminDetailResponse.setVoucherCode(voucher.getCode());
+        voucherAdminDetailResponse.setRemaining(voucher.getUsageLimit()-voucher.getUsedCount());
         return voucherAdminDetailResponse;
     }
     public static Voucher toVoucherAdminCreateResponse(VoucherCreateAndUpdateRequest create){

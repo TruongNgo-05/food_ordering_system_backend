@@ -86,12 +86,6 @@ public ResponseEntity<BaseResponse<FoodAdminResponse>> update(
         ));
     }
 //
-//    // ===== XÓA ẢNH CHÍNH =====
-//    @DeleteMapping("/{id}/main-image")
-//    public ResponseEntity<?> deleteMainImage(@PathVariable Long id) {
-//        foodService.deleteMainImage(id);
-//        return ResponseEntity.ok("Deleted main image");
-//    }
 //
 //    // ===== XÓA ẢNH PHỤ =====
 //    @DeleteMapping("/images/{imageId}")

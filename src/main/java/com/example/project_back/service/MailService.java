@@ -1,4 +1,4 @@
-package com.example.project_back.service.Impl;
+package com.example.project_back.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;

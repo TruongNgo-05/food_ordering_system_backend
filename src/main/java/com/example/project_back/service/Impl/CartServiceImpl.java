@@ -65,20 +65,18 @@ public class CartServiceImpl implements CartService {
         }
 
         Optional<User> users = userRepository.findByUsername(username);
-        if (users == null) {
+        if (users.isEmpty()) {
             throw new ApplicationException("User không tồn tại");
         }
         User user = users.get();
         //  Tìm cart theo user
-        Optional<Cart> carts = cartRepository.findByUser_Id(user.getId());
-        Cart cart = carts.get();
-        // Nếu chưa có cart thì tạo mới
-        if (cart == null) {
-            cart = new Cart();
-            cart.setUser(user);
-            cart.setCreatedAt(LocalDateTime.now());
-            cart.setItems(new ArrayList<>());
-        }
+        Cart cart = cartRepository.findByUser_Id(user.getId())
+                .orElseGet(() -> {
+                    Cart newCart = new Cart();
+                    newCart.setUser(user);
+                    newCart.setItems(new ArrayList<>());
+                    return cartRepository.save(newCart);
+                });
 
         // Tìm food
         Optional<Food> foods = foodRepository.findById(request.getFoodId());
