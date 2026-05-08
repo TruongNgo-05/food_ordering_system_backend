@@ -1,6 +1,5 @@
 package com.example.project_back.dto.response.customer.order;
 
-import com.example.project_back.dto.response.customer.cart.CartItemResponse;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,18 +7,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 @Getter
 @Setter
-public class OrderDetailResponse {
+public class MyOrderResponse {
     private Integer orderId;
     private String orderCode;
-    private String customerName;
-    private String customerPhone;
-    private String address;
     private String status;
-    private String paymentStatus;
     private String paymentMethod;
-    private Double discount;
     private Double totalPrice;
-    private String note;
+    private Integer totalItems;
     private LocalDateTime createdAt;
-    private List<OrderItemResponse> items;  // tổng tiền giỏ hàng
+    private List<OrderItemResponse> items;
 }

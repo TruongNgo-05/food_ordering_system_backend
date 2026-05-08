@@ -6,7 +6,9 @@ import com.example.project_back.dto.request.customer.ReviewRequest;
 import com.example.project_back.dto.request.customer.ReviewUpdateRequest;
 import com.example.project_back.dto.request.customer.cart.AddToCartRequest;
 import com.example.project_back.dto.request.customer.cart.UpdateCartRequest;
+import com.example.project_back.dto.request.customer.order.CreateOrderRequest;
 import com.example.project_back.dto.response.customer.FavoriteResponse;
+import com.example.project_back.dto.response.customer.order.CreateOrderResponse;
 import com.example.project_back.dto.response.customer.voucher.VoucherGetResponse;
 import com.example.project_back.dto.response.customer.cart.CartResponse;
 import com.example.project_back.dto.response.customer.voucher.VoucherResponse;
@@ -33,6 +35,7 @@ public class CustomerController {
     private final VoucherService voucherService;
     private final CartService cartService;
     private final FavoriteService favoriteService;
+    private final OrderService orderService;
 
 
 //    review
@@ -155,19 +158,45 @@ public class CustomerController {
         ));
     }
 
+    @PostMapping ("/order")
+    public ResponseEntity<CreateOrderResponse> createOrder(@RequestBody CreateOrderRequest request ) {
+        return ResponseEntity.ok( orderService.createOrder(request) );
+    }
+
+    @GetMapping("order/my-orders")
+    public ResponseEntity<?> myOrders() {
+        return ResponseEntity.ok( orderService.getMyOrders() );
+    }
+
+    @GetMapping("order/{id}")
+    public ResponseEntity<?> orderDetail( @PathVariable Integer id ) {
+        return ResponseEntity.ok( orderService.getOrderDetail(id) );
+    }
+
+    @PutMapping("order/{id}/cancel")
+    public ResponseEntity<?> cancelOrder( @PathVariable Integer id ) {
+        orderService.cancelOrder(id);
+        return ResponseEntity.ok("Cancel success");
+    }
+
+    @PostMapping("order/{id}/reorder")
+    public ResponseEntity<?> reorder( @PathVariable Integer id ) {
+        orderService.reorder(id);
+        return ResponseEntity.ok("Reorder success");
+    }
 
 // total pice
 //    @PostMapping("/check-discount")
 //    public ResponseEntity<BaseResponse<OrderCheckResponse>> checkDiscount(@RequestParam String code) {
 //        return ResponseEntity.ok(new BaseResponse<>(
-//                orderService.checkDiscount(code),
+//                OrderService.checkDiscount(code),
 //                "success"
 //        ));
 //    }
 //    @PostMapping("/order/apply")
 //    public ResponseEntity<BaseResponse<OrderCheckResponse>> orderApply(@RequestParam String code) {
 //        return ResponseEntity.ok(new BaseResponse<>(
-//                voucherService.orderService(code),
+//                voucherService.OrderService(code),
 //                "success"
 //        ));
 //    }

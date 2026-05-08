@@ -65,13 +65,16 @@ CREATE TABLE vouchers
 (
     id              INT PRIMARY KEY AUTO_INCREMENT,
     code            VARCHAR(50) UNIQUE,
+    description     TEXT,
+
     discount        DECIMAL(10, 2),
-    type            ENUM('PERCENT','FIXED'),
     min_order_value DECIMAL(10, 2),
-    max_discount    DECIMAL(10, 2),
+
     usage_limit     INT,
     used_count      INT      DEFAULT 0,
-    expired_at      DATETIME,
+
+    start_date      DATETIME,
+    end_date        DATETIME,
     created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -103,9 +106,8 @@ CREATE TABLE food_images
 -- ================= CART =================
 CREATE TABLE carts
 (
-    id         INT PRIMARY KEY AUTO_INCREMENT,
-    user_id    INT UNIQUE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    id      INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT UNIQUE,
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
@@ -129,11 +131,10 @@ CREATE TABLE orders
 
     customer_name     VARCHAR(255),
     customer_phone    VARCHAR(20),
-    delivery_address  TEXT,
+    address_id        int,
     order_type        ENUM('DELIVERY','DINE_IN') DEFAULT 'DELIVERY',
 
     discount          DECIMAL(10, 2),
-    shipping_fee      DECIMAL(10, 2),
     total_price       DECIMAL(10, 2),
 
     status            ENUM('PENDING','CONFIRMED','PREPARING','DELIVERING','COMPLETED','CANCELED','REJECTED') DEFAULT 'PENDING',
@@ -142,24 +143,25 @@ CREATE TABLE orders
     voucher_id        INT,
     table_id          INT,
 
+    note              Text,
     created_at        DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at        DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     FOREIGN KEY (user_id) REFERENCES users (id),
     FOREIGN KEY (payment_method_id) REFERENCES payment_methods (id),
     FOREIGN KEY (voucher_id) REFERENCES vouchers (id),
-    FOREIGN KEY (table_id) REFERENCES table_details (id)
+    FOREIGN KEY (table_id) REFERENCES table_details (id),
+    FOREIGN KEY (address_id) REFERENCES user_addresses (id)
 );
 
 -- ================= ORDER DETAILS =================
 CREATE TABLE order_details
 (
-    id         INT PRIMARY KEY AUTO_INCREMENT,
-    order_id   INT,
-    food_id    INT,
-    quantity   INT,
-    unit_price DECIMAL(10, 2),
-    subtotal   DECIMAL(10, 2),
+    id       INT PRIMARY KEY AUTO_INCREMENT,
+    order_id INT,
+    food_id  INT,
+    quantity INT,
+    price    DECIMAL(10, 2),
     FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE,
     FOREIGN KEY (food_id) REFERENCES foods (id)
 );
@@ -302,10 +304,10 @@ VALUES ('T01', 2, 'Cửa sổ'),
        ('T03', 6, 'Phòng VIP');
 
 -- ================= VOUCHERS =================
-INSERT INTO vouchers (code, discount, type, min_order_value, max_discount, usage_limit, expired_at)
-VALUES ('WELCOME10', 10.00, 'PERCENT', 100000, 50000, 100, '2025-12-31 23:59:59'),
-       ('GIAM50K', 50000, 'FIXED', 200000, 50000, 50, '2025-06-30 23:59:59'),
-       ('SALE20', 20.00, 'PERCENT', 150000, 80000, 200, '2025-09-30 23:59:59');
+INSERT INTO vouchers (code, discount, min_order_value, usage_limit)
+VALUES ('WELCOME10', 10.00, 100000, 100),
+       ('GIAM50K', 50000, 200000, 50),
+       ('SALE20', 20.00, 150000, 200);
 -- ================= FOODS (10 món mới) =================
 INSERT INTO foods (name, description, price, image, category_id, rating, sold_count, status)
 VALUES
@@ -428,19 +430,17 @@ VALUES (1, 1, 2),
        (2, 2, 3);
 
 -- ================= ORDERS =================
-INSERT INTO orders (order_code, user_id, customer_name, customer_phone, delivery_address, order_type, discount,
-                    shipping_fee, total_price, status, payment_method_id, voucher_id, table_id)
-VALUES ('ORD-20240601-001', 2, 'Trần Thị Lan', '0902222222', '12 Lý Thường Kiệt, Hà Nội', 'DELIVERY', 0, 25000, 195000,
-        'COMPLETED', 1, NULL, NULL),
-       ('ORD-20240601-002', 3, 'Lê Minh Tuấn', '0903333333', NULL, 'DINE_IN', 50000, 0, 175000, 'CONFIRMED', 3, 2, 2),
-       ('ORD-20240602-001', 2, 'Trần Thị Lan', '0902222222', '45 Trần Phú, Hà Nội', 'DELIVERY', 17000, 25000, 178000,
-        'PENDING', 2, 1, NULL);
+INSERT INTO orders (order_code, user_id, customer_name, customer_phone, address_id, order_type, discount, total_price,
+                    status, payment_method_id, voucher_id, table_id)
+VALUES ('ORD-20240601-001', 2, 'Trần Thị Lan', '0902222222', 1, 'DELIVERY', 0, 195000, 'COMPLETED', 1, NULL, NULL),
+       ('ORD-20240601-002', 3, 'Lê Minh Tuấn', '0903333333', 1, 'DINE_IN', 50000, 175000, 'CONFIRMED', 3, 2, 2),
+       ('ORD-20240602-001', 2, 'Trần Thị Lan', '0902222222', 1, 'DELIVERY', 17000, 178000, 'PENDING', 2, 1, NULL);
 
 -- ================= ORDER DETAILS =================
-INSERT INTO order_details (order_id, food_id, quantity, unit_price, subtotal)
-VALUES (1, 1, 2, 85000, 170000),
-       (1, 3, 1, 45000, 45000),
-       (2, 2, 3, 75000, 225000);
+INSERT INTO order_details (order_id, food_id, quantity, price)
+VALUES (1, 1, 2, 85000),
+       (1, 3, 1, 45000),
+       (2, 2, 3, 75000);
 
 -- ================= INVENTORY =================
 INSERT INTO inventory (food_id, quantity, status)
@@ -501,7 +501,14 @@ VALUES (1,
 -- Xem user
 SELECT *
 FROM users;
-select *
-from foods;
-select *
-from food_images;
+-- select * from foods;
+-- select * from food_images;
+-- select * from vouchers;
+-- SELECT * FROM user_addresses;
+select*
+from carts;
+select*
+from cart_items;
+-- select * from favorites
+SELECT *
+FROM ORDERS

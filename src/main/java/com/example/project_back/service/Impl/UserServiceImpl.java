@@ -19,7 +19,6 @@ import com.example.project_back.mapper.UserMapper;
 import com.example.project_back.repository.UserAddressRepository;
 import com.example.project_back.repository.UserRepository;
 import com.example.project_back.service.FileService;
-import com.example.project_back.service.MailService;
 import com.example.project_back.service.UserService;
 import com.example.project_back.specification.UserSpecification;
 import jakarta.transaction.Transactional;

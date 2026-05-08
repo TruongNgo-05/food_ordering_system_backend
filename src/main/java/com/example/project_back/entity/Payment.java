@@ -13,17 +13,17 @@ import java.time.LocalDateTime;
 @Setter
 public class Payment {
 
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "order_id")
     private Order order;
 
-    @Enumerated(EnumType.STRING)
-    private PaymentMethodType method;
+    @ManyToOne
+    @JoinColumn(name = "payment_method_id")
+    private PaymentMethod paymentMethod;
 
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
@@ -31,5 +31,5 @@ public class Payment {
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
 
-
+    private String transactionId;
 }

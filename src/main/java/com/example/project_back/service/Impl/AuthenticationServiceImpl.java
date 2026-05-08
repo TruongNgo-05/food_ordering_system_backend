@@ -13,7 +13,6 @@ import com.example.project_back.exception.ApplicationException;
 import com.example.project_back.repository.OtpRepository;
 import com.example.project_back.repository.UserRepository;
 import com.example.project_back.service.AuthenticationService;
-import com.example.project_back.service.MailService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

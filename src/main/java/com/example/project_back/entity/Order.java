@@ -28,16 +28,16 @@ public class Order {
     private String customerName;
     @Column(name = "customer_phone")
     private String customerPhone;
-    @Column(name = "delivery_address")
-    private String deliveryAddress;
+    @ManyToOne
+    @JoinColumn(name = "address_id")
+    private UserAddress address;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "order_type")
     private OrderType orderType;
 
     private Double discount;
-    @Column(name = "shipping_fee")
-    private Double shippingFee;
+
     @Column(name = "total_price")
     private Double totalPrice;
 
@@ -49,9 +49,8 @@ public class Order {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "payment_status")
-    private PaymentStatus paymentStatus;
+    @OneToOne(mappedBy = "order", fetch = FetchType.LAZY)
+    private Payment payment;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "voucher_id")

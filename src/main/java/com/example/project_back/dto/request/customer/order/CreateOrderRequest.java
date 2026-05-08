@@ -7,13 +7,18 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CreateOrderRequest {
-    private Long foodId;
-    private Integer quantity;
 
-    private Integer addressId;
+    private String customerName;
+
+    private String customerPhone;
+
+    private Integer paymentMethodId;
 
     private Integer voucherId;
 
-    private String paymentMethod;
+    private Integer addressId;
 
+    private Integer tableId;
+
+    private String note;
 }
