@@ -2,8 +2,6 @@ package com.example.project_back.entity;
 import com.example.project_back.constant.OrderStatus;
 import com.example.project_back.constant.OrderType;
 
-import com.example.project_back.constant.PaymentMethodType;
-import com.example.project_back.constant.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -67,6 +65,9 @@ public class Order {
     @ManyToOne
     @JoinColumn(name = "payment_method_id")
     private PaymentMethod paymentMethod;
+
+    @Column(name = "note", columnDefinition = "TEXT")
+    private String note;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderDetail> orderDetails;

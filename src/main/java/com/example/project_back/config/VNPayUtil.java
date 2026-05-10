@@ -8,40 +8,75 @@ import java.util.*;
 
 public class VNPayUtil {
 
-    // ===== HASH =====
     public static String hmacSHA512(String key, String data) {
+
         try {
-            Mac mac = Mac.getInstance("HmacSHA512");
-            SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
-            mac.init(secretKey);
 
-            byte[] bytes = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
+            Mac hmac512 = Mac.getInstance("HmacSHA512");
 
-            StringBuilder hash = new StringBuilder();
-            for (byte b : bytes) {
-                hash.append(String.format("%02x", b));
+            SecretKeySpec secretKey =
+                    new SecretKeySpec(
+                            key.getBytes(StandardCharsets.UTF_8),
+                            "HmacSHA512"
+                    );
+
+            hmac512.init(secretKey);
+
+            byte[] hashBytes =
+                    hmac512.doFinal(data.getBytes(StandardCharsets.UTF_8));
+
+            StringBuilder sb = new StringBuilder();
+
+            for (byte b : hashBytes) {
+                sb.append(String.format("%02x", b & 0xff));
             }
-            return hash.toString();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+
+            return sb.toString();
+
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
         }
     }
 
-    // ===== BUILD QUERY (CREATE URL) =====
-    public static String buildQuery(Map<String, String> params, boolean encode) {
-        List<String> keys = new ArrayList<>(params.keySet());
-        Collections.sort(keys);
+    public static String buildQuery(
+            Map<String, String> params,
+            boolean encodeKey,
+            boolean encodeValue
+    ) {
+
+        List<String> fieldNames =
+                new ArrayList<>(params.keySet());
+
+        Collections.sort(fieldNames);
 
         StringBuilder sb = new StringBuilder();
 
-        for (String key : keys) {
-            String value = params.get(key);
-            if (value != null && !value.isEmpty()) {
+        for (String fieldName : fieldNames) {
 
-                sb.append(encode ? URLEncoder.encode(key, StandardCharsets.UTF_8) : key)
-                        .append("=")
-                        .append(encode ? URLEncoder.encode(value, StandardCharsets.UTF_8) : value)
-                        .append("&");
+            String value = params.get(fieldName);
+
+            if (value != null && value.length() > 0) {
+
+                String key = fieldName;
+
+                if (encodeKey) {
+                    key = URLEncoder.encode(
+                            fieldName,
+                            StandardCharsets.US_ASCII
+                    );
+                }
+
+                if (encodeValue) {
+                    value = URLEncoder.encode(
+                            value,
+                            StandardCharsets.US_ASCII
+                    );
+                }
+
+                sb.append(key);
+                sb.append("=");
+                sb.append(value);
+                sb.append("&");
             }
         }
 
@@ -52,16 +87,21 @@ public class VNPayUtil {
         return sb.toString();
     }
 
-    // ===== VERIFY SIGNATURE (RETURN URL) =====
-    public static boolean verify(Map<String, String> fields, String secretKey, String secureHash) {
+    public static boolean verify(
+            Map<String, String> fields,
+            String secretKey,
+            String secureHash
+    ) {
 
         fields.remove("vnp_SecureHash");
         fields.remove("vnp_SecureHashType");
 
-        String signData = buildQuery(fields, false); // ❗ KHÔNG encode khi verify
+        String signData =
+                buildQuery(fields, false, true);
 
-        String sign = hmacSHA512(secretKey, signData);
+        String signValue =
+                hmacSHA512(secretKey, signData);
 
-        return sign.equalsIgnoreCase(secureHash);
+        return signValue.equalsIgnoreCase(secureHash);
     }
 }

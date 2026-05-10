@@ -1,5 +1,4 @@
 package com.example.project_back.entity;
-import com.example.project_back.constant.PaymentMethodType;
 import com.example.project_back.constant.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -31,5 +30,13 @@ public class Payment {
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
 
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
     private String transactionId;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 }
