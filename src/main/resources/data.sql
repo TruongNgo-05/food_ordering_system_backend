@@ -8,16 +8,23 @@ food_ordering_system;
 -- ================= USERS =================
 CREATE TABLE users
 (
+
     id          INT PRIMARY KEY AUTO_INCREMENT,
+
     email       VARCHAR(255) NOT NULL UNIQUE,
     username    VARCHAR(255) NOT NULL UNIQUE,
     password    VARCHAR(255) NOT NULL,
+
     full_name   VARCHAR(255),
-    role        ENUM('ADMIN','CUSTOMER') DEFAULT 'CUSTOMER',
-    avatar      TEXT,
     phone       VARCHAR(20),
+    avatar      TEXT,
+
+    role        ENUM('ADMIN','CUSTOMER') DEFAULT 'CUSTOMER',
+
     is_active   BOOLEAN  DEFAULT TRUE,
+
     status      ENUM('ACTIVED','LOCKED') DEFAULT 'ACTIVED',
+
     create_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     fail_count  INT      DEFAULT 0,
     lock_time   DATETIME
@@ -25,10 +32,12 @@ CREATE TABLE users
 -- ================= USER ADDRESSES =================
 CREATE TABLE user_addresses
 (
-    id         INT PRIMARY KEY AUTO_INCREMENT,
-    user_id    INT,
-    address    TEXT,
-    is_default BOOLEAN DEFAULT FALSE,
+    id             INT PRIMARY KEY AUTO_INCREMENT,
+    user_id        INT,
+    receiver_name  VARCHAR(255),
+    receiver_phone VARCHAR(20),
+    address        TEXT,
+    is_default     BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 -- ================= CATEGORY =================
@@ -82,13 +91,19 @@ CREATE TABLE vouchers
 CREATE TABLE foods
 (
     id          INT PRIMARY KEY AUTO_INCREMENT,
+
     name        VARCHAR(255),
     description TEXT,
+
     price       DECIMAL(10, 2),
+
     image       VARCHAR(255), -- ảnh chính
+
     category_id INT,
+
     rating      DECIMAL(3, 2) DEFAULT 0,
     sold_count  INT           DEFAULT 0,
+
     status      BOOLEAN       DEFAULT TRUE,
     created_at  DATETIME      DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES categories (id)
@@ -129,9 +144,6 @@ CREATE TABLE orders
     order_code        VARCHAR(50) UNIQUE,
     user_id           INT,
 
-    customer_name     VARCHAR(255),
-    customer_phone    VARCHAR(20),
-    address_id        int,
     order_type        ENUM('DELIVERY','DINE_IN') DEFAULT 'DELIVERY',
 
     discount          DECIMAL(10, 2),
@@ -139,11 +151,13 @@ CREATE TABLE orders
 
     status            ENUM('PENDING','CONFIRMED','PREPARING','DELIVERING','COMPLETED','CANCELED','REJECTED') DEFAULT 'PENDING',
 
+    note              Text,
+
     payment_method_id INT,
     voucher_id        INT,
     table_id          INT,
+    address_id        int,
 
-    note              Text,
     created_at        DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at        DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -165,45 +179,7 @@ CREATE TABLE order_details
     FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE,
     FOREIGN KEY (food_id) REFERENCES foods (id)
 );
--- ================= INVENTORY =================
-CREATE TABLE inventory
-(
-    id         INT PRIMARY KEY AUTO_INCREMENT,
-    food_id    INT NOT NULL UNIQUE,
-    quantity   INT      DEFAULT 0 CHECK (quantity >= 0),
-    status     ENUM('IN_STOCK','OUT_OF_STOCK') DEFAULT 'IN_STOCK',
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (food_id) REFERENCES foods (id) ON DELETE CASCADE
-);
 
--- ================= NHẬP KHO =================
-CREATE TABLE stock_imports
-(
-    id           INT PRIMARY KEY AUTO_INCREMENT,
-    food_id      INT NOT NULL,
-    admin_id     INT NOT NULL,
-    quantity     INT,
-    import_price DECIMAL(10, 2),
-    note         TEXT,
-    created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (food_id) REFERENCES foods (id),
-    FOREIGN KEY (admin_id) REFERENCES users (id)
-);
-
--- ================= LOG KHO =================
-CREATE TABLE stock_logs
-(
-    id              INT PRIMARY KEY AUTO_INCREMENT,
-    food_id         INT NOT NULL,
-    order_id        INT NULL,
-    user_id         INT,
-    change_quantity INT, -- + nhập, - bán
-    type            ENUM('IMPORT','ORDER','CANCEL'),
-    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (food_id) REFERENCES foods (id) ON DELETE CASCADE,
-    FOREIGN KEY (order_id) REFERENCES orders (id),
-    FOREIGN KEY (user_id) REFERENCES users (id)
-);
 -- ================= PAYMENTS =================
 CREATE TABLE payments
 (
@@ -212,6 +188,8 @@ CREATE TABLE payments
     payment_method_id INT,
     status            ENUM('PENDING','PAID','FAILED'),
     paid_at           DATETIME,
+    transaction_id    VARCHAR(255),
+    created_at        DATETIME,
     FOREIGN KEY (order_id) REFERENCES orders (id),
     FOREIGN KEY (payment_method_id) REFERENCES payment_methods (id)
 );
@@ -267,8 +245,6 @@ CREATE INDEX idx_orders_status ON orders (status);
 CREATE INDEX idx_order_details_order_id ON order_details (order_id);
 CREATE INDEX idx_foods_category_id ON foods (category_id);
 CREATE INDEX idx_reviews_food_id ON reviews (food_id);
-CREATE INDEX idx_stock_logs_food_id ON stock_logs (food_id);
-
 -- ================= DỮ LIỆU MẪU =================
 -- ================= PAYMENT METHODS =================
 INSERT INTO payment_methods (name, code, is_active)
@@ -287,10 +263,19 @@ VALUES ('ngoquangtruongjk05@gmail.com', 'admin', '$2a$10$nlMnkBVDx81dyJ9puJyf8.F
        ('user3@gmail.com', 'user3', '$2a$10$nlMnkBVDx81dyJ9puJyf8.FWUOiOjJTb4M4RggYlPDuxFDgtxb.ne', 'Hoang Van C',
         'CUSTOMER', '0900000004');
 
-INSERT INTO user_addresses (user_id, address, is_default)
-VALUES (2, '12 Lý Thường Kiệt, Hoàn Kiếm, Hà Nội', TRUE),
-       (2, '45 Trần Phú, Ba Đình, Hà Nội', FALSE),
-       (3, '88 Nguyễn Huệ, Quận 1, TP.HCM', TRUE);
+INSERT INTO user_addresses (user_id,
+                            receiver_name,
+                            receiver_phone,
+                            address,
+                            is_default)
+VALUES (2, 'Lê Văn A', '0900000002',
+        '12 Lý Thường Kiệt, Hoàn Kiếm, Hà Nội', TRUE),
+
+       (2, 'Lê Văn A', '0900000002',
+        '45 Trần Phú, Ba Đình, Hà Nội', FALSE),
+
+       (3, 'Phạm Văn B', '0900000003',
+        '88 Nguyễn Huệ, Quận 1, TP.HCM', TRUE);
 -- ================= CATEGORIES =================
 INSERT INTO categories (name)
 VALUES ('Đồ ăn nhanh'),
@@ -430,35 +415,26 @@ VALUES (1, 1, 2),
        (2, 2, 3);
 
 -- ================= ORDERS =================
-INSERT INTO orders (order_code, user_id, customer_name, customer_phone, address_id, order_type, discount, total_price,
-                    status, payment_method_id, voucher_id, table_id)
-VALUES ('ORD-20240601-001', 2, 'Trần Thị Lan', '0902222222', 1, 'DELIVERY', 0, 195000, 'COMPLETED', 1, NULL, NULL),
-       ('ORD-20240601-002', 3, 'Lê Minh Tuấn', '0903333333', 1, 'DINE_IN', 50000, 175000, 'CONFIRMED', 3, 2, 2),
-       ('ORD-20240602-001', 2, 'Trần Thị Lan', '0902222222', 1, 'DELIVERY', 17000, 178000, 'PENDING', 2, 1, NULL);
+INSERT INTO orders (order_code,
+                    user_id,
+                    address_id,
+                    order_type,
+                    discount,
+                    total_price,
+                    status,
+                    payment_method_id,
+                    voucher_id,
+                    table_id)
+VALUES ('ORD-20240601-001', 2, 1, 'DELIVERY', 0, 195000, 'COMPLETED', 1, NULL, NULL),
 
+       ('ORD-20240601-002', 3, 3, 'DINE_IN', 50000, 175000, 'CONFIRMED', 3, 2, 2),
+
+       ('ORD-20240602-001', 2, 1, 'DELIVERY', 17000, 178000, 'PENDING', 2, 1, NULL);
 -- ================= ORDER DETAILS =================
 INSERT INTO order_details (order_id, food_id, quantity, price)
 VALUES (1, 1, 2, 85000),
        (1, 3, 1, 45000),
        (2, 2, 3, 75000);
-
--- ================= INVENTORY =================
-INSERT INTO inventory (food_id, quantity, status)
-VALUES (1, 50, 'IN_STOCK'),
-       (2, 30, 'IN_STOCK'),
-       (3, 0, 'OUT_OF_STOCK');
-
--- ================= STOCK IMPORTS =================
-INSERT INTO stock_imports (food_id, admin_id, quantity, import_price, note)
-VALUES (1, 1, 100, 30000, 'Nhập nguyên liệu phở đầu tháng 6'),
-       (2, 1, 80, 25000, 'Nhập nguyên liệu cơm tấm'),
-       (3, 1, 200, 10000, 'Nhập nguyên liệu trà sữa');
-
--- ================= STOCK LOGS =================
-INSERT INTO stock_logs (food_id, order_id, user_id, change_quantity, type)
-VALUES (1, NULL, 1, 100, 'IMPORT'),
-       (1, 1, 2, -2, 'ORDER'),
-       (2, 2, 3, -3, 'ORDER');
 
 -- ================= PAYMENTS =================
 INSERT INTO payments (order_id, payment_method_id, status, paid_at)

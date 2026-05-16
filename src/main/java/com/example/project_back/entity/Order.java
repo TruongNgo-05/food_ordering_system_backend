@@ -22,10 +22,6 @@ public class Order {
     @Column(name = "order_code")
     private String orderCode;
 
-    @Column(name = "customer_name")
-    private String customerName;
-    @Column(name = "customer_phone")
-    private String customerPhone;
     @ManyToOne
     @JoinColumn(name = "address_id")
     private UserAddress address;

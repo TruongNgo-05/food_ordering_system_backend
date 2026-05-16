@@ -7,6 +7,10 @@ import lombok.Setter;
 @Setter
 public class AddressResponse {
     private Integer id;
+
+    private String receiverName;
+    private String receiverPhone;
+
     private String address;
     private Boolean isDefault;
 }

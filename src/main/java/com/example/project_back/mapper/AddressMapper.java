@@ -21,6 +21,12 @@ public class AddressMapper {
     }
 
     public static void addressUpdate(AddressRequest addressRequest,UserAddress userAddress){
+        if(addressRequest.getReceiverName() != null){
+            userAddress.setReceiverName(addressRequest.getReceiverName());
+        }
+        if(addressRequest.getReceiverPhone() != null){
+            userAddress.setReceiverPhone(addressRequest.getReceiverPhone());
+        }
         if(addressRequest.getIsDefault() != null){
             userAddress.setIsDefault(addressRequest.getIsDefault());
         }

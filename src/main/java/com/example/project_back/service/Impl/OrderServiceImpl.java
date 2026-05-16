@@ -56,8 +56,6 @@ public class OrderServiceImpl implements OrderService {
         Order order = new Order();
         order.setOrderCode("ORD-" + System.currentTimeMillis());
         order.setUser(user);
-        order.setCustomerName(request.getCustomerName());
-        order.setCustomerPhone(request.getCustomerPhone());
 
         // Set address if provided
         if (request.getAddressId() != null) {
@@ -215,8 +213,6 @@ public class OrderServiceImpl implements OrderService {
 
         response.setOrderId(order.getId());
         response.setOrderCode(order.getOrderCode());
-        response.setCustomerName(order.getCustomerName());
-        response.setCustomerPhone(order.getCustomerPhone());
         response.setStatus(order.getStatus().name());
         response.setTotalPrice(order.getTotalPrice());
         response.setDiscount(order.getDiscount());

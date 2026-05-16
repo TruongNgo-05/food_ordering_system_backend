@@ -17,6 +17,12 @@ public class UserAddress {
     @Column(name = "user_id")
     private Long userId;
 
+    @Column(name= "receiver_name")
+    private String receiverName;
+
+    @Column(name= "receiver_phone")
+    private String receiverPhone;
+
     @Column(columnDefinition = "TEXT")
     private String address;
 
