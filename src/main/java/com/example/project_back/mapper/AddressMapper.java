@@ -15,6 +15,8 @@ public class AddressMapper {
 
     public static UserAddress addressCreate(AddressRequest addressRequest){
         UserAddress userAddress = new UserAddress();
+        userAddress.setReceiverName(addressRequest.getReceiverName());
+        userAddress.setReceiverPhone(addressRequest.getReceiverPhone());
         userAddress.setAddress(addressRequest.getAddress());
         userAddress.setIsDefault(addressRequest.getIsDefault());
         return userAddress;
