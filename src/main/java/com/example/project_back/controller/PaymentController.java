@@ -25,29 +25,22 @@ public ResponseEntity<?> vnpayReturn(HttpServletRequest request) {
 
         paymentService.paymentCallback(request);
 
-        return ResponseEntity.ok(
-                BaseResponse.success("Payment success")
-        );
+        return ResponseEntity.ok(BaseResponse.success("Payment success"));
 
     } catch (Exception e) {
 
-        return ResponseEntity.badRequest()
-                .body(BaseResponse.error(e.getMessage()));
+        return ResponseEntity.badRequest().body(BaseResponse.error(e.getMessage()));
     }
 }
 
     @GetMapping("/test-payment")
     public ResponseEntity<?> testPayment() {
 
-        Order order =
-                orderRepository.findById(3).orElseThrow();
+        Order order = orderRepository.findById(3).orElseThrow();
 
-        String paymentUrl =
-                paymentService.createPaymentUrl(order);
+        String paymentUrl = paymentService.createPaymentUrl(order);
 
-        return ResponseEntity.ok(
-                BaseResponse.success(paymentUrl)
-        );
+        return ResponseEntity.ok(BaseResponse.success(paymentUrl));
     }
 
 }

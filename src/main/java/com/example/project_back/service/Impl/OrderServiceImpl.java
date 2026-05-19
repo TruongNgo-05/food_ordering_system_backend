@@ -2,24 +2,24 @@ package com.example.project_back.service.Impl;
 
 import com.example.project_back.config.SecurityUtils;
 import com.example.project_back.constant.OrderStatus;
-import com.example.project_back.constant.PaymentMethodType;
 import com.example.project_back.constant.PaymentStatus;
 import com.example.project_back.dto.request.customer.order.CreateOrderRequest;
-import com.example.project_back.dto.response.customer.order.CreateOrderResponse;
+import com.example.project_back.dto.response.customer.order.OrderResponse;
 import com.example.project_back.dto.response.customer.order.MyOrderResponse;
 import com.example.project_back.dto.response.customer.order.OrderDetailResponse;
 import com.example.project_back.dto.response.customer.order.OrderItemResponse;
 import com.example.project_back.entity.*;
+import com.example.project_back.exception.ApplicationException;
 import com.example.project_back.repository.*;
 import com.example.project_back.service.OrderService;
 import com.example.project_back.service.PaymentService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -35,103 +35,128 @@ public class OrderServiceImpl implements OrderService {
     private final PaymentService paymentService;
     private final UserRepository userRepository;
 
-    @Override
-    @Transactional
-    public CreateOrderResponse createOrder(CreateOrderRequest request) {
+@Override
+@Transactional
+public OrderResponse createOrder(CreateOrderRequest request) {
 
-        String username = SecurityUtils.getCurrentUsername();
+    String username = SecurityUtils.getCurrentUsername();
 
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    User user = userRepository.findByUsername(username)
+            .orElseThrow(() ->
+                    new ApplicationException("User không tồn tại"));
 
-        Cart cart = cartRepository.findByUser_Id(user.getId())
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
+    Cart cart = cartRepository.findByUser_Id(user.getId())
+            .orElseThrow(() ->
+                    new ApplicationException("Cart không tồn tại"));
 
-        if (cart.getItems().isEmpty()) {
-            throw new RuntimeException("Cart is empty");
-        }
-
-        double total = 0;
-
-        Order order = new Order();
-        order.setOrderCode("ORD-" + System.currentTimeMillis());
-        order.setUser(user);
-
-        // Set address if provided
-        if (request.getAddressId() != null) {
-            UserAddress address = userAddressRepository.findById(request.getAddressId())
-                    .orElseThrow(() -> new RuntimeException("Address not found"));
-            order.setAddress(address);
-        }
-
-        // Set table if provided (for dine-in orders)
-        if (request.getTableId() != null) {
-            TableDetail table = new TableDetail();
-            table.setId(request.getTableId());
-            order.setTable(table);
-        }
-
-        order.setNote(request.getNote());
-        order.setStatus(OrderStatus.PENDING);
-        order.setCreatedAt(LocalDateTime.now());
-
-        PaymentMethod paymentMethod = paymentMethodRepository.findById(request.getPaymentMethodId())
-                .orElseThrow(() -> new RuntimeException("Payment method not found"));
-
-        order.setPaymentMethod(paymentMethod);
-
-        double discount = 0;
-
-        if (request.getVoucherId() != null) {
-            Voucher voucher = voucherRepository.findById(request.getVoucherId())
-                    .orElseThrow(() -> new RuntimeException("Voucher not found"));
-            discount = voucher.getDiscount();
-            order.setVoucher(voucher);
-        }
-
-        order = orderRepository.save(order);
-
-        // Create order details and calculate total
-        for (CartItem item : cart.getItems()) {
-            OrderDetail detail = new OrderDetail();
-            detail.setOrder(order);
-            detail.setFood(item.getFood());
-            detail.setQuantity(item.getQuantity());
-            detail.setPrice(item.getFood().getPrice());
-            orderDetailRepository.save(detail);
-
-            total += item.getFood().getPrice() * item.getQuantity();
-        }
-
-        total -= discount;
-        order.setDiscount(discount);
-        order.setTotalPrice(total);
-        orderRepository.save(order);
-
-        // Create payment record
-        Payment payment = new Payment();
-        payment.setOrder(order);
-        payment.setPaymentMethod(paymentMethod);
-        payment.setStatus(PaymentStatus.PENDING);
-        paymentRepository.save(payment);
-
-        // Clear cart
-        cartItemRepository.deleteAll(cart.getItems());
-
-        CreateOrderResponse response = new CreateOrderResponse();
-        response.setOrderId(order.getId());
-        response.setOrderCode(order.getOrderCode());
-        response.setTotalPrice(total);
-        response.setStatus(order.getStatus().name());
-
-        // Generate payment URL if payment method is online
-        if (PaymentMethodType.ONLINE.equals(paymentMethod.getCode())) {
-            String paymentUrl = paymentService.createPaymentUrl(order);
-            response.setPaymentUrl(paymentUrl);
-        }
-
-        return response;
+    if (cart.getItems().isEmpty()) {
+        throw new ApplicationException("Cart trống");
     }
+
+    UserAddress address = userAddressRepository
+            .findById(request.getAddressId())
+            .orElseThrow(() ->
+                    new ApplicationException("Địa chỉ không tồn tại"));
+
+    PaymentMethod paymentMethod = paymentMethodRepository
+            .findById(request.getPaymentMethodId())
+            .orElseThrow(() ->
+                    new ApplicationException("Payment method không tồn tại"));
+
+    Double total = 0.0;
+
+    for (CartItem item : cart.getItems()) {
+
+        Double itemTotal = item.getFood().getPrice() * item.getQuantity();
+
+        total += itemTotal;
+    }
+
+    Order order = new Order();
+
+    order.setOrderCode("ORD-" + System.currentTimeMillis());
+
+    order.setUser(user);
+
+    order.setAddress(address);
+
+    order.setPaymentMethod(paymentMethod);
+
+    order.setStatus(OrderStatus.PENDING);
+
+    order.setDiscount(0.0);
+
+    order.setTotalPrice(total);
+
+    order.setCreatedAt(LocalDateTime.now());
+
+    order.setUpdatedAt(LocalDateTime.now());
+
+    order.setNote(request.getNote());
+
+    order = orderRepository.save(order);
+
+    ArrayList<OrderDetail> details = new ArrayList<>();
+
+    for (CartItem item : cart.getItems()) {
+
+        OrderDetail detail = new OrderDetail();
+
+        detail.setOrder(order);
+
+        detail.setFood(item.getFood());
+
+        detail.setQuantity(item.getQuantity());
+
+        detail.setPrice(item.getFood().getPrice());
+
+        details.add(detail);
+    }
+
+    order.setOrderDetails(details);
+
+    orderRepository.save(order);
+
+    Payment payment = new Payment();
+
+    payment.setOrder(order);
+
+    payment.setPaymentMethod(paymentMethod);
+
+    payment.setCreatedAt(LocalDateTime.now());
+
+    payment.setStatus(PaymentStatus.PENDING);
+
+    paymentRepository.save(payment);
+
+    String paymentUrl = null;
+
+    // COD
+    if (paymentMethod.getCode().name().equals("COD")) {
+
+        cart.getItems().clear();
+
+        cartRepository.save(cart);
+    }
+    else {
+        // ONLINE
+        paymentUrl = paymentService.createPaymentUrl(order);
+    }
+
+    OrderResponse response = new OrderResponse();
+
+    response.setOrderId(order.getId());
+
+    response.setOrderCode(order.getOrderCode());
+
+    response.setTotalPrice(order.getTotalPrice());
+
+    response.setPaymentUrl(paymentUrl);
+
+    response.setStatus(order.getStatus().name());
+
+    return response;
+}
 
     @Override
     public List<MyOrderResponse> getMyOrders() {
@@ -141,10 +166,7 @@ public class OrderServiceImpl implements OrderService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        List<Order> orders =
-                orderRepository.findByUserIdOrderByCreatedAtDesc(
-                        user.getId()
-                );
+        List<Order> orders = orderRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
 
         List<MyOrderResponse> responses = new ArrayList<>();
 
@@ -162,9 +184,7 @@ public class OrderServiceImpl implements OrderService {
 
             response.setCreatedAt(order.getCreatedAt());
 
-            response.setPaymentMethod(
-                    order.getPaymentMethod().getCode().name()
-            );
+            response.setPaymentMethod(order.getPaymentMethod().getCode().name());
 
             int totalItems = 0;
 
@@ -183,10 +203,6 @@ public class OrderServiceImpl implements OrderService {
                 item.setPrice(detail.getPrice());
 
                 item.setQuantity(detail.getQuantity());
-
-                item.setTotalPrice(
-                        detail.getPrice() * detail.getQuantity()
-                );
 
                 itemResponses.add(item);
 
@@ -213,8 +229,8 @@ public class OrderServiceImpl implements OrderService {
 
         response.setOrderId(order.getId());
         response.setOrderCode(order.getOrderCode());
-        response.setStatus(order.getStatus().name());
         response.setTotalPrice(order.getTotalPrice());
+        response.setStatus(order.getStatus().name());
         response.setDiscount(order.getDiscount());
         response.setCreatedAt(order.getCreatedAt());
         response.setNote(order.getNote());
@@ -239,7 +255,6 @@ public class OrderServiceImpl implements OrderService {
             item.setImage(detail.getFood().getImage());
             item.setPrice(detail.getPrice());
             item.setQuantity(detail.getQuantity());
-            item.setTotalPrice(detail.getPrice() * detail.getQuantity());
             itemResponses.add(item);
         }
 
@@ -268,20 +283,40 @@ public class OrderServiceImpl implements OrderService {
         String username = SecurityUtils.getCurrentUsername();
 
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() ->
+                        new ApplicationException("Tài khoản không tồn tại"));
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("Order not found"));
 
         Cart cart = cartRepository.findByUser_Id(user.getId())
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("Cart not found"));
 
         for (OrderDetail detail : order.getOrderDetails()) {
-            CartItem item = new CartItem();
-            item.setCart(cart);
-            item.setFood(detail.getFood());
-            item.setQuantity(detail.getQuantity());
-            cartItemRepository.save(item);
+
+            Optional<CartItem> existingItem = cartItemRepository.findByCart_IdAndFood_Id(cart.getId(),
+                            detail.getFood().getId());
+
+            if (existingItem.isPresent()) {
+
+                CartItem item = existingItem.get();
+
+                item.setQuantity(item.getQuantity() + detail.getQuantity());
+
+                cartItemRepository.save(item);
+
+            } else {
+
+                CartItem item = new CartItem();
+
+                item.setCart(cart);
+                item.setFood(detail.getFood());
+                item.setQuantity(detail.getQuantity());
+
+                cartItemRepository.save(item);
+            }
         }
     }
 }

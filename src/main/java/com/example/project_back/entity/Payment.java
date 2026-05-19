@@ -33,10 +33,7 @@ public class Payment {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "transaction_id")
     private String transactionId;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
 }

@@ -60,11 +60,9 @@ public ResponseEntity<BaseResponse<UserResponse>> updateUser(
         @RequestPart(value = "avatar", required = false) MultipartFile avatar
 ) throws Exception {
 
-    UserUpdateRequest request =
-            new ObjectMapper().readValue(data, UserUpdateRequest.class);
+    UserUpdateRequest request = new ObjectMapper().readValue(data, UserUpdateRequest.class);
 
-    return ResponseEntity.ok(
-            new BaseResponse<>(
+    return ResponseEntity.ok(new BaseResponse<>(
                     usersService.updateUser(request, avatar),
                     "Update success"
             )
@@ -80,7 +78,7 @@ public ResponseEntity<BaseResponse<UserResponse>> updateUser(
     }
 
     @GetMapping("/banner")
-    public ResponseEntity<BaseResponse<List<BannerResponse>>> getAllBannerCustommer() {
+    public ResponseEntity<BaseResponse<List<BannerResponse>>> getAllBannerCustomer() {
         return ResponseEntity.ok(new BaseResponse<>(
                 bannerService.getAllBannerCustomer(),
                 "Get All Banner succsess full"
@@ -88,7 +86,7 @@ public ResponseEntity<BaseResponse<UserResponse>> updateUser(
     }
 
     @GetMapping("/categories")
-    public ResponseEntity<BaseResponse<Page<CategoriesResponse>>> getAllcategories(CategoriesRequestParam param, Pageable pageable) {
+    public ResponseEntity<BaseResponse<Page<CategoriesResponse>>> getAllCategories(CategoriesRequestParam param, Pageable pageable) {
         return ResponseEntity.ok(new BaseResponse<>(
                 categoriesService.getCategories(param, pageable),
                 "get All Categories successfully!"

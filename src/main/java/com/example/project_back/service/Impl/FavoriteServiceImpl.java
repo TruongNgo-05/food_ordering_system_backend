@@ -29,6 +29,7 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     @Override
     public FavoriteResponse getMyFavorite() {
+
         String username = SecurityUtils.getCurrentUsername();
 
 
@@ -40,6 +41,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         if (userOpt.isEmpty()) {
             throw new ApplicationException("User không tồn tại");
         }
+
         User user = userOpt.get();
 
         //  Lấy danh sách favorite của user

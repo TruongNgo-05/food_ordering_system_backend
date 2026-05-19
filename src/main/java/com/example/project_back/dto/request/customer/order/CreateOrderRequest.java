@@ -8,17 +8,11 @@ import lombok.Setter;
 @Setter
 public class CreateOrderRequest {
 
-    private String customerName;
-
-    private String customerPhone;
-
     private Integer paymentMethodId;
 
     private Integer voucherId;
 
     private Integer addressId;
-
-    private Integer tableId;
 
     private String note;
 }

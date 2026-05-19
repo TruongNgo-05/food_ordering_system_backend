@@ -8,7 +8,9 @@ import com.example.project_back.dto.request.customer.cart.AddToCartRequest;
 import com.example.project_back.dto.request.customer.cart.UpdateCartRequest;
 import com.example.project_back.dto.request.customer.order.CreateOrderRequest;
 import com.example.project_back.dto.response.customer.FavoriteResponse;
-import com.example.project_back.dto.response.customer.order.CreateOrderResponse;
+import com.example.project_back.dto.response.customer.order.OrderResponse;
+import com.example.project_back.dto.response.customer.order.MyOrderResponse;
+import com.example.project_back.dto.response.customer.order.OrderDetailResponse;
 import com.example.project_back.dto.response.customer.voucher.VoucherGetResponse;
 import com.example.project_back.dto.response.customer.cart.CartResponse;
 import com.example.project_back.dto.response.customer.voucher.VoucherResponse;
@@ -47,6 +49,7 @@ public class CustomerController {
                 "getAllCommentByFood sucess full "
         ));
     }
+
     @PostMapping("/review")
     public ResponseEntity<BaseResponse<ReviewResponse>> createReview(@RequestBody ReviewRequest reviewRequest){
         return ResponseEntity.ok(new BaseResponse<>(
@@ -158,19 +161,30 @@ public class CustomerController {
         ));
     }
 
-    @PostMapping ("/order")
-    public ResponseEntity<CreateOrderResponse> createOrder(@RequestBody CreateOrderRequest request ) {
-        return ResponseEntity.ok( orderService.createOrder(request) );
-    }
+
+    //order
+@PostMapping("/order")
+public ResponseEntity<BaseResponse<OrderResponse>> createOrder(
+        @RequestBody CreateOrderRequest request) {
+
+    OrderResponse response = orderService.createOrder(request);
+
+    return ResponseEntity.ok(BaseResponse.success(response));
+}
 
     @GetMapping("order/my-orders")
-    public ResponseEntity<?> myOrders() {
-        return ResponseEntity.ok( orderService.getMyOrders() );
+    public ResponseEntity<BaseResponse<List<MyOrderResponse>>> myOrders() {
+        return ResponseEntity.ok( new BaseResponse<>(
+                orderService.getMyOrders(),
+                "hien thi don hang thanh cong")
+        );
     }
 
     @GetMapping("order/{id}")
-    public ResponseEntity<?> orderDetail( @PathVariable Integer id ) {
-        return ResponseEntity.ok( orderService.getOrderDetail(id) );
+    public ResponseEntity<BaseResponse<OrderDetailResponse>> orderDetail(@PathVariable Integer id ) {
+        return ResponseEntity.ok(new BaseResponse<>(
+                orderService.getOrderDetail(id),
+                "hien thi chi tiet don hang")  );
     }
 
     @PutMapping("order/{id}/cancel")
