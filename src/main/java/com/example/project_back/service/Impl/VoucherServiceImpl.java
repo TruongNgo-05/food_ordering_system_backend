@@ -5,7 +5,6 @@ import com.example.project_back.dto.request.admin.VoucherCreateAndUpdateRequest;
 import com.example.project_back.dto.request.spec.VoucherRequestParam;
 import com.example.project_back.dto.response.admin.VoucherAdminDetailResponse;
 import com.example.project_back.dto.response.admin.VoucherAdminResponse;
-import com.example.project_back.dto.response.customer.OrderCheckResponse;
 import com.example.project_back.dto.response.customer.voucher.VoucherGetResponse;
 import com.example.project_back.dto.response.customer.voucher.VoucherResponse;
 import com.example.project_back.entity.Cart;
@@ -19,6 +18,7 @@ import com.example.project_back.repository.UserRepository;
 import com.example.project_back.repository.VoucherRepository;
 import com.example.project_back.service.VoucherService;
 import com.example.project_back.specification.VoucherSpecification;
+import com.example.project_back.validator.VoucherValidator;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -37,6 +37,7 @@ public class VoucherServiceImpl implements VoucherService {
         private final VoucherRepository voucherRepository;
         private final CartRepository cartRepository;
         private final UserRepository userRepository;
+        private final VoucherValidator voucherValidator;
 //admin
     @Override
     public Page<VoucherAdminResponse> getVouchers(VoucherRequestParam param, Pageable pageable){
@@ -121,10 +122,7 @@ public VoucherResponse checkVoucherCode(String voucherCode){
             .orElseThrow(() -> new ApplicationException("Cart không tồn tại"));
 
     //  tổng tiền giỏ hàng
-    double total = 0.0;
-    for (CartItem item : cart.getItems()) {
-        total += item.getFood().getPrice() * item.getQuantity();
-    }
+        double total = calculateCartTotal(cart);
         //  CASE KHÔNG DÙNG VOUCHER
         if (voucherCode == null || voucherCode.trim().isEmpty()) {
 
@@ -136,35 +134,11 @@ public VoucherResponse checkVoucherCode(String voucherCode){
             return res;
         }
     //  có voucher thì xử lý bình thường
-    Voucher voucher = voucherRepository.findByCode(voucherCode)
-            .orElseThrow(() -> new ApplicationException("Không tìm thấy voucher"));
-
-    LocalDateTime now = LocalDateTime.now();
-
-    if (voucher.getStartDate() != null && now.isBefore(voucher.getStartDate())) {
-        throw new ApplicationException("Voucher chưa bắt đầu");
-    }
-
-    if (voucher.getEndDate() != null && now.isAfter(voucher.getEndDate())) {
-        throw new ApplicationException("Voucher đã hết hạn");
-    }
-
-    if (voucher.getMinOrderValue() != null && total < voucher.getMinOrderValue()) {
-        throw new ApplicationException("Chưa đủ giá trị đơn hàng");
-    }
-
-    int used = voucher.getUsedCount() == null ? 0 : voucher.getUsedCount();
-    Integer limit = voucher.getUsageLimit();
-
-    if (limit != null && limit > 0 && used >= limit) {
-        throw new ApplicationException("Voucher đã hết lượt");
-    }
+        // VALIDATE VOUCHER
+        Voucher voucher = voucherValidator.validateVoucher(voucherCode, total);
         //  giảm tiền
-        double discountAmount = voucher.getDiscount();
-        if (discountAmount > total) {
-            discountAmount = total;
-        }
-        double totalAfter = total - discountAmount;
+        double discount = calculateDiscount( voucher, total );
+        double totalAfter = total - discount;
     VoucherResponse voucherResponse = new VoucherResponse();
     voucherResponse.setDescription(voucher.getDescription());
     voucherResponse.setDiscount(voucher.getDiscount());
@@ -191,5 +165,23 @@ public VoucherResponse checkVoucherCode(String voucherCode){
                 res.add(result);
             }
         }  return res;
+    }
+
+    // tông tiền gio hàng
+    private double calculateCartTotal(Cart cart) {
+        double total = 0.0;
+        for (CartItem item : cart.getItems()) {
+            total += item.getFood().getPrice() * item.getQuantity();
+        }
+        return total;
+    }
+
+
+    public Double calculateDiscount( Voucher voucher, Double total ) {
+        double discount = voucher.getDiscount();
+        if (discount > total) {
+            discount = total;
+        }
+        return discount;
     }
 }

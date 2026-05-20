@@ -26,10 +26,6 @@ public class Order {
     @JoinColumn(name = "address_id")
     private UserAddress address;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "order_type")
-    private OrderType orderType;
-
     private Double discount;
 
     @Column(name = "total_price")

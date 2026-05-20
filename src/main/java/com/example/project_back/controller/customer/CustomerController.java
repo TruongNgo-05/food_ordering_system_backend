@@ -164,12 +164,12 @@ public class CustomerController {
 
     //order
 @PostMapping("/order")
-public ResponseEntity<BaseResponse<OrderResponse>> createOrder(
+public ResponseEntity<BaseResponse<String>> createOrder(
         @RequestBody CreateOrderRequest request) {
 
-    OrderResponse response = orderService.createOrder(request);
+     orderService.createOrder(request);
 
-    return ResponseEntity.ok(BaseResponse.success(response));
+    return ResponseEntity.ok(BaseResponse.success("tạo đơn hàng thah cng"));
 }
 
     @GetMapping("order/my-orders")
@@ -188,32 +188,16 @@ public ResponseEntity<BaseResponse<OrderResponse>> createOrder(
     }
 
     @PutMapping("order/{id}/cancel")
-    public ResponseEntity<?> cancelOrder( @PathVariable Integer id ) {
+    public ResponseEntity<String> cancelOrder( @PathVariable Integer id ) {
         orderService.cancelOrder(id);
-        return ResponseEntity.ok("Cancel success");
+        return ResponseEntity.ok("Hủy đơn hàng thành công");
     }
 
     @PostMapping("order/{id}/reorder")
-    public ResponseEntity<?> reorder( @PathVariable Integer id ) {
+    public ResponseEntity<String> reorder( @PathVariable Integer id ) {
         orderService.reorder(id);
-        return ResponseEntity.ok("Reorder success");
+        return ResponseEntity.ok("đặt lại đơn hàng thành công ");
     }
-
-// total pice
-//    @PostMapping("/check-discount")
-//    public ResponseEntity<BaseResponse<OrderCheckResponse>> checkDiscount(@RequestParam String code) {
-//        return ResponseEntity.ok(new BaseResponse<>(
-//                OrderService.checkDiscount(code),
-//                "success"
-//        ));
-//    }
-//    @PostMapping("/order/apply")
-//    public ResponseEntity<BaseResponse<OrderCheckResponse>> orderApply(@RequestParam String code) {
-//        return ResponseEntity.ok(new BaseResponse<>(
-//                voucherService.OrderService(code),
-//                "success"
-//        ));
-//    }
 
     //favorite
     @GetMapping("/favorites")

@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 @Getter
 @Setter
-@JsonPropertyOrder({"orderId","orderCode","status","paymentMethod","paymentStatus","discount","createdAt","items","totalPrice","address","note"})
+@JsonPropertyOrder({"orderId","orderCode","status","paymentMethod","paymentStatus","createdAt","items","totalPrice","discount","totalAfter","address","note"})
 public class OrderDetailResponse {
     private Integer orderId;
     private String orderCode;
@@ -17,8 +17,10 @@ public class OrderDetailResponse {
     private String status;
     private String paymentStatus;
     private Double totalPrice;
-    private String paymentMethod;
     private Double discount;
+    private Double totalAfter;
+    private String paymentMethod;
+
     private String note;
     private LocalDateTime createdAt;
     private List<OrderItemResponse> items;

@@ -23,8 +23,7 @@ public interface VoucherService {
 
     String deleteVoucher(Integer id);
 //    customer
-VoucherResponse checkVoucherCode(String voucherCode);
+    VoucherResponse checkVoucherCode(String voucherCode);
+
     List<VoucherGetResponse> getVoucherCustomer();
-//    OrderCheckResponse checkDiscount(String voucherCode);
-//OrderCheckResponse usedDiscount(String voucherCode);
 }

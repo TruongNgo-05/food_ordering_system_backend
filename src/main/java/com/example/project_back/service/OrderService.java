@@ -8,9 +8,13 @@ import com.example.project_back.dto.response.customer.order.OrderDetailResponse;
 import java.util.List;
 
 public interface OrderService {
+    //customer
     OrderResponse createOrder(CreateOrderRequest request);
     List<MyOrderResponse> getMyOrders();
     OrderDetailResponse getOrderDetail(Integer orderId);
     void cancelOrder(Integer orderId);
     void reorder(Integer orderId);
+
+
+    // admin
 }
