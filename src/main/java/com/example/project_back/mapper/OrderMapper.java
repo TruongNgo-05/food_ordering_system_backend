@@ -1,9 +1,8 @@
 package com.example.project_back.mapper;
 
-import com.example.project_back.dto.response.customer.order.MyOrderResponse;
-import com.example.project_back.dto.response.customer.order.OrderDetailResponse;
-import com.example.project_back.dto.response.customer.order.OrderItemResponse;
-import com.example.project_back.dto.response.customer.order.OrderResponse;
+import com.example.project_back.dto.response.customer.order.*;
+import com.example.project_back.dto.response.customer.order.reponseOrder.PaymentOrder;
+import com.example.project_back.dto.response.customer.order.reponseOrder.VoucherOrder;
 import com.example.project_back.entity.Order;
 import com.example.project_back.entity.OrderDetail;
 import com.example.project_back.entity.Payment;
@@ -17,7 +16,6 @@ public class OrderMapper {
     // CREATE ORDER RESPONSE
     public static OrderResponse toOrderResponse(
             Order order,
-            Double totalAfter,
             String paymentUrl
     ) {
 
@@ -25,16 +23,20 @@ public class OrderMapper {
 
         BeanUtils.copyProperties(order, response);
 
-        response.setStatus(order.getStatus().name());
+        response.setOrderId(order.getId());
 
-        response.setTotalAfter(totalAfter);
+        response.setStatus(order.getStatus());
+
+        response.setTotalPrice(order.getTotalPrice()-order.getDiscount());
+
+        response.setPriceBefore(order.getTotalPrice());
 
         response.setPaymentUrl(paymentUrl);
 
         return response;
     }
 
-    public static MyOrderResponse toMyOrderResponse(Order order) {
+    public static MyOrderResponse toMyOrderResponse(Order order,Payment  payment) {
 
         MyOrderResponse response = new MyOrderResponse();
 
@@ -42,18 +44,24 @@ public class OrderMapper {
 
         response.setOrderCode(order.getOrderCode());
 
-        response.setStatus(order.getStatus().name());
+        response.setStatus(order.getStatus());
 
         // GIÁ CUỐI CÙNG
-        response.setTotalPrice(
-                order.getTotalPrice() - order.getDiscount()
-        );
+        response.setTotalPrice(order.getTotalPrice() - order.getDiscount());
 
         response.setCreatedAt(order.getCreatedAt());
 
-        response.setPaymentMethod(
-                order.getPaymentMethod().getCode().name()
-        );
+        // payment
+        if (payment != null) {
+
+            PaymentOrder paymentOrder = new PaymentOrder();
+
+            paymentOrder.setPaymentStatus(payment.getStatus());
+
+            paymentOrder.setPaymentMethodType(payment.getPaymentMethod().getCode());
+
+            response.setPayment(paymentOrder);
+        }
 
         int totalItems = 0;
 
@@ -85,6 +93,7 @@ public class OrderMapper {
         return response;
     }
 
+
     // ORDER DETAIL RESPONSE
     public static OrderDetailResponse toOrderDetailResponse(
             Order order,
@@ -93,53 +102,26 @@ public class OrderMapper {
 
         OrderDetailResponse response = new OrderDetailResponse();
 
-        BeanUtils.copyProperties(order, response);
+        response.setOrder(toMyOrderResponse(order,payment ));
+        // voucher
+        if (order.getVoucher() != null) {
 
-        response.setStatus(order.getStatus().name());
+            VoucherOrder voucherOrder = new VoucherOrder();
 
-        response.setPaymentMethod(
-                order.getPaymentMethod().getCode().name()
-        );
+            voucherOrder.setVoucherCode(order.getVoucher().getCode());
 
-        response.setTotalAfter(
-                order.getTotalPrice() - order.getDiscount()
-        );
+            voucherOrder.setDiscount(order.getDiscount());
 
-        // payment status
-        if (payment != null) {
-            response.setPaymentStatus(
-                    payment.getStatus().name()
-            );
+            response.setVoucherOrder(voucherOrder);
         }
+        response.setPriceBefore(order.getTotalPrice());
 
         // address
         if (order.getAddress() != null) {
-            response.setAddress(
-                    order.getAddress().getAddress()
-            );
+            response.setAddress(order.getAddress().getAddress());
         }
-
-        // items
-        List<OrderItemResponse> items = new ArrayList<>();
-
-        for (OrderDetail detail : order.getOrderDetails()) {
-
-            OrderItemResponse item = new OrderItemResponse();
-
-            item.setFoodId(detail.getFood().getId());
-
-            item.setFoodName(detail.getFood().getName());
-
-            item.setImage(detail.getFood().getImage());
-
-            item.setPrice(detail.getPrice());
-
-            item.setQuantity(detail.getQuantity());
-
-            items.add(item);
-        }
-
-        response.setItems(items);
+        //note
+        response.setNote(order.getNote());
 
         return response;
     }

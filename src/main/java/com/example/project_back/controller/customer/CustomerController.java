@@ -7,6 +7,7 @@ import com.example.project_back.dto.request.customer.ReviewUpdateRequest;
 import com.example.project_back.dto.request.customer.cart.AddToCartRequest;
 import com.example.project_back.dto.request.customer.cart.UpdateCartRequest;
 import com.example.project_back.dto.request.customer.order.CreateOrderRequest;
+import com.example.project_back.dto.request.spec.OrderRequestParam;
 import com.example.project_back.dto.response.customer.FavoriteResponse;
 import com.example.project_back.dto.response.customer.order.OrderResponse;
 import com.example.project_back.dto.response.customer.order.MyOrderResponse;
@@ -163,38 +164,39 @@ public class CustomerController {
 
 
     //order
-@PostMapping("/order")
-public ResponseEntity<BaseResponse<String>> createOrder(
+    @PostMapping("/order")
+    public ResponseEntity<BaseResponse<OrderResponse>> createOrder(
         @RequestBody CreateOrderRequest request) {
 
-     orderService.createOrder(request);
-
-    return ResponseEntity.ok(BaseResponse.success("tạo đơn hàng thah cng"));
+    return ResponseEntity.ok(BaseResponse.success(orderService.createOrder(request)));
 }
 
     @GetMapping("order/my-orders")
-    public ResponseEntity<BaseResponse<List<MyOrderResponse>>> myOrders() {
+    public ResponseEntity<BaseResponse<Page<MyOrderResponse>>> myOrders(
+            OrderRequestParam param,
+            @PageableDefault(size = 5, sort="id" ,direction = Sort.Direction.DESC) Pageable pageable) {
+
         return ResponseEntity.ok( new BaseResponse<>(
-                orderService.getMyOrders(),
+                orderService.getMyOrders(param,pageable),
                 "hien thi don hang thanh cong")
         );
     }
 
     @GetMapping("order/{id}")
-    public ResponseEntity<BaseResponse<OrderDetailResponse>> orderDetail(@PathVariable Integer id ) {
+    public ResponseEntity<BaseResponse<OrderDetailResponse>> orderDetail(@PathVariable Long id ) {
         return ResponseEntity.ok(new BaseResponse<>(
                 orderService.getOrderDetail(id),
                 "hien thi chi tiet don hang")  );
     }
 
     @PutMapping("order/{id}/cancel")
-    public ResponseEntity<String> cancelOrder( @PathVariable Integer id ) {
+    public ResponseEntity<String> cancelOrder( @PathVariable Long id ) {
         orderService.cancelOrder(id);
         return ResponseEntity.ok("Hủy đơn hàng thành công");
     }
 
     @PostMapping("order/{id}/reorder")
-    public ResponseEntity<String> reorder( @PathVariable Integer id ) {
+    public ResponseEntity<String> reorder( @PathVariable Long id ) {
         orderService.reorder(id);
         return ResponseEntity.ok("đặt lại đơn hàng thành công ");
     }

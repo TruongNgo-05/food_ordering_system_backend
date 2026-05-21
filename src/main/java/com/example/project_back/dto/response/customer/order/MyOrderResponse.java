@@ -1,5 +1,8 @@
 package com.example.project_back.dto.response.customer.order;
 
+import com.example.project_back.constant.OrderStatus;
+import com.example.project_back.constant.PaymentMethodType;
+import com.example.project_back.dto.response.customer.order.reponseOrder.PaymentOrder;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,10 +13,10 @@ import java.util.List;
 @Setter
 @JsonPropertyOrder({"orderId","orderCode","status","paymentMethod","totalPrice","totalItems","createdAt","items"})
 public class MyOrderResponse {
-    private Integer orderId;
+    private Long orderId;
     private String orderCode;
-    private String status;
-    private String paymentMethod;
+    private OrderStatus status;
+    private PaymentOrder payment;
     private Double totalPrice;
     private Integer totalItems;
     private LocalDateTime createdAt;

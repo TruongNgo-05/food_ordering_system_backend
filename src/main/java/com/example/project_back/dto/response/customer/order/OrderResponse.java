@@ -1,20 +1,19 @@
 package com.example.project_back.dto.response.customer.order;
 
+import com.example.project_back.constant.OrderStatus;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 public class OrderResponse {
-    private Integer orderId;
+    private Long orderId;
 
     private String orderCode;
-
+    private Double priceBefore;
     private Double totalPrice;
-
-    private Double totalAfter;
 
     private String paymentUrl;
 
-    private String status;
+    private OrderStatus status;
 }

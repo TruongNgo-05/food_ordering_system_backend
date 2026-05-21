@@ -24,6 +24,7 @@ public class VoucherMapper {
         voucherAdminDetailResponse.setRemaining(voucher.getUsageLimit()-voucher.getUsedCount());
         return voucherAdminDetailResponse;
     }
+
     public static Voucher toVoucherAdminCreateResponse(VoucherCreateAndUpdateRequest create){
         Voucher voucher = new Voucher();
 
@@ -41,6 +42,7 @@ public class VoucherMapper {
         voucher.setCreatedAt(LocalDateTime.now());
         return voucher;
     }
+
     public static void toVoucherAdminUpdateResponse(VoucherCreateAndUpdateRequest update,Voucher voucher){
 
         if(update.getVoucherCode()!=null){

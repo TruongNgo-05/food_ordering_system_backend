@@ -1,29 +1,27 @@
 package com.example.project_back.specification;
 
+import com.example.project_back.constant.OrderStatus;
 import com.example.project_back.entity.Order;
-import com.example.project_back.entity.Voucher;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 public class OrderSpecification {
-    public Specification<Order> hasOrderCode(String orderCode){
+    public static Specification<Order> hasOrderCode(String orderCode){
         return (root,query,cb)->{
-            return cb.equal(root.get("orderCode"),"%"+ orderCode.toUpperCase()+"%");
+            return cb.like(root.get("orderCode"),"%"+ orderCode.toUpperCase()+"%");
         };
     }
 
-    public Specification<Order> hasOrderStatus(String orderStatus){
+    public static Specification<Order> hasOrderStatus(OrderStatus status){
         return (root,query,cb)->{
-            return cb.equal(root.get("orderStatus"),orderStatus);
+            return cb.equal(root.get("status"),status);
         };
     }
 
-    public static Specification<Voucher> hasDateOrder(LocalDateTime startDate, LocalDateTime endDate){
-        return (root, query, cb) ->
-                cb.and(
-                        cb.greaterThanOrEqualTo(root.get("startDate"), startDate),
-                        cb.lessThanOrEqualTo(root.get("endDate"), endDate)
-                );
+    public static Specification<Order> hasCreateDate(LocalDate minDate, LocalDate maxDate) {
+        return (root, query, criteriaBuilder) -> {
+            return criteriaBuilder.between(root.get("createdAt"), minDate, maxDate);
+        };
     }
 }

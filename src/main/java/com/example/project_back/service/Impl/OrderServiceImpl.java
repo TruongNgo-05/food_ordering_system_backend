@@ -5,23 +5,28 @@ import com.example.project_back.constant.OrderStatus;
 import com.example.project_back.constant.PaymentMethodType;
 import com.example.project_back.constant.PaymentStatus;
 import com.example.project_back.dto.request.customer.order.CreateOrderRequest;
+import com.example.project_back.dto.request.spec.OrderRequestParam;
 import com.example.project_back.dto.response.customer.order.OrderResponse;
 import com.example.project_back.dto.response.customer.order.MyOrderResponse;
 import com.example.project_back.dto.response.customer.order.OrderDetailResponse;
-import com.example.project_back.dto.response.customer.order.OrderItemResponse;
 import com.example.project_back.entity.*;
 import com.example.project_back.exception.ApplicationException;
 import com.example.project_back.mapper.OrderMapper;
 import com.example.project_back.repository.*;
 import com.example.project_back.service.OrderService;
 import com.example.project_back.service.PaymentService;
+import com.example.project_back.specification.OrderSpecification;
 import com.example.project_back.validator.VoucherValidator;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -92,9 +97,6 @@ public class OrderServiceImpl implements OrderService {
             voucherRepository.save(voucher);
         }
 
-        // tiền sau giảm
-        Double totalAfter = total - discount;
-
         // tạo order
         Order order = new Order();
 
@@ -108,7 +110,6 @@ public class OrderServiceImpl implements OrderService {
 
         order.setStatus(OrderStatus.PENDING);
 
-        // giá cuối cùng
         order.setTotalPrice(total);
 
         order.setDiscount(discount);
@@ -172,58 +173,105 @@ public class OrderServiceImpl implements OrderService {
             paymentUrl = paymentService.createPaymentUrl(order);
         }
 
-        return OrderMapper.toOrderResponse(
-                order,
-                totalAfter,
-                paymentUrl
-        );
+        return OrderMapper.toOrderResponse(order, paymentUrl);
     }
 
     @Override
-    public List<MyOrderResponse> getMyOrders() {
-
+    public Page<MyOrderResponse> getMyOrders(OrderRequestParam param, Pageable pageable) {
+        // lấy username hiện tại
         String username = SecurityUtils.getCurrentUsername();
 
         if (username == null || username.equals("anonymousUser")) {
             throw new ApplicationException("Bạn chưa đăng nhập");
         }
 
-        Optional<User> users = userRepository.findByUsername(username);
-        if (users.isEmpty()) {
-            throw new ApplicationException("User không tồn tại");
+        // tìm user
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() ->
+                        new ApplicationException("User không tồn tại"));
+
+        // lấy params filter
+        String orderCode = param.getOrderCode();
+        OrderStatus status = param.getStatus();
+        LocalDate minDate = param.getMinDate();
+        LocalDate maxDate = param.getMaxDate();
+
+        // tạo specification
+        Specification<Order> spec = Specification.unrestricted();
+
+        // chỉ lấy order của user hiện tại
+        spec = spec.and((root, query, cb) ->
+                cb.equal(root.get("user").get("id"), user.getId())
+        );
+
+        // filter order code
+        if (orderCode != null && !orderCode.trim().isEmpty()) {
+            spec = spec.and(OrderSpecification.hasOrderCode(orderCode));
         }
-        User user = users.get();
 
-        List<Order> orders = orderRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
-
-        List<MyOrderResponse> responses = new ArrayList<>();
-
-        for (Order order : orders) {
-            responses.add(OrderMapper.toMyOrderResponse(order));
+        // filter status
+        if (status != null) {
+            spec = spec.and(OrderSpecification.hasOrderStatus(status));
         }
 
-        return responses;
+        // filter date
+        if (minDate != null && maxDate != null) {
+            spec = spec.and(OrderSpecification.hasCreateDate(minDate, maxDate));
+        }
+        Page<Order> orderPage = orderRepository.findAll(spec, pageable);
+
+        Page<MyOrderResponse> responsePage = orderPage.map(order -> {
+
+            Payment payment = paymentRepository
+                    .findByOrderId(order.getId())
+                    .orElse(null);
+            return OrderMapper.toMyOrderResponse(order, payment);
+        });
+
+        return responsePage;
     }
 
     @Override
-    public OrderDetailResponse getOrderDetail(Integer orderId) {
+    public OrderDetailResponse getOrderDetail(Long orderId) {
+        String username = SecurityUtils.getCurrentUsername();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() ->
+                        new ApplicationException("Tài khoản không tồn tại"));
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new ApplicationException("Order not found"));
+
+        // kiểm tra chủ sở hữu order
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new ApplicationException(
+                    "Bạn không có quyền xem đơn hàng này"
+            );
+        }
 
         Payment payment = paymentRepository.findByOrderId(order.getId()).orElse(null);
-        return OrderMapper.toOrderDetailResponse(
-                order,
-                payment
-        );
+        return OrderMapper.toOrderDetailResponse(order, payment);
     }
 
     @Override
     @Transactional
-    public void cancelOrder(Integer orderId) {
+    public void cancelOrder(Long orderId) {
+        String username = SecurityUtils.getCurrentUsername();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() ->
+                        new ApplicationException("Tài khoản không tồn tại"));
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new ApplicationException("Order not found"));
+
+        // kiểm tra chủ sở hữu order
+        if (!order.getUser().getId().equals(user.getId())) {
+
+            throw new ApplicationException(
+                    "Bạn không có quyền xem đơn hàng này"
+            );
+        }
 
         order.setStatus(OrderStatus.CANCELED);
         order.setUpdatedAt(LocalDateTime.now());
@@ -233,7 +281,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void reorder(Integer orderId) {
+    public void reorder(Long orderId) {
 
         String username = SecurityUtils.getCurrentUsername();
 
@@ -251,8 +299,8 @@ public class OrderServiceImpl implements OrderService {
 
         for (OrderDetail detail : order.getOrderDetails()) {
 
-            Optional<CartItem> existingItem = cartItemRepository.findByCart_IdAndFood_Id(cart.getId(),
-                            detail.getFood().getId());
+            Optional<CartItem> existingItem =
+                    cartItemRepository.findByCart_IdAndFood_Id(cart.getId(), detail.getFood().getId());
 
             if (existingItem.isPresent()) {
 

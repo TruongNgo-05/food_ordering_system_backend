@@ -33,14 +33,14 @@ public ResponseEntity<?> vnpayReturn(HttpServletRequest request) {
     }
 }
 
-    @GetMapping("/test-payment")
-    public ResponseEntity<?> testPayment() {
-
-        Order order = orderRepository.findById(3).orElseThrow();
-
-        String paymentUrl = paymentService.createPaymentUrl(order);
-
-        return ResponseEntity.ok(BaseResponse.success(paymentUrl));
-    }
+//    @GetMapping("/test-payment")
+//    public ResponseEntity<?> testPayment() {
+//
+//        Order order = orderRepository.findById(3).orElseThrow();
+//
+//        String paymentUrl = paymentService.createPaymentUrl(order);
+//
+//        return ResponseEntity.ok(BaseResponse.success(paymentUrl));
+//    }
 
 }
