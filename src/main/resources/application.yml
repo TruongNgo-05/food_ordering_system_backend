@@ -33,8 +33,12 @@ jwt:
   secret: my-super-secret-key-my-super-secret-key
   expiration: 18000000 # 5 tiếng (5 * 60 * 60 * 1000) bị out token
 
-vnpay:
-  tmnCode: WBUHJ0YJ
-  hashSecret: 72J2XDXJWPL89RYJXDLQU1GYXA8QTMH8
-  payUrl: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-  returnUrl: https://subfractionally-wrinkleable-kenneth.ngrok-free.dev/api/payments/vnpay-return
+#vnpay:
+#  tmnCode: WBUHJ0YJ
+#  hashSecret: 72J2XDXJWPL89RYJXDLQU1GYXA8QTMH8
+#  payUrl: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+#  returnUrl: https://subfractionally-wrinkleable-kenneth.ngrok-free.dev/api/payments/vnpay-return
+
+sepay:
+  bank-account: 00004341212
+  bank-name: TPBank

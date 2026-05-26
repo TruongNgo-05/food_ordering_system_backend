@@ -1,0 +1,13 @@
+package com.example.project_back.dto.request.user.table;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class DinnerSetTableRequest {
+    private String customerName;
+    private String customerPhone;
+    private String tableNumber;
+    private Integer capacity;
+}

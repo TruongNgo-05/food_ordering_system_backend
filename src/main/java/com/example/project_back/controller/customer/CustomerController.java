@@ -7,11 +7,13 @@ import com.example.project_back.dto.request.customer.ReviewUpdateRequest;
 import com.example.project_back.dto.request.customer.cart.AddToCartRequest;
 import com.example.project_back.dto.request.customer.cart.UpdateCartRequest;
 import com.example.project_back.dto.request.customer.order.CreateOrderRequest;
+import com.example.project_back.dto.request.customer.order.CreateOrderTableRequest;
 import com.example.project_back.dto.request.spec.OrderRequestParam;
 import com.example.project_back.dto.response.customer.FavoriteResponse;
 import com.example.project_back.dto.response.customer.order.OrderResponse;
 import com.example.project_back.dto.response.customer.order.MyOrderResponse;
 import com.example.project_back.dto.response.customer.order.OrderDetailResponse;
+import com.example.project_back.dto.response.customer.order.OrderTableResponse;
 import com.example.project_back.dto.response.customer.voucher.VoucherGetResponse;
 import com.example.project_back.dto.response.customer.cart.CartResponse;
 import com.example.project_back.dto.response.customer.voucher.VoucherResponse;
@@ -170,6 +172,12 @@ public class CustomerController {
 
     return ResponseEntity.ok(BaseResponse.success(orderService.createOrder(request)));
 }
+
+    @PostMapping("/order-tb")
+    public ResponseEntity<BaseResponse<OrderTableResponse>> createOrderTable(
+            @RequestBody CreateOrderTableRequest request){
+        return ResponseEntity.ok(BaseResponse.success( orderService.createOrderTb(request)));
+    }
 
     @GetMapping("order/my-orders")
     public ResponseEntity<BaseResponse<Page<MyOrderResponse>>> myOrders(

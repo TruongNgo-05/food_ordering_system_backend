@@ -4,6 +4,7 @@ import com.example.project_back.constant.OrderStatus;
 import com.example.project_back.constant.PaymentMethodType;
 import com.example.project_back.dto.response.customer.order.reponseOrder.PaymentOrder;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import jakarta.persistence.Column;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,6 +16,8 @@ import java.util.List;
 public class MyOrderResponse {
     private Long orderId;
     private String orderCode;
+    private String customerName;
+    private String customerPhone;
     private OrderStatus status;
     private PaymentOrder payment;
     private Double totalPrice;

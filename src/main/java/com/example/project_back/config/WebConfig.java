@@ -9,7 +9,13 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+
+        // upload image
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("file:uploads/");
+
+        // qr code
+        registry.addResourceHandler("/qrcodes/**")
+                .addResourceLocations("file:uploads/qrcodes/");
     }
 }

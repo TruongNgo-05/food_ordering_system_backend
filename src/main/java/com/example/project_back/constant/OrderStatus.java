@@ -9,11 +9,4 @@ public enum OrderStatus {
 // ĐANG GIAO HÀNG,
 // ĐÃ HOÀN THÀNH,
 // ĐÃ HỦY,
-// ĐÃ TỪ CHỐI
-// ĐANG CHỜ XỬ LÝ,
-// ĐÃ XÁC NHẬN,
-// ĐANG CHUẨN BỊ,
-// ĐANG GIAO HÀNG,
-// ĐÃ HOÀN THÀNH,
-// ĐÃ HỦY,
-// ĐÃ TỪ CHỐI.
+//ĐÃ TỪ CHỐI

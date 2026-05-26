@@ -5,10 +5,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class FoodOderTableResponse {
+public class FoodTableResponse {
     private Long id;
     private String image;
     private String name;
     private Double price;
-    private Integer count;
+    private Integer categoryId;
 }

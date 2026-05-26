@@ -4,7 +4,7 @@ import com.example.project_back.dto.request.admin.FoodCreateAndUpdateRequest;
 import com.example.project_back.dto.response.admin.FoodAdminResponse;
 import com.example.project_back.dto.response.admin.FoodDetailAdminRespone;
 import com.example.project_back.dto.response.user.FoodDetailResponse;
-import com.example.project_back.dto.response.user.FoodOderTableResponse;
+import com.example.project_back.dto.response.user.FoodTableResponse;
 import com.example.project_back.dto.response.user.FoodResponse;
 import com.example.project_back.entity.Food;
 
@@ -22,15 +22,30 @@ public class FoodMapper {
         return foodResponse;
     }
 
-    public static FoodOderTableResponse toMapTable(Food food){
-        FoodOderTableResponse dto = new FoodOderTableResponse();
+    public static FoodTableResponse toMapTable(Food food){
+        FoodTableResponse dto = new FoodTableResponse();
         BeanUtils.copyProperties(food, dto);
+        dto.setCategoryId(food.getCategories().getId());
         return dto;
     }
     public static FoodDetailResponse toMapperDetail(Food food){
         FoodDetailResponse dto = new FoodDetailResponse();
         BeanUtils.copyProperties(food, dto);
         return dto;
+    }
+    public static FoodTableResponse toFoodTableResponse(
+            Food food
+    ) {
+
+        FoodTableResponse response = new FoodTableResponse();
+
+        BeanUtils.copyProperties(food, response);
+
+        if (food.getCategories() != null) {
+            response.setCategoryId(food.getCategories().getId());
+        }
+
+        return response;
     }
 
 //    admin

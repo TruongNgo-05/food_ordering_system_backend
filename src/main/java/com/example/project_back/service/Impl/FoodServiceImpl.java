@@ -5,7 +5,7 @@
     import com.example.project_back.dto.response.admin.FoodAdminResponse;
     import com.example.project_back.dto.response.admin.FoodDetailAdminRespone;
     import com.example.project_back.dto.response.user.FoodDetailResponse;
-    import com.example.project_back.dto.response.user.FoodOderTableResponse;
+    import com.example.project_back.dto.response.user.FoodTableResponse;
     import com.example.project_back.dto.response.user.FoodResponse;
     import com.example.project_back.entity.Categories;
     import com.example.project_back.entity.Food;
@@ -24,7 +24,6 @@
     import lombok.AllArgsConstructor;
     import org.springframework.data.domain.Page;
     import org.springframework.data.domain.Pageable;
-    import org.springframework.data.jpa.domain.PredicateSpecification;
     import org.springframework.data.jpa.domain.Specification;
     import org.springframework.stereotype.Service;
     import org.springframework.web.multipart.MultipartFile;
@@ -79,7 +78,7 @@
                     });
         }
 
-        Page<FoodOderTableResponse> getAllFoodToTable(Pageable pageable) {
+        Page<FoodTableResponse> getAllFoodToTable(Pageable pageable) {
             Page<Food>  foods = foodRepository.findAll(pageable);
             return foods.map(FoodMapper::toMapTable);
         }
@@ -208,6 +207,7 @@
 
             return FoodMapper.toMapperAdmin(saved);
         }
+
         @Transactional
         @Override
         public FoodAdminResponse updateFood(

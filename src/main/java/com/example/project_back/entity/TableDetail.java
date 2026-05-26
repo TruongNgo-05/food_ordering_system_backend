@@ -21,7 +21,6 @@ public class TableDetail {
     private String tableNumber;
 
     private Integer capacity;
-    private String location;
 
     @Column(name = "qr_code")
     private String qrCode;

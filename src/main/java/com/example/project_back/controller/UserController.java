@@ -8,10 +8,7 @@ import com.example.project_back.dto.request.user.ChangePasswordRequest;
 import com.example.project_back.dto.request.user.UserUpdateRequest;
 import com.example.project_back.dto.request.user.UserCreateRequest;
 import com.example.project_back.dto.response.user.*;
-import com.example.project_back.service.BannerService;
-import com.example.project_back.service.CategoriesService;
-import com.example.project_back.service.FoodService;
-import com.example.project_back.service.UserService;
+import com.example.project_back.service.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +34,7 @@ public class UserController {
     private final BannerService bannerService;
     private final CategoriesService categoriesService;
     private final FoodService foodService;
+    private final TableService tableService;
 
     @PostMapping()
     public ResponseEntity<BaseResponse<UserResponse>> createUser(@RequestBody @Valid UserCreateRequest createUserRequest) {
@@ -108,6 +106,7 @@ public ResponseEntity<BaseResponse<UserResponse>> updateUser(
                 "Get All succsess full"
         ));
     }
+
     @GetMapping("/foods/{id}")
     public ResponseEntity<BaseResponse<FoodDetailResponse>> getFoodDetail(@PathVariable Long id){
 
@@ -115,6 +114,31 @@ public ResponseEntity<BaseResponse<UserResponse>> updateUser(
                 foodService.getFoodDetail(id),
                 "Get Food Detail successfully!"
         ));
+    }
+
+
+//    table
+    @GetMapping("/table")
+    public ResponseEntity<BaseResponse<List<TableResponse>>> getAllTable (){
+        return ResponseEntity.ok(new BaseResponse<>(
+                tableService.getListTables(),
+                "Get All table successfully!"
+        ));
+    }
+
+    @GetMapping("/table-detail/{id}")
+    public ResponseEntity<BaseResponse<TableDetailResponse>> getTableDetail (@PathVariable Integer id){
+        return ResponseEntity.ok(new BaseResponse<>(
+                tableService.tableDetail(id),
+                "getTableDetail table successfully!"
+        ));
+    }
+
+    @GetMapping("/table-order")
+    public MenuTableResponse getMenu(
+            @RequestParam("table") String tableNumber
+    ) {
+        return tableService.getMenuByTable(tableNumber);
     }
 }
 
