@@ -1,4 +1,4 @@
-package com.example.project_back.dto.request.user.table;
+package com.example.project_back.dto.request.admin;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -2,9 +2,13 @@ package com.example.project_back.service.Impl;
 
 import com.example.project_back.constant.OrderStatus;
 import com.example.project_back.constant.PaymentStatus;
+import com.example.project_back.constant.TableStatus;
+import com.example.project_back.entity.Cart;
 import com.example.project_back.entity.Order;
 import com.example.project_back.entity.Payment;
+import com.example.project_back.entity.TableDetail;
 import com.example.project_back.exception.ApplicationException;
+import com.example.project_back.repository.CartRepository;
 import com.example.project_back.repository.OrderRepository;
 import com.example.project_back.repository.PaymentRepository;
 import com.example.project_back.service.SepayService;
@@ -18,6 +22,7 @@ public class SepayServiceImpl implements SepayService {
 
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
+    private final CartRepository cartRepository;
 
     @Value("${sepay.bank-account}")
     private String bankAccount;
@@ -41,18 +46,36 @@ public class SepayServiceImpl implements SepayService {
     @Override
     public void confirmPayment(String orderCode) {
 
-        Order order = orderRepository
-                .findByOrderCode(orderCode)
-                .orElseThrow(() ->
-                        new ApplicationException("Order không tồn tại"));
+        Order order = orderRepository.findByOrderCode(orderCode)
+                .orElseThrow(() -> new ApplicationException("Order không tồn tại"));
 
         Payment payment = paymentRepository.findByOrderId(order.getId())
-                .orElseThrow(() ->
-                        new ApplicationException("Payment không tồn tại"));
+                .orElseThrow(() -> new ApplicationException("Payment không tồn tại"));
 
+        // Tránh callback nhiều lần
+        if (payment.getStatus() == PaymentStatus.PAID) {
+            return;
+        }
+
+        // PAYMENT
         payment.setStatus(PaymentStatus.PAID);
 
+        // ORDER
         order.setStatus(OrderStatus.CONFIRMED);
+
+        // ONLINE DELIVERY -> CLEAR CART
+        if (order.getUser() != null) {
+
+            Cart cart = cartRepository.findByUser_Id(order.getUser().getId())
+                    .orElse(null);
+
+            if (cart != null) {
+
+                cart.getItems().clear();
+
+                cartRepository.save(cart);
+            }
+        }
 
         paymentRepository.save(payment);
 

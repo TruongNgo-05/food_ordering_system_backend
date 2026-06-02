@@ -58,6 +58,48 @@ public class OrderMapper {
         return order;
     }
 
+    // COD ORDER
+    public static Order toCodOrder(
+            User user,
+            UserAddress address,
+            PaymentMethod paymentMethod,
+            Voucher voucher,
+            CreateOrderRequest request,
+            Double total,
+            Double discount
+    ) {
+
+        Order order = new Order();
+
+        order.setOrderCode("ORD-COD-" + System.currentTimeMillis());
+
+        order.setUser(user);
+
+        order.setCustomerName(user.getUsername());
+
+        order.setCustomerPhone(user.getPhone());
+
+        order.setAddress(address);
+
+        order.setPaymentMethod(paymentMethod);
+
+        order.setStatus(OrderStatus.PENDING);
+
+        order.setTotalPrice(total);
+
+        order.setDiscount(discount);
+
+        order.setVoucher(voucher);
+
+        order.setCreatedAt(LocalDateTime.now());
+
+        order.setUpdatedAt(LocalDateTime.now());
+
+        order.setNote(request.getNote());
+
+        return order;
+    }
+
     // PAYMENT
     public static Payment toPayment(
             Order order,
@@ -265,7 +307,9 @@ public class OrderMapper {
 
         response.setStatus(order.getStatus());
 
-        response.setTotalPrice(order.getTotalPrice() - order.getDiscount());
+        Double discount = order.getDiscount() == null ? 0.0 : order.getDiscount();
+
+        response.setTotalPrice(order.getTotalPrice() - discount);
 
         response.setCreatedAt(order.getCreatedAt());
 

@@ -4,10 +4,14 @@
     import com.example.project_back.constant.OrderStatus;
     import com.example.project_back.constant.PaymentMethodType;
     import com.example.project_back.constant.PaymentStatus;
+    import com.example.project_back.constant.TableStatus;
     import com.example.project_back.dto.request.customer.order.CreateOrderRequest;
     import com.example.project_back.dto.request.customer.order.CreateOrderTableRequest;
     import com.example.project_back.dto.request.customer.order.OrderTableItemRequest;
     import com.example.project_back.dto.request.spec.OrderRequestParam;
+    import com.example.project_back.dto.response.admin.OrderAdminResponse;
+    import com.example.project_back.dto.response.admin.OrderDetailAdminResponse;
+    import com.example.project_back.dto.response.admin.OrderItemAdminResponse;
     import com.example.project_back.dto.response.customer.order.OrderResponse;
     import com.example.project_back.dto.response.customer.order.MyOrderResponse;
     import com.example.project_back.dto.response.customer.order.OrderDetailResponse;
@@ -56,24 +60,20 @@
             String username = SecurityUtils.getCurrentUsername();
 
             User user = userRepository.findByUsername(username)
-                    .orElseThrow(() ->
-                            new ApplicationException("User không tồn tại"));
+                    .orElseThrow(() -> new ApplicationException("User không tồn tại"));
 
             Cart cart = cartRepository.findByUser_Id(user.getId())
-                    .orElseThrow(() ->
-                            new ApplicationException("Cart không tồn tại"));
+                    .orElseThrow(() -> new ApplicationException("Cart không tồn tại"));
 
             if (cart.getItems().isEmpty()) {
                 throw new ApplicationException("Cart trống");
             }
 
             UserAddress address = userAddressRepository.findById(request.getAddressId())
-                    .orElseThrow(() ->
-                            new ApplicationException("Địa chỉ không tồn tại"));
+                    .orElseThrow(() -> new ApplicationException("Địa chỉ không tồn tại"));
 
             PaymentMethod paymentMethod = paymentMethodRepository.findById(request.getPaymentMethodId())
-                    .orElseThrow(() ->
-                            new ApplicationException("Payment method không tồn tại"));
+                    .orElseThrow(() -> new ApplicationException("Payment method không tồn tại"));
 
             // tổng tiền gốc
             Double total = 0.0;
@@ -103,7 +103,16 @@
                 voucherRepository.save(voucher);
             }
 
-            Order order = OrderMapper.toOrder(user, address, paymentMethod, voucher, request, total, discount);
+            Order order;
+
+            if (paymentMethod.getCode() == PaymentMethodType.COD) {
+
+                order = OrderMapper.toCodOrder(user, address, paymentMethod, voucher, request, total, discount);
+
+            } else {
+
+                order = OrderMapper.toOrder(user, address, paymentMethod, voucher, request, total, discount);
+            }
 
             // order details
             List<OrderDetail> details = OrderMapper.toOrderDetails(order, cart.getItems());
@@ -119,13 +128,23 @@
 
             // COD
             if (paymentMethod.getCode() == PaymentMethodType.COD) {
+
+                order.setStatus(OrderStatus.CONFIRMED);
+
                 cart.getItems().clear();
+
                 cartRepository.save(cart);
+
+                orderRepository.save(order);
             }
 
-            // ONLINE -> QR BANK
+// ONLINE -> QR BANK
             else if (paymentMethod.getCode() == PaymentMethodType.ONLINE) {
-                paymentUrl = sepayService.generateQr(order.getOrderCode(), total);
+
+                paymentUrl = sepayService.generateQr(
+                        order.getOrderCode(),
+                        order.getTotalPrice() - order.getDiscount()
+                );
             }
             return OrderMapper.toOrderResponse(order, paymentUrl);
         }
@@ -278,10 +297,12 @@
         ) {
 
             // TABLE
-            TableDetail table = tableDetailRepository
-                    .findById(request.getTableId())
-                    .orElseThrow(() ->
-                            new ApplicationException("Bàn không tồn tại"));
+            TableDetail table = tableDetailRepository.findByTableNumber(request.getTableNumber())
+                    .orElseThrow(() -> new ApplicationException("Bàn không tồn tại"));
+
+            table.setStatus(TableStatus.OCCUPIED);
+
+            tableDetailRepository.save(table);
 
             // PAYMENT METHOD
             PaymentMethod paymentMethod = paymentMethodRepository.findById(request.getPaymentMethodId())
@@ -332,6 +353,134 @@
             paymentRepository.save(payment);
 
             return OrderMapper.toOrderTableResponse(order, paymentUrl);
+        }
+
+
+//admin
+        @Override
+        public Page<OrderAdminResponse> getOrders(Pageable pageable) {
+
+            return orderRepository.findAll(pageable)
+                    .map(order -> {
+
+                        Payment payment = paymentRepository
+                                .findByOrderId(order.getId())
+                                .orElse(null);
+
+                        OrderAdminResponse response = new OrderAdminResponse();
+
+                        response.setOrderId(order.getId());
+                        response.setOrderCode(order.getOrderCode());
+                        response.setCustomerName(order.getCustomerName());
+                        response.setCustomerPhone(order.getCustomerPhone());
+                        response.setTotalPrice(order.getTotalPrice());
+                        response.setDiscount(order.getDiscount());
+                        response.setStatus(order.getStatus());
+                        response.setCreatedAt(order.getCreatedAt());
+
+                        if (order.getPaymentMethod() != null) {
+                            response.setPaymentMethod(
+                                    order.getPaymentMethod().getCode().name()
+                            );
+                        }
+
+                        if (payment != null) {
+                            response.setPaymentStatus(
+                                    payment.getStatus().name()
+                            );
+                        }
+
+                        return response;
+                    });
+        }
+
+        @Override
+        public OrderDetailAdminResponse getOrderAdminDetail(Long orderId) {
+
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() ->
+                            new ApplicationException("Order không tồn tại"));
+
+            Payment payment = paymentRepository
+                    .findByOrderId(orderId)
+                    .orElse(null);
+
+            OrderDetailAdminResponse response = new OrderDetailAdminResponse();
+
+            response.setOrderId(order.getId());
+            response.setOrderCode(order.getOrderCode());
+            response.setCustomerName(order.getCustomerName());
+            response.setCustomerPhone(order.getCustomerPhone());
+
+            if (order.getAddress() != null) {
+                response.setAddress(order.getAddress().getAddress());
+            }
+
+            response.setNote(order.getNote());
+
+            response.setTotalPrice(order.getTotalPrice());
+
+            response.setDiscount(order.getDiscount());
+
+            response.setStatus(order.getStatus());
+
+            response.setCreatedAt(order.getCreatedAt());
+
+            if (order.getPaymentMethod() != null) {
+                response.setPaymentMethod(
+                        order.getPaymentMethod().getCode().name()
+                );
+            }
+
+            if (payment != null) {
+                response.setPaymentStatus(
+                        payment.getStatus().name()
+                );
+            }
+
+            List<OrderItemAdminResponse> items = new ArrayList<>();
+
+            for (OrderDetail detail : order.getOrderDetails()) {
+
+                OrderItemAdminResponse item =
+                        new OrderItemAdminResponse();
+
+                item.setFoodId(detail.getFood().getId().longValue());
+                item.setFoodName(detail.getFood().getName());
+                item.setImage(detail.getFood().getImage());
+                item.setPrice(detail.getPrice());
+                item.setQuantity(detail.getQuantity());
+
+                items.add(item);
+            }
+
+            response.setItems(items);
+
+            return response;
+        }
+
+        @Override
+        public void updateStatus(Long orderId, OrderStatus status) {
+
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() ->
+                            new ApplicationException("Order không tồn tại"));
+
+            order.setStatus(status);
+
+            order.setUpdatedAt(LocalDateTime.now());
+
+            if (status == OrderStatus.COMPLETED
+                    && order.getTable() != null) {
+
+                TableDetail table = order.getTable();
+
+                table.setStatus(TableStatus.AVAILABLE);
+
+                tableDetailRepository.save(table);
+            }
+
+            orderRepository.save(order);
         }
     }
 

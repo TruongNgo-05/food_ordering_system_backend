@@ -1,8 +1,11 @@
 package com.example.project_back.service;
 
+import com.example.project_back.constant.OrderStatus;
 import com.example.project_back.dto.request.customer.order.CreateOrderRequest;
 import com.example.project_back.dto.request.customer.order.CreateOrderTableRequest;
 import com.example.project_back.dto.request.spec.OrderRequestParam;
+import com.example.project_back.dto.response.admin.OrderAdminResponse;
+import com.example.project_back.dto.response.admin.OrderDetailAdminResponse;
 import com.example.project_back.dto.response.customer.order.MyOrderResponse;
 import com.example.project_back.dto.response.customer.order.OrderResponse;
 import com.example.project_back.dto.response.customer.order.OrderDetailResponse;
@@ -23,4 +26,9 @@ public interface OrderService {
     OrderTableResponse createOrderTb(CreateOrderTableRequest request);
 
     // admin
+    Page<OrderAdminResponse> getOrders(Pageable pageable);
+
+    OrderDetailAdminResponse getOrderAdminDetail(Long orderId);
+
+    void updateStatus(Long orderId, OrderStatus status);
 }

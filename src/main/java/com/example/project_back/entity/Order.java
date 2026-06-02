@@ -1,6 +1,5 @@
 package com.example.project_back.entity;
 import com.example.project_back.constant.OrderStatus;
-import com.example.project_back.constant.OrderType;
 
 import jakarta.persistence.*;
 import lombok.Getter;

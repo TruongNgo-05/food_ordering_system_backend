@@ -13,34 +13,35 @@ import java.nio.file.Path;
 @Service
 public class QRCodeService {
 
-    // domain backend public
-    private static final String BASE_URL =
+    //  Backend domain (chỉ dùng cho ảnh QR + API)
+    private static final String BACKEND_URL =
             "https://subfractionally-wrinkleable-kenneth.ngrok-free.dev";
+
+    //  Frontend domain (QUAN TRỌNG: QR phải mở cái này)
+    private static final String FRONTEND_URL =
+            "http://localhost:5173"; // đổi thành domain frontend khi deploy
 
     public String generateQRCode(String tableNumber) {
 
         try {
-
-            // URL khi khách quét QR
-            String frontendUrl =
-                    BASE_URL + "/customer/table-order?table=" + tableNumber;
+            String qrContentUrl = FRONTEND_URL + "/table-order?table=" + tableNumber;
 
             String folderPath = "uploads/qrcodes/";
 
             File folder = new File(folderPath);
-
             if (!folder.exists()) {
                 folder.mkdirs();
             }
 
-            String fileName = "table-" + tableNumber + ".png";
+            String safeTableNumber = tableNumber.replaceAll("\\s+", "-");
 
+            String fileName = "table-" + safeTableNumber + ".png";
             String filePath = folderPath + fileName;
 
             QRCodeWriter qrCodeWriter = new QRCodeWriter();
 
             BitMatrix bitMatrix = qrCodeWriter.encode(
-                    frontendUrl,
+                    qrContentUrl,
                     BarcodeFormat.QR_CODE,
                     350,
                     350
@@ -53,33 +54,26 @@ public class QRCodeService {
                     "PNG",
                     path
             );
-
-            // URL public ảnh QR
-            return BASE_URL + "/qrcodes/" + fileName;
+            return BACKEND_URL + "/qrcodes/" + fileName;
 
         } catch (Exception e) {
-            throw new RuntimeException("Generate QR Failed");
+            throw new RuntimeException("Generate QR Failed", e);
         }
     }
 
     public void deleteQRCode(String qrUrl) {
-
         try {
+            String fileName = qrUrl.substring(qrUrl.lastIndexOf("/") + 1);
 
-            String fileName =
-                    qrUrl.substring(qrUrl.lastIndexOf("/") + 1);
-
-            String filePath =
-                    "uploads/qrcodes/" + fileName;
-
-            File file = new File(filePath);
+            File file = new File("uploads/qrcodes/" + fileName);
 
             if (file.exists()) {
-                file.delete();
+                boolean deleted = file.delete();
+                System.out.println("Delete QR: " + deleted);
             }
 
         } catch (Exception e) {
-            throw new RuntimeException("Delete QR Failed");
+            throw new RuntimeException("Delete QR Failed", e);
         }
     }
 }

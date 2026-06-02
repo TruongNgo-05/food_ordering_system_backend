@@ -2,11 +2,13 @@ package com.example.project_back.controller;
 
 
 import com.example.project_back.common.BaseResponse;
+import com.example.project_back.dto.request.customer.order.CreateOrderTableRequest;
 import com.example.project_back.dto.request.spec.CategoriesRequestParam;
 import com.example.project_back.dto.request.spec.FoodRequestParam;
 import com.example.project_back.dto.request.user.ChangePasswordRequest;
 import com.example.project_back.dto.request.user.UserUpdateRequest;
 import com.example.project_back.dto.request.user.UserCreateRequest;
+import com.example.project_back.dto.response.customer.order.OrderTableResponse;
 import com.example.project_back.dto.response.user.*;
 import com.example.project_back.service.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,6 +37,7 @@ public class UserController {
     private final CategoriesService categoriesService;
     private final FoodService foodService;
     private final TableService tableService;
+    private final OrderService orderService;
 
     @PostMapping()
     public ResponseEntity<BaseResponse<UserResponse>> createUser(@RequestBody @Valid UserCreateRequest createUserRequest) {
@@ -83,6 +86,8 @@ public ResponseEntity<BaseResponse<UserResponse>> updateUser(
         ));
     }
 
+
+//    categories
     @GetMapping("/categories")
     public ResponseEntity<BaseResponse<Page<CategoriesResponse>>> getAllCategories(CategoriesRequestParam param, Pageable pageable) {
         return ResponseEntity.ok(new BaseResponse<>(
@@ -99,6 +104,8 @@ public ResponseEntity<BaseResponse<UserResponse>> updateUser(
         ));
     }
 
+
+//    food
     @GetMapping("/foods")
     public ResponseEntity<BaseResponse<Page<FoodResponse>>> getAllFood(FoodRequestParam param, @PageableDefault(size = 5, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(new BaseResponse<>(
@@ -140,6 +147,14 @@ public ResponseEntity<BaseResponse<UserResponse>> updateUser(
     ) {
         return tableService.getMenuByTable(tableNumber);
     }
+
+
+//    order
+@PostMapping("/order-tb")
+public ResponseEntity<BaseResponse<OrderTableResponse>> createOrderTable(
+        @RequestBody CreateOrderTableRequest request){
+    return ResponseEntity.ok(BaseResponse.success( orderService.createOrderTb(request)));
+}
 }
 
 

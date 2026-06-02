@@ -8,5 +8,5 @@ import lombok.Setter;
 @Setter
 public class TableResponse {
     private String tableNumber;
-    private TableStatus status;
+    private String qrCode;
 }

@@ -1,8 +1,8 @@
 package com.example.project_back.service.Impl;
 
 import com.example.project_back.constant.TableStatus;
-import com.example.project_back.dto.request.user.table.CreateAndUpdateTableRequest;
-import com.example.project_back.dto.request.user.table.DinnerSetTableRequest;
+import com.example.project_back.dto.request.admin.CreateAndUpdateTableRequest;
+import com.example.project_back.dto.request.user.table.BookTableRequest;
 import com.example.project_back.dto.response.user.FoodTableResponse;
 import com.example.project_back.dto.response.user.MenuTableResponse;
 import com.example.project_back.dto.response.user.TableDetailResponse;
@@ -13,11 +13,10 @@ import com.example.project_back.exception.ApplicationException;
 import com.example.project_back.mapper.FoodMapper;
 import com.example.project_back.mapper.TableMapper;
 import com.example.project_back.repository.FoodRepository;
+import com.example.project_back.repository.OrderRepository;
 import com.example.project_back.repository.TableDetailRepository;
 import com.example.project_back.service.TableService;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -31,6 +30,7 @@ public class TableServiceImpl implements    TableService {
     private final TableDetailRepository tableDetailRepository;
     private final FoodRepository foodRepository;
     private final QRCodeService qrCodeService;
+    private final OrderRepository orderRepository;
 
     @Override
     public List<TableResponse> getListTables() {
@@ -44,6 +44,9 @@ public class TableServiceImpl implements    TableService {
 
     @Override
     public TableResponse createTable(CreateAndUpdateTableRequest create) {
+        if(tableDetailRepository.existsByTableNumber(create.getTableNumber())){
+            throw new ApplicationException("Số bàn đã tồn tại");
+        }
 
         TableDetail tableDetail = new TableDetail();
 
@@ -93,11 +96,12 @@ public class TableServiceImpl implements    TableService {
             throw new ApplicationException(" K tim thay ban");
         }
         TableDetail tableDetail = tableDetailOptional.get();
-        // xóa qr trước
         if (tableDetail.getQrCode() != null) {
             qrCodeService.deleteQRCode(tableDetail.getQrCode());
         }
-
+        if (orderRepository.existsByTableId(id)) {
+            throw new ApplicationException("Table đang có đơn hàng, không thể xóa");
+        }
         tableDetailRepository.deleteById(id);
         return "delete success";
     }
@@ -107,10 +111,8 @@ public class TableServiceImpl implements    TableService {
             String tableNumber
     ) {
 
-        TableDetail table =
-                tableDetailRepository.findByTableNumber(tableNumber)
-                        .orElseThrow(() ->
-                                new ApplicationException("Không tìm thấy bàn"));
+        TableDetail table = tableDetailRepository.findByTableNumber(tableNumber)
+                        .orElseThrow(() -> new ApplicationException("Không tìm thấy bàn"));
 
         List<Food> foods = foodRepository.findByStatus(true);
 
@@ -129,12 +131,10 @@ public class TableServiceImpl implements    TableService {
     }
 
     @Override
-    public TableResponse dinnerSet(DinnerSetTableRequest dinnerSetTableRequest) {
+    public TableResponse dinnerSet(BookTableRequest bookTableRequest) {
 
-        TableDetail tableDetails = tableDetailRepository
-                .findByTableNumber(dinnerSetTableRequest.getTableNumber())
-                .orElseThrow(() ->
-                        new ApplicationException("Không tìm thấy bàn"));
+        TableDetail tableDetails = tableDetailRepository.findByTableNumber(bookTableRequest.getTableNumber())
+                .orElseThrow(() -> new ApplicationException("Không tìm thấy bàn"));
 
         if (tableDetails.getStatus().equals(TableStatus.OCCUPIED)) {
             throw new ApplicationException("Bàn đang sử dụng");

@@ -8,7 +8,7 @@ import java.util.List;
 @Getter
 @Setter
 public class CreateOrderTableRequest {
-    private Integer tableId;
+    private String tableNumber;
 
     private Integer paymentMethodId;
 

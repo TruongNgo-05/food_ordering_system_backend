@@ -173,11 +173,6 @@ public class CustomerController {
     return ResponseEntity.ok(BaseResponse.success(orderService.createOrder(request)));
 }
 
-    @PostMapping("/order-tb")
-    public ResponseEntity<BaseResponse<OrderTableResponse>> createOrderTable(
-            @RequestBody CreateOrderTableRequest request){
-        return ResponseEntity.ok(BaseResponse.success( orderService.createOrderTb(request)));
-    }
 
     @GetMapping("order/my-orders")
     public ResponseEntity<BaseResponse<Page<MyOrderResponse>>> myOrders(

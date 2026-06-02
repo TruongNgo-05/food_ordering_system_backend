@@ -1,13 +1,30 @@
 package com.example.project_back.dto.response.admin;
 
 import com.example.project_back.constant.OrderStatus;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
-
+@Getter
+@Setter
 public class OrderAdminResponse {
     private Long orderId;
+
     private String orderCode;
-    private LocalDateTime orderDate;
-    private Double orderPrice;
-    private OrderStatus orderStatus;
+
+    private String customerName;
+
+    private String customerPhone;
+
+    private Double totalPrice;
+
+    private Double discount;
+
+    private OrderStatus status;
+
+    private String paymentMethod;
+
+    private String paymentStatus;
+
+    private LocalDateTime createdAt;
 }

@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class DinnerSetTableRequest {
+public class BookTableRequest {
     private String customerName;
     private String customerPhone;
     private String tableNumber;

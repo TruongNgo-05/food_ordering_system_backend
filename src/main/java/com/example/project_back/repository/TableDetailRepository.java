@@ -9,5 +9,5 @@ import java.util.Optional;
 public interface TableDetailRepository extends JpaRepository<TableDetail,Integer> {
     Optional<TableDetail> findByTableNumber(String tableNumber);
 
-
+    boolean existsByTableNumber(String tableNumber);
 }

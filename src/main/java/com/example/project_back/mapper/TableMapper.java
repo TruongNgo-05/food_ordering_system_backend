@@ -9,16 +9,13 @@ public class TableMapper {
     public static TableResponse toTableResponse(TableDetail table) {
         TableResponse tableResponse = new TableResponse();
         BeanUtils.copyProperties(table, tableResponse);
+        tableResponse.setQrCode(table.getQrCode());
         return tableResponse;
     }
 
     public static TableDetailResponse  toTableDetailResponse(TableDetail tableDetail) {
         TableDetailResponse tableDetailResponse = new TableDetailResponse();
-
-        // map object table detail
         tableDetailResponse.setTableDetail(toTableResponse(tableDetail));
-
-        // map qr
         tableDetailResponse.setQrCode(tableDetail.getQrCode());
         return tableDetailResponse;
     }
