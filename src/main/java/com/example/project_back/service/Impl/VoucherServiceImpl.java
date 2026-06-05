@@ -3,7 +3,7 @@ package com.example.project_back.service.Impl;
 import com.example.project_back.config.SecurityUtils;
 import com.example.project_back.dto.request.admin.VoucherCreateAndUpdateRequest;
 import com.example.project_back.dto.request.spec.VoucherRequestParam;
-import com.example.project_back.dto.response.admin.VoucherAdminDetailResponse;
+import com.example.project_back.dto.response.admin.VoucherDetailAdminResponse;
 import com.example.project_back.dto.response.admin.VoucherAdminResponse;
 import com.example.project_back.dto.response.customer.voucher.VoucherGetResponse;
 import com.example.project_back.dto.response.customer.voucher.VoucherResponse;
@@ -57,7 +57,7 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
-    public VoucherAdminDetailResponse getVoucherById(Integer id){
+    public VoucherDetailAdminResponse getVoucherById(Integer id){
         Optional<Voucher> voucher = voucherRepository.findById(id);
         if(voucher.isEmpty()){
             throw new ApplicationException("k tim thay");

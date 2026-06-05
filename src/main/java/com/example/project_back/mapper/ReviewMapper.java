@@ -2,6 +2,7 @@ package com.example.project_back.mapper;
 
 import com.example.project_back.dto.request.customer.ReviewRequest;
 import com.example.project_back.dto.request.customer.ReviewUpdateRequest;
+import com.example.project_back.dto.response.admin.ReviewFoodAdminResponse;
 import com.example.project_back.dto.response.user.ReviewResponse;
 import com.example.project_back.entity.Review;
 import org.springframework.beans.BeanUtils;
@@ -33,4 +34,14 @@ public class ReviewMapper {
            review.setComment(reviewUpdateRequest.getComment());
        }
     }
+
+
+//    public static ReviewFoodAdminResponse toReviewAdminDto(Review review){
+//        ReviewFoodAdminResponse  dto = new ReviewFoodAdminResponse();
+//        dto.setFoodId(review.getFood().getId());
+//        dto.setFoodName(review.getFood().getName());
+//        dto.setImage(review.getFood().getImage());
+//        dto.setCategoryId(review.getFood().getCategories().getId());
+//        return dto;
+//    }
 }

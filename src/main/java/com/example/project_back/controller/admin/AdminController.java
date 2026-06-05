@@ -1,9 +1,9 @@
-package com.example.project_back.controller.Admin;
+package com.example.project_back.controller.admin;
 
 import com.example.project_back.common.BaseResponse;
-import com.example.project_back.constant.OrderStatus;
 import com.example.project_back.dto.request.admin.*;
 import com.example.project_back.dto.request.spec.FoodRequestParam;
+import com.example.project_back.dto.request.spec.ReviewFoodParam;
 import com.example.project_back.dto.request.spec.VoucherRequestParam;
 import com.example.project_back.dto.response.admin.*;
 import com.example.project_back.dto.response.user.CategoriesResponse;
@@ -33,6 +33,7 @@ public class AdminController {
     private final CategoriesService categoriesService;
     private final BannerService bannerService;
     private final FoodService foodService ;
+    private final ReviewService reviewService;
     private final OrderService orderService;
 
     //    voucher
@@ -46,7 +47,7 @@ public class AdminController {
     }
 
     @GetMapping("voucher/{voucherId}")
-    public ResponseEntity<BaseResponse<VoucherAdminDetailResponse>> getVoucherById(@PathVariable Integer voucherId) {
+    public ResponseEntity<BaseResponse<VoucherDetailAdminResponse>> getVoucherById(@PathVariable Integer voucherId) {
         return ResponseEntity.ok(new BaseResponse<>(
                 voucherService.getVoucherById(voucherId),
                 "get id vouchers successfully"
@@ -79,6 +80,14 @@ public class AdminController {
 
 
     //    table
+//    @GetMapping("/table")
+//    public ResponseEntity<BaseResponse<Page<TableResponse>>> getTableAdmin(Pageable pageable) {
+//        return ResponseEntity.ok(new BaseResponse<>(
+//                tableService.getTableAdmin(pageable),
+//                "create table successfully!"
+//        ));
+//    }
+
     @PostMapping("/table")
     public ResponseEntity<BaseResponse<TableResponse>> createTable(@RequestBody CreateAndUpdateTableRequest create) {
         return ResponseEntity.ok(new BaseResponse<>(
@@ -109,7 +118,7 @@ public class AdminController {
     public ResponseEntity<BaseResponse<CategoriesResponse>> createCategories(@RequestBody CategoriesCreateAndUpdate create) {
         return ResponseEntity.ok(new BaseResponse<>(
                 categoriesService.createCategories(create),
-                "Create Categories Admin successfully!"
+                "Create Categories admin successfully!"
         ));
     }
 
@@ -117,7 +126,7 @@ public class AdminController {
     public ResponseEntity<BaseResponse<CategoriesResponse>> updateCategories(@RequestBody CategoriesCreateAndUpdate update, @PathVariable Integer id) {
         return ResponseEntity.ok(new BaseResponse<>(
                 categoriesService.updateCategories(update, id),
-                "Update Categories Admin successfully!"
+                "Update Categories admin successfully!"
         ));
     }
 
@@ -125,7 +134,7 @@ public class AdminController {
     public ResponseEntity<BaseResponse<String>> deleteCategories(@PathVariable Integer id) {
         return ResponseEntity.ok(new BaseResponse<>(
                 categoriesService.deleteCategories(id),
-                "Delete Categories Admin successfully!"
+                "Delete Categories admin successfully!"
         ));
     }
     
@@ -135,7 +144,7 @@ public class AdminController {
     public ResponseEntity<BaseResponse<Page<BannerAdminResponse>>> getAllBannerAdmin(@PageableDefault(size = 5, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(new BaseResponse<>(
                 bannerService.getAllBannerAdmin(pageable),
-                "get All Banner Admin successfully!"
+                "get All Banner admin successfully!"
         ));
     }
 
@@ -175,7 +184,7 @@ public ResponseEntity<BaseResponse<Page<FoodAdminResponse>>> getAllFood(
 }
 
     @GetMapping("foods/{id}")
-    public ResponseEntity<BaseResponse<FoodDetailAdminRespone>> getById(@PathVariable Long id) {
+    public ResponseEntity<BaseResponse<FoodDetailAdminRespone>> getByIdFood(@PathVariable Long id) {
         return ResponseEntity.ok(new BaseResponse<>(
                 foodService.getById(id),
                 "Get ByID succsess full"
@@ -183,7 +192,7 @@ public ResponseEntity<BaseResponse<Page<FoodAdminResponse>>> getAllFood(
     }
 
     @PostMapping(value = "foods", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<BaseResponse<FoodAdminResponse>> create(
+    public ResponseEntity<BaseResponse<FoodAdminResponse>> createFood(
             @RequestPart("data") String data,
             @RequestPart(value = "image", required = false) MultipartFile image,
             @RequestPart(value = "images", required = false) List<MultipartFile> images
@@ -201,7 +210,7 @@ public ResponseEntity<BaseResponse<Page<FoodAdminResponse>>> getAllFood(
     }
 
     @PutMapping(value = "foods/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<BaseResponse<FoodAdminResponse>> update(
+    public ResponseEntity<BaseResponse<FoodAdminResponse>> updateFood(
             @PathVariable Long id,
             @RequestPart("data") String data,
             @RequestPart(value = "image", required = false) MultipartFile image,
@@ -220,7 +229,7 @@ public ResponseEntity<BaseResponse<Page<FoodAdminResponse>>> getAllFood(
     }
 
     @DeleteMapping("foods{id}")
-    public ResponseEntity<BaseResponse<String>> delete(@PathVariable Long id) {
+    public ResponseEntity<BaseResponse<String>> deleteFood(@PathVariable Long id) {
         return ResponseEntity.ok(new BaseResponse<>(
                 foodService.deleteFood(id),
                 "Delete succsess full"
@@ -236,29 +245,12 @@ public ResponseEntity<BaseResponse<Page<FoodAdminResponse>>> getAllFood(
 //    }
 
 
-//    order
-    @GetMapping("orders")
-    public Page<OrderAdminResponse> getOrders(
-            Pageable pageable
-    ) {
-        return orderService.getOrders(pageable);
+// review
+    @GetMapping("food-review")
+    public ResponseEntity<BaseResponse<Page<ReviewFoodAdminResponse>>> getAllReviewFood(ReviewFoodParam param , Pageable pageable) {
+        return ResponseEntity.ok(BaseResponse.success(
+                reviewService.getReviewAdminsByFood(param,pageable)
+        ));
     }
 
-    @GetMapping("orders/{id}")
-    public OrderDetailAdminResponse getOrderDetail(
-            @PathVariable Long id
-    ) {
-        return orderService.getOrderAdminDetail(id);
-    }
-
-    @PutMapping("orders/{id}/status")
-    public String updateStatus(
-            @PathVariable Long id,
-            @RequestParam OrderStatus status
-    ) {
-
-        orderService.updateStatus(id, status);
-
-        return "Cập nhật trạng thái thành công";
-    }
 }

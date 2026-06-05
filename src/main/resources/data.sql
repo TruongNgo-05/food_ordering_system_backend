@@ -19,7 +19,7 @@ CREATE TABLE users
     phone       VARCHAR(20),
     avatar      TEXT,
 
-    role        ENUM('ADMIN','CUSTOMER') DEFAULT 'CUSTOMER',
+    role        ENUM('ADMIN','STAFF','CUSTOMER') DEFAULT 'CUSTOMER',
 
     is_active   BOOLEAN  DEFAULT TRUE,
 
@@ -53,9 +53,8 @@ CREATE TABLE table_details
     id           INT PRIMARY KEY AUTO_INCREMENT,
     table_number VARCHAR(10) UNIQUE,
     capacity     INT,
-    location     VARCHAR(100),
     qr_code      TEXT,
-    status       ENUM('AVAILABLE','OCCUPIED','RESERVED','MAINTENANCE') DEFAULT 'AVAILABLE',
+    status       ENUM('AVAILABLE','OCCUPIED','RESERVED') DEFAULT 'AVAILABLE',
     created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at   DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -143,8 +142,8 @@ CREATE TABLE orders
     id                INT PRIMARY KEY AUTO_INCREMENT,
     order_code        VARCHAR(50) UNIQUE,
     user_id           INT,
-
-    order_type        ENUM('DELIVERY','DINE_IN') DEFAULT 'DELIVERY',
+    customer_name     varchar(30),
+    customer_phone    varchar(30),
 
     discount          DECIMAL(10, 2),
     total_price       DECIMAL(10, 2),
@@ -250,7 +249,7 @@ CREATE INDEX idx_reviews_food_id ON reviews (food_id);
 INSERT INTO payment_methods (name, code, is_active)
 VALUES ('Thanh toán khi nhận hàng', 'COD', TRUE),
        ('Thanh toán online', 'ONLINE', TRUE),
-       ('Thanh toán tại bàn', 'AT_TABLE', TRUE);
+       ('Thanh toán Tiền mặt tại bàn', 'AT_TABLE', TRUE);
 
 -- ================= USERS =================
 INSERT INTO users (email, username, password, full_name, role, phone)
@@ -261,7 +260,7 @@ VALUES ('ngoquangtruongjk05@gmail.com', 'admin', '$2a$10$nlMnkBVDx81dyJ9puJyf8.F
        ('user2@gmail.com', 'user2', '$2a$10$nlMnkBVDx81dyJ9puJyf8.FWUOiOjJTb4M4RggYlPDuxFDgtxb.ne', 'Pham Van B',
         'CUSTOMER', '0900000003'),
        ('user3@gmail.com', 'user3', '$2a$10$nlMnkBVDx81dyJ9puJyf8.FWUOiOjJTb4M4RggYlPDuxFDgtxb.ne', 'Hoang Van C',
-        'CUSTOMER', '0900000004');
+        'STAFF', '0900000004');
 
 INSERT INTO user_addresses (user_id,
                             receiver_name,
@@ -283,10 +282,10 @@ VALUES ('Đồ ăn nhanh'),
        ('Món chính');
 
 -- ================= TABLE =================
-INSERT INTO table_details (table_number, capacity, location)
-VALUES ('T01', 2, 'Cửa sổ'),
-       ('T02', 4, 'Giữa phòng'),
-       ('T03', 6, 'Phòng VIP');
+INSERT INTO table_details (table_number, capacity)
+VALUES ('T01', 2),
+       ('T02', 4),
+       ('T03', 6);
 
 -- ================= VOUCHERS =================
 INSERT INTO vouchers (code, discount, min_order_value, usage_limit)
@@ -418,18 +417,17 @@ VALUES (1, 1, 2),
 INSERT INTO orders (order_code,
                     user_id,
                     address_id,
-                    order_type,
                     discount,
                     total_price,
                     status,
                     payment_method_id,
                     voucher_id,
                     table_id)
-VALUES ('ORD-20240601-001', 2, 1, 'DELIVERY', 0, 195000, 'COMPLETED', 1, NULL, NULL),
+VALUES ('ORD-20240601-001', 2, 1, 0, 195000, 'COMPLETED', 1, NULL, NULL),
 
-       ('ORD-20240601-002', 3, 3, 'DINE_IN', 50000, 175000, 'CONFIRMED', 3, 2, 2),
+       ('ORD-20240601-002', 3, 3, 50000, 175000, 'CONFIRMED', 3, 2, 2),
 
-       ('ORD-20240602-001', 2, 1, 'DELIVERY', 17000, 178000, 'PENDING', 2, 1, NULL);
+       ('ORD-20240602-001', 2, 1, 17000, 178000, 'PENDING', 2, 1, NULL);
 -- ================= ORDER DETAILS =================
 INSERT INTO order_details (order_id, food_id, quantity, price)
 VALUES (1, 1, 2, 85000),
@@ -480,11 +478,16 @@ FROM users;
 -- select * from foods;
 -- select * from food_images;
 -- select * from vouchers;
--- SELECT * FROM user_addresses;
+SELECT *
+FROM user_addresses;
 select*
 from carts;
 select*
 from cart_items;
 -- select * from favorites
 SELECT *
-FROM ORDERS
+FROM ORDERS;
+SELECT *
+FROM payment_methods;
+select *
+from table_details

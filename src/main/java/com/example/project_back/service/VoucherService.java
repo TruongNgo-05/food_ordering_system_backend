@@ -2,7 +2,7 @@ package com.example.project_back.service;
 
 import com.example.project_back.dto.request.admin.VoucherCreateAndUpdateRequest;
 import com.example.project_back.dto.request.spec.VoucherRequestParam;
-import com.example.project_back.dto.response.admin.VoucherAdminDetailResponse;
+import com.example.project_back.dto.response.admin.VoucherDetailAdminResponse;
 import com.example.project_back.dto.response.admin.VoucherAdminResponse;
 import com.example.project_back.dto.response.customer.voucher.VoucherGetResponse;
 import com.example.project_back.dto.response.customer.voucher.VoucherResponse;
@@ -15,7 +15,7 @@ public interface VoucherService {
     //admin
     Page<VoucherAdminResponse> getVouchers(VoucherRequestParam param, Pageable pageable);
 
-    VoucherAdminDetailResponse getVoucherById(Integer id);
+    VoucherDetailAdminResponse getVoucherById(Integer id);
 
     VoucherAdminResponse createVoucher(VoucherCreateAndUpdateRequest create);
 

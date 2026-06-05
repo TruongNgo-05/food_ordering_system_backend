@@ -1,7 +1,7 @@
 package com.example.project_back.mapper;
 
 import com.example.project_back.dto.request.admin.VoucherCreateAndUpdateRequest;
-import com.example.project_back.dto.response.admin.VoucherAdminDetailResponse;
+import com.example.project_back.dto.response.admin.VoucherDetailAdminResponse;
 import com.example.project_back.dto.response.admin.VoucherAdminResponse;
 import com.example.project_back.entity.Voucher;
 import org.springframework.beans.BeanUtils;
@@ -17,12 +17,12 @@ public class VoucherMapper {
         return voucherAdminResponse;
     }
 
-    public static VoucherAdminDetailResponse toVoucherAdminDetailResponse(Voucher voucher){
-        VoucherAdminDetailResponse  voucherAdminDetailResponse = new VoucherAdminDetailResponse();
-        BeanUtils.copyProperties(voucher, voucherAdminDetailResponse);
-        voucherAdminDetailResponse.setVoucherCode(voucher.getCode());
-        voucherAdminDetailResponse.setRemaining(voucher.getUsageLimit()-voucher.getUsedCount());
-        return voucherAdminDetailResponse;
+    public static VoucherDetailAdminResponse toVoucherAdminDetailResponse(Voucher voucher){
+        VoucherDetailAdminResponse voucherDetailAdminResponse = new VoucherDetailAdminResponse();
+        BeanUtils.copyProperties(voucher, voucherDetailAdminResponse);
+        voucherDetailAdminResponse.setVoucherCode(voucher.getCode());
+        voucherDetailAdminResponse.setRemaining(voucher.getUsageLimit()-voucher.getUsedCount());
+        return voucherDetailAdminResponse;
     }
 
     public static Voucher toVoucherAdminCreateResponse(VoucherCreateAndUpdateRequest create){

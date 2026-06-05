@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @JsonPropertyOrder({"id","voucherCode","description","discount","maxDiscount","minOrderValue","usageLimit","usedCount","startDate","endDate","createdAt"})
-public class VoucherAdminDetailResponse {
+public class VoucherDetailAdminResponse {
 
     private Integer id;
     private String voucherCode;

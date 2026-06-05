@@ -1,4 +1,4 @@
-//package com.example.project_back.controller.Admin;
+//package com.example.project_back.controller.admin;
 //
 //import com.example.project_back.common.BaseResponse;
 //import com.example.project_back.dto.request.admin.FoodCreateAndUpdateRequest;

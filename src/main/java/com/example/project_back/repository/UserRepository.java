@@ -1,6 +1,7 @@
 package com.example.project_back.repository;
 
 
+import com.example.project_back.constant.Role;
 import com.example.project_back.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -23,4 +24,5 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     User findUsersByEmail(String email);
 
 
+    boolean findByRole(Role role);
 }

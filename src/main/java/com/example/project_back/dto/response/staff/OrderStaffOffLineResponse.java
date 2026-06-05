@@ -1,15 +1,13 @@
-package com.example.project_back.dto.response.admin;
+package com.example.project_back.dto.response.staff;
 
 import com.example.project_back.constant.OrderStatus;
-import com.example.project_back.dto.response.customer.cart.CartItemResponse;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.List;
 @Getter
 @Setter
-public class OrderDetailAdminResponse {
+public class OrderStaffOffLineResponse {
     private Long orderId;
 
     private String orderCode;
@@ -18,13 +16,9 @@ public class OrderDetailAdminResponse {
 
     private String customerPhone;
 
-    private String address;
-
-    private String note;
+    private String tableNumber;
 
     private Double totalPrice;
-
-    private Double discount;
 
     private OrderStatus status;
 
@@ -33,6 +27,4 @@ public class OrderDetailAdminResponse {
     private String paymentStatus;
 
     private LocalDateTime createdAt;
-
-    private List<OrderItemAdminResponse> items;
 }

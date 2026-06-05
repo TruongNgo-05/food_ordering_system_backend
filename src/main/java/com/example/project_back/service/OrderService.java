@@ -4,16 +4,15 @@ import com.example.project_back.constant.OrderStatus;
 import com.example.project_back.dto.request.customer.order.CreateOrderRequest;
 import com.example.project_back.dto.request.customer.order.CreateOrderTableRequest;
 import com.example.project_back.dto.request.spec.OrderRequestParam;
-import com.example.project_back.dto.response.admin.OrderAdminResponse;
-import com.example.project_back.dto.response.admin.OrderDetailAdminResponse;
+import com.example.project_back.dto.response.staff.OrderStaffOffLineResponse;
+import com.example.project_back.dto.response.staff.OrderStaffOnLineResponse;
+import com.example.project_back.dto.response.staff.OrderDetailStaffResponse;
 import com.example.project_back.dto.response.customer.order.MyOrderResponse;
 import com.example.project_back.dto.response.customer.order.OrderResponse;
 import com.example.project_back.dto.response.customer.order.OrderDetailResponse;
 import com.example.project_back.dto.response.customer.order.OrderTableResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
-import java.util.List;
 
 public interface OrderService {
     //customer
@@ -25,10 +24,11 @@ public interface OrderService {
 
     OrderTableResponse createOrderTb(CreateOrderTableRequest request);
 
-    // admin
-    Page<OrderAdminResponse> getOrders(Pageable pageable);
+    // staff
+    Page<OrderStaffOnLineResponse> getOnlineOrders(OrderRequestParam param , Pageable pageable);
+    Page<OrderStaffOffLineResponse> getTableOrders(OrderRequestParam param , Pageable pageable);
 
-    OrderDetailAdminResponse getOrderAdminDetail(Long orderId);
+    OrderDetailStaffResponse getOrderStaffDetail(Long orderId);
 
     void updateStatus(Long orderId, OrderStatus status);
 }

@@ -2,6 +2,9 @@ package com.example.project_back.service;
 
 import com.example.project_back.dto.request.customer.ReviewRequest;
 import com.example.project_back.dto.request.customer.ReviewUpdateRequest;
+import com.example.project_back.dto.request.spec.FoodRequestParam;
+import com.example.project_back.dto.request.spec.ReviewFoodParam;
+import com.example.project_back.dto.response.admin.ReviewFoodAdminResponse;
 import com.example.project_back.dto.response.user.ReviewResponse;
 
 import org.springframework.data.domain.Page;
@@ -18,4 +21,7 @@ public interface ReviewService {
     String deleteReview(Long id);
 
     Page<ReviewResponse> getReviewsByFood(Long foodId, Pageable pageable);
+
+
+    Page<ReviewFoodAdminResponse> getReviewAdminsByFood(ReviewFoodParam param, Pageable pageable);
 }

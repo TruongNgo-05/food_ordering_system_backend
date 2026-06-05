@@ -7,7 +7,7 @@ import lombok.Setter;
 import java.util.List;
 @Getter
 @Setter
-@JsonPropertyOrder({"id","name","description","price","image","images","rating","reviewCount","soldCount","category"})
+@JsonPropertyOrder({"id","name","description","price","image","images","rating","reviewCount","soldCount","categoryName"})
 public class FoodDetailResponse {
     private Long id;
     private String name;

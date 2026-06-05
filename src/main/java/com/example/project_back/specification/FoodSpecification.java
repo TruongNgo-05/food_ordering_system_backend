@@ -4,9 +4,8 @@ import com.example.project_back.entity.Food;
 import org.springframework.data.jpa.domain.Specification;
 public class FoodSpecification {
     public static Specification<Food> hasName(String name) {
-        return ((root, query, criteriaBuilder) -> {
-            return criteriaBuilder.like(root.get("name"), "%" + name + "%");
-        });
+        return (root, query, cb) ->
+                cb.like(cb.lower(root.get("name")), "%" + name.toLowerCase().trim() + "%");
     }
 
     public static Specification<Food> hasPrice(Double minPrice, Double maxPrice) {
