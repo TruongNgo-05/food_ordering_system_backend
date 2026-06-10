@@ -1,12 +1,12 @@
-package com.example.project_back.dto.response.user;
+package com.example.project_back.dto.response.admin;
 
-import com.example.project_back.constant.TableStatus;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class TableResponse {
+public class TableAdminResponse {
+    private Integer id;
     private String tableNumber;
     private String qrCode;
     private String status;

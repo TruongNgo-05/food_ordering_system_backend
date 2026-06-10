@@ -5,9 +5,14 @@ import com.example.project_back.constant.PaymentStatus;
 import com.example.project_back.dto.request.customer.order.CreateOrderRequest;
 import com.example.project_back.dto.request.customer.order.CreateOrderTableRequest;
 import com.example.project_back.dto.request.customer.order.OrderTableItemRequest;
+import com.example.project_back.dto.response.admin.OrderAdminResponse;
 import com.example.project_back.dto.response.customer.order.*;
 import com.example.project_back.dto.response.customer.order.reponseOrder.PaymentOrder;
 import com.example.project_back.dto.response.customer.order.reponseOrder.VoucherOrder;
+import com.example.project_back.dto.response.staff.OrderDetailStaffResponse;
+import com.example.project_back.dto.response.staff.OrderItemStaffResponse;
+import com.example.project_back.dto.response.staff.OrderStaffOffLineResponse;
+import com.example.project_back.dto.response.staff.OrderStaffOnLineResponse;
 import com.example.project_back.entity.*;
 import org.springframework.beans.BeanUtils;
 
@@ -70,14 +75,13 @@ public class OrderMapper {
     ) {
 
         Order order = new Order();
-
-        order.setOrderCode("ORD-COD-" + System.currentTimeMillis());
-
         order.setUser(user);
 
         order.setCustomerName(user.getUsername());
 
         order.setCustomerPhone(user.getPhone());
+
+        order.setOrderCode("ORD-COD-" + System.currentTimeMillis());
 
         order.setAddress(address);
 
@@ -156,11 +160,9 @@ public class OrderMapper {
 
         Order order = new Order();
 
+        BeanUtils.copyProperties(request, order);
+
         order.setOrderCode("ORD-TB-" + System.currentTimeMillis());
-
-        order.setCustomerName(request.getCustomerName());
-
-        order.setCustomerPhone(request.getCustomerPhone());
 
         order.setStatus(OrderStatus.PENDING);
 
@@ -175,8 +177,6 @@ public class OrderMapper {
         order.setCreatedAt(LocalDateTime.now());
 
         order.setUpdatedAt(LocalDateTime.now());
-
-        order.setNote(request.getNote());
 
         return order;
     }
@@ -223,8 +223,6 @@ public class OrderMapper {
         BeanUtils.copyProperties(order, response);
 
         response.setOrderId(order.getId());
-
-        response.setStatus(order.getStatus());
 
         response.setTotalPrice(order.getTotalPrice() - order.getDiscount());
 
@@ -301,17 +299,13 @@ public class OrderMapper {
 
         MyOrderResponse response = new MyOrderResponse();
 
+        BeanUtils.copyProperties(order, response);
+
         response.setOrderId(order.getId());
-
-        response.setOrderCode(order.getOrderCode());
-
-        response.setStatus(order.getStatus());
 
         Double discount = order.getDiscount() == null ? 0.0 : order.getDiscount();
 
         response.setTotalPrice(order.getTotalPrice() - discount);
-
-        response.setCreatedAt(order.getCreatedAt());
 
         // PAYMENT
         if (payment != null) {
@@ -379,18 +373,140 @@ public class OrderMapper {
 
         response.setPriceBefore(order.getTotalPrice());
 
-        // ADDRESS
         if (order.getAddress() != null) {
 
             response.setAddress(order.getAddress().getAddress());
         }
 
-        // NOTE
         response.setNote(order.getNote());
 
         return response;
     }
 
+// ================= STAFF ONLINE =================
+
+    public static OrderStaffOnLineResponse toOnlineResponse(
+            Order order,
+            Payment payment
+    ) {
+
+        OrderStaffOnLineResponse response = new OrderStaffOnLineResponse();
+
+       BeanUtils.copyProperties(order, response);
+
+       response.setOrderId(order.getId());
+
+       response.setCustomerName(order.getCustomerName());
+
+        if (order.getPaymentMethod() != null) {
+            response.setPaymentMethod(order.getPaymentMethod().getCode().name());
+        }
+
+        if (payment != null) {
+            response.setPaymentStatus(payment.getStatus().name());
+        }
+
+        return response;
+    }
+
+    // ================= STAFF OFFLINE =================
+
+    public static OrderStaffOffLineResponse toOfflineResponse(
+            Order order,
+            Payment payment
+    ) {
+
+        OrderStaffOffLineResponse response = new OrderStaffOffLineResponse();
+
+        response.setOrderId(order.getId());
+
+      BeanUtils.copyProperties(order, response);
+
+        if (order.getTable() != null) {
+            response.setTableNumber(order.getTable().getTableNumber());
+        }
+
+        if (order.getPaymentMethod() != null) {
+            response.setPaymentMethod(order.getPaymentMethod().getCode().name());
+        }
+
+        if (payment != null) {
+            response.setPaymentStatus(payment.getStatus().name());
+        }
+
+        return response;
+    }
+
+    // ================= STAFF DETAIL =================
+
+    public static OrderDetailStaffResponse toStaffDetailResponse(
+            Order order,
+            Payment payment
+    ) {
+
+        OrderDetailStaffResponse response = new OrderDetailStaffResponse();
+
+       BeanUtils.copyProperties(order, response);
+
+       response.setOrderId(order.getId());
+
+        if (order.getAddress() != null) {
+            response.setAddress(order.getAddress().getAddress());
+        }
+
+        if (order.getTable() != null) {
+            response.setTableNumber(order.getTable().getTableNumber());
+        }
+
+        if (order.getPaymentMethod() != null) {
+            response.setPaymentMethod(order.getPaymentMethod().getCode().name()
+            );
+        }
+
+        if (payment != null) {
+            response.setPaymentStatus(payment.getStatus().name());
+        }
+
+        List<OrderItemStaffResponse> items =
+                new ArrayList<>();
+
+        for (OrderDetail detail : order.getOrderDetails()) {
+
+            OrderItemStaffResponse item = new OrderItemStaffResponse();
+
+            item.setFoodId(detail.getFood().getId().longValue());
+
+            item.setFoodName(detail.getFood().getName());
+
+            item.setImage(detail.getFood().getImage());
+
+            item.setPrice(detail.getPrice());
+
+            item.setQuantity(detail.getQuantity());
+
+            items.add(item);
+        }
+
+        response.setItems(items);
+
+        return response;
+    }
 
 
+    public static OrderAdminResponse toAdminResponse(
+            Order order,
+            Payment payment
+    ){
+        OrderAdminResponse response = new OrderAdminResponse();
+        BeanUtils.copyProperties(order, response);
+        response.setOrderId(order.getId());
+        if (order.getPaymentMethod() != null) {
+            response.setPaymentMethod(order.getPaymentMethod().getCode().name());
+        }
+
+        if (payment != null) {
+            response.setPaymentStatus(payment.getStatus().name());
+        }
+        return response;
+    }
 }

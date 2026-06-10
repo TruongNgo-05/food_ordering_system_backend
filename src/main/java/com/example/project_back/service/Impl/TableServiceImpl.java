@@ -3,9 +3,10 @@ package com.example.project_back.service.Impl;
 import com.example.project_back.constant.TableStatus;
 import com.example.project_back.dto.request.admin.CreateAndUpdateTableRequest;
 import com.example.project_back.dto.request.user.table.BookTableRequest;
+import com.example.project_back.dto.response.admin.TableAdminResponse;
 import com.example.project_back.dto.response.user.FoodTableResponse;
 import com.example.project_back.dto.response.user.MenuTableResponse;
-import com.example.project_back.dto.response.user.TableDetailResponse;
+import com.example.project_back.dto.response.user.TableBookResponse;
 import com.example.project_back.dto.response.user.TableResponse;
 import com.example.project_back.entity.Food;
 import com.example.project_back.entity.TableDetail;
@@ -16,7 +17,11 @@ import com.example.project_back.repository.FoodRepository;
 import com.example.project_back.repository.OrderRepository;
 import com.example.project_back.repository.TableDetailRepository;
 import com.example.project_back.service.TableService;
+import com.example.project_back.specification.TableSpecification;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -79,15 +84,15 @@ public class TableServiceImpl implements    TableService {
         return TableMapper.toTableResponse(tableDetail);
     }
 
-    @Override
-    public TableDetailResponse tableDetail(Integer id) {
-        Optional<TableDetail> tableDetailOptional = tableDetailRepository.findById(id);
-        if(tableDetailOptional.isEmpty()){
-            throw new ApplicationException(" K tim thay ban");
-        }
-        TableDetail tableDetail = tableDetailOptional.get();
-       return TableMapper.toTableDetailResponse(tableDetail);
-    }
+//    @Override
+//    public TableBookResponse tableDetail(Integer id) {
+//        Optional<TableDetail> tableDetailOptional = tableDetailRepository.findById(id);
+//        if(tableDetailOptional.isEmpty()){
+//            throw new ApplicationException(" K tim thay ban");
+//        }
+//        TableDetail tableDetail = tableDetailOptional.get();
+//       return TableMapper.toTableDetailResponse(tableDetail);
+//    }
 
     @Override
     public String deleteTable(Integer id) {
@@ -149,5 +154,19 @@ public class TableServiceImpl implements    TableService {
         tableDetailRepository.save(tableDetails);
 
         return TableMapper.toTableResponse(tableDetails);
+    }
+
+    @Override
+    public Page<TableAdminResponse> getListAdminTables(
+            String tableNumber,
+            Pageable pageable
+    ) {
+
+        Specification<TableDetail> spec = Specification.unrestricted();
+
+        if (tableNumber != null && !tableNumber.isBlank()) {
+            spec = spec.and(TableSpecification.hasTableNumber(tableNumber));
+        }
+        return tableDetailRepository.findAll(spec, pageable).map(TableMapper::toTableAdminResponse);
     }
 }

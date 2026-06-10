@@ -4,6 +4,7 @@ import com.example.project_back.constant.OrderStatus;
 import com.example.project_back.dto.request.customer.order.CreateOrderRequest;
 import com.example.project_back.dto.request.customer.order.CreateOrderTableRequest;
 import com.example.project_back.dto.request.spec.OrderRequestParam;
+import com.example.project_back.dto.response.admin.OrderAdminResponse;
 import com.example.project_back.dto.response.staff.OrderStaffOffLineResponse;
 import com.example.project_back.dto.response.staff.OrderStaffOnLineResponse;
 import com.example.project_back.dto.response.staff.OrderDetailStaffResponse;
@@ -31,4 +32,11 @@ public interface OrderService {
     OrderDetailStaffResponse getOrderStaffDetail(Long orderId);
 
     void updateStatus(Long orderId, OrderStatus status);
+
+//    admin
+
+Page<OrderAdminResponse> getAllAdminOrders(
+        OrderRequestParam param,
+        Pageable pageable
+) ;
 }

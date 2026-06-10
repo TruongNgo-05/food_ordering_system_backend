@@ -15,6 +15,8 @@ import com.example.project_back.service.TableService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,7 +30,10 @@ public class StaffController {
 
     //    order
     @GetMapping("orders-online")
-    public Page<OrderStaffOnLineResponse> getOnlineOrders(OrderRequestParam param, Pageable pageable) {
+    public Page<OrderStaffOnLineResponse> getOnlineOrders(
+            OrderRequestParam param,
+            @PageableDefault(size = 5) Pageable pageable
+    ) {
         return orderService.getOnlineOrders(param,pageable);
     }
 

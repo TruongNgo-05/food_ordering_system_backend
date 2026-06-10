@@ -9,10 +9,10 @@
     import com.example.project_back.dto.request.customer.order.CreateOrderTableRequest;
     import com.example.project_back.dto.request.customer.order.OrderTableItemRequest;
     import com.example.project_back.dto.request.spec.OrderRequestParam;
+    import com.example.project_back.dto.response.admin.OrderAdminResponse;
     import com.example.project_back.dto.response.staff.OrderStaffOffLineResponse;
     import com.example.project_back.dto.response.staff.OrderStaffOnLineResponse;
     import com.example.project_back.dto.response.staff.OrderDetailStaffResponse;
-    import com.example.project_back.dto.response.staff.OrderItemStaffResponse;
     import com.example.project_back.dto.response.customer.order.OrderResponse;
     import com.example.project_back.dto.response.customer.order.MyOrderResponse;
     import com.example.project_back.dto.response.customer.order.OrderDetailResponse;
@@ -24,7 +24,9 @@
     import com.example.project_back.service.OrderService;
     import com.example.project_back.service.SepayService;
     import com.example.project_back.specification.OrderSpecification;
-    import com.example.project_back.validator.VoucherValidator;
+    import com.example.project_back.specification.OrderSpecificationBuilder;
+    import com.example.project_back.utils.OrderStatusValidator;
+    import com.example.project_back.utils.VoucherValidator;
     import jakarta.transaction.Transactional;
     import lombok.AllArgsConstructor;
     import org.springframework.data.domain.Page;
@@ -121,9 +123,13 @@
             orderRepository.save(order);
 
             // payment
-            Payment payment = OrderMapper.toPayment(order, paymentMethod);
+            Optional<Payment> existingPayment =
+                    paymentRepository.findByOrderId(order.getId());
 
-            paymentRepository.save(payment);
+            if (existingPayment.isEmpty()) {
+                Payment payment = OrderMapper.toPayment(order, paymentMethod);
+                paymentRepository.save(payment);
+            }
 
             String paymentUrl = null;
 
@@ -358,100 +364,25 @@
 
 //staff
 
-        private OrderStaffOnLineResponse convertOnlineResponse(Order order) {
-
-            Payment payment = paymentRepository
-                    .findByOrderId(order.getId())
-                    .orElse(null);
-
-            OrderStaffOnLineResponse response = new OrderStaffOnLineResponse();
-
-            response.setOrderId(order.getId());
-            response.setOrderCode(order.getOrderCode());
-            response.setCustomerName(order.getCustomerName());
-            response.setCustomerPhone(order.getCustomerPhone());
-            response.setTotalPrice(order.getTotalPrice());
-            response.setDiscount(order.getDiscount());
-            response.setStatus(order.getStatus());
-            response.setCreatedAt(order.getCreatedAt());
-
-            if (order.getPaymentMethod() != null) {
-                response.setPaymentMethod(order.getPaymentMethod().getCode().name());
-            }
-
-            if (payment != null) {
-                response.setPaymentStatus(payment.getStatus().name());
-            }
-
-            return response;
-        }
-
-        private OrderStaffOffLineResponse convertOffLineResponse(Order order) {
-
-            Payment payment = paymentRepository.findByOrderId(order.getId())
-                    .orElse(null);
-
-            OrderStaffOffLineResponse response = new OrderStaffOffLineResponse();
-
-            response.setOrderId(order.getId());
-            response.setOrderCode(order.getOrderCode());
-            response.setCustomerName(order.getCustomerName());
-            response.setCustomerPhone(order.getCustomerPhone());
-            response.setTotalPrice(order.getTotalPrice());
-            response.setTableNumber(order.getTable() != null ? order.getTable().getTableNumber() : null);
-            response.setStatus(order.getStatus());
-            response.setCreatedAt(order.getCreatedAt());
-
-            if (order.getPaymentMethod() != null) {
-                response.setPaymentMethod(order.getPaymentMethod().getCode().name());
-            }
-
-            if (payment != null) {
-                response.setPaymentStatus(payment.getStatus().name());
-            }
-
-            return response;
-        }
-
         @Override
-        public Page<OrderStaffOnLineResponse> getOnlineOrders(OrderRequestParam param, Pageable pageable) {
-            String username = SecurityUtils.getCurrentUsername();
+        public Page<OrderStaffOnLineResponse> getOnlineOrders(
+                OrderRequestParam param,
+                Pageable pageable
+        ) {
 
-            if (username == null || username.equals("anonymousUser")) {
-                throw new ApplicationException("Bạn chưa đăng nhập");
-            }
-
-            // tìm user
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new ApplicationException("User không tồn tại"));
-
-            // lấy params filter
-            String orderCode = param.getOrderCode();
-            OrderStatus status = param.getStatus();
-            LocalDate minDate = param.getMinDate();
-            LocalDate maxDate = param.getMaxDate();
-
-            // tạo specification
-            Specification<Order> spec = Specification.unrestricted();
-
-            // filter order code
-            if (orderCode != null && !orderCode.trim().isEmpty()) {
-                spec = spec.and(OrderSpecification.hasOrderCode(orderCode));
-            }
-
-            // filter status
-            if (status != null) {
-                spec = spec.and(OrderSpecification.hasOrderStatus(status));
-            }
-
-            // filter date
-            if (minDate != null && maxDate != null) {
-                spec = spec.and(OrderSpecification.hasCreateDate(minDate, maxDate));
-            }
-            spec = spec.and(OrderSpecification.isOnlineOrder());
+            Specification<Order> spec = OrderSpecificationBuilder.build(param)
+                    .and(OrderSpecification.isOnlineOrCodOrder())
+                    .and(OrderSpecification.hasCreatedAtBetween(param.getMinDate(), param.getMaxDate()))
+                    .and(OrderSpecification.hasStatus(param.getStatus()))
+                    .and(OrderSpecification.orderByStatusPriority());
 
             return orderRepository.findAll(spec, pageable)
-                    .map(this::convertOnlineResponse);
+                    .map(order -> OrderMapper.toOnlineResponse(
+                            order,
+                            paymentRepository
+                                    .findByOrderId(order.getId())
+                                    .orElse(null)
+                    ));
         }
 
         @Override
@@ -460,34 +391,26 @@
                 Pageable pageable
         ) {
 
-            Specification<Order> spec = Specification.unrestricted();
-
-            String orderCode = param.getOrderCode();
-            OrderStatus status = param.getStatus();
-            LocalDate minDate = param.getMinDate();
-            LocalDate maxDate = param.getMaxDate();
-
-            if (orderCode != null && !orderCode.trim().isEmpty()) {
-                spec = spec.and(OrderSpecification.hasOrderCode(orderCode));
-            }
-
-            if (status != null) {
-                spec = spec.and(OrderSpecification.hasOrderStatus(status));
-            }
-
-            if (minDate != null && maxDate != null) {
-                spec = spec.and(OrderSpecification.hasCreateDate(minDate, maxDate));
-            }
-
-            spec = spec.and(OrderSpecification.isTableOrder());
-
+            Specification<Order> spec =
+                    OrderSpecificationBuilder.build(param)
+                            .and(OrderSpecification.isTableOrder())
+                            .and(OrderSpecification.hasCreatedAtBetween(param.getMinDate(), param.getMaxDate()))
+                            .and(OrderSpecification.hasStatus(param.getStatus()))
+                             .and(OrderSpecification.orderByStatusPriority());
 
             return orderRepository.findAll(spec, pageable)
-                    .map(this::convertOffLineResponse);
+                    .map(order -> OrderMapper.toOfflineResponse(
+                            order,
+                            paymentRepository
+                                    .findByOrderId(order.getId())
+                                    .orElse(null)
+                    ));
         }
 
         @Override
-        public OrderDetailStaffResponse getOrderStaffDetail(Long orderId) {
+        public OrderDetailStaffResponse getOrderStaffDetail(
+                Long orderId
+        ) {
 
             Order order = orderRepository.findById(orderId)
                     .orElseThrow(() -> new ApplicationException("Order không tồn tại"));
@@ -495,55 +418,7 @@
             Payment payment = paymentRepository.findByOrderId(orderId)
                     .orElse(null);
 
-            OrderDetailStaffResponse response = new OrderDetailStaffResponse();
-
-            response.setOrderId(order.getId());
-            response.setOrderCode(order.getOrderCode());
-            response.setCustomerName(order.getCustomerName());
-            response.setCustomerPhone(order.getCustomerPhone());
-            if (order.getTable() != null) {
-                response.setTableNumber(order.getTable().getTableNumber());
-            }
-            if (order.getAddress() != null) {
-                response.setAddress(order.getAddress().getAddress());
-            }
-
-            response.setNote(order.getNote());
-
-            response.setTotalPrice(order.getTotalPrice());
-
-            response.setDiscount(order.getDiscount());
-
-            response.setStatus(order.getStatus());
-
-            response.setCreatedAt(order.getCreatedAt());
-
-            if (order.getPaymentMethod() != null) {
-                response.setPaymentMethod(order.getPaymentMethod().getCode().name());
-            }
-
-            if (payment != null) {
-                response.setPaymentStatus(payment.getStatus().name());
-            }
-
-            List<OrderItemStaffResponse> items = new ArrayList<>();
-
-            for (OrderDetail detail : order.getOrderDetails()) {
-
-                OrderItemStaffResponse item = new OrderItemStaffResponse();
-
-                item.setFoodId(detail.getFood().getId().longValue());
-                item.setFoodName(detail.getFood().getName());
-                item.setImage(detail.getFood().getImage());
-                item.setPrice(detail.getPrice());
-                item.setQuantity(detail.getQuantity());
-
-                items.add(item);
-            }
-
-            response.setItems(items);
-
-            return response;
+            return OrderMapper.toStaffDetailResponse(order, payment);
         }
         @Override
         public void updateStatus(Long orderId, OrderStatus status) {
@@ -551,15 +426,13 @@
             Order order = orderRepository.findById(orderId)
                     .orElseThrow(() -> new ApplicationException("Order không tồn tại"));
 
-            //  CHẶN quay lui trạng thái (logic quan trọng)
-            if (!isValidTransition(order, status)) {
+            if (!OrderStatusValidator.isValidTransition(order, status)) {
                 throw new ApplicationException("Không thể chuyển trạng thái này");
             }
 
             order.setStatus(status);
             order.setUpdatedAt(LocalDateTime.now());
 
-            // Nếu hoàn thành thì trả bàn
             if (status == OrderStatus.COMPLETED && order.getTable() != null) {
                 TableDetail table = order.getTable();
                 table.setStatus(TableStatus.AVAILABLE);
@@ -569,35 +442,23 @@
             orderRepository.save(order);
         }
 
-        /**
-         * CHỈ cho đi lên trạng thái
-         */
-        private boolean isValidTransition(Order order, OrderStatus next) {
 
-            OrderStatus current = order.getStatus();
-            boolean isTableOrder = order.getAddress() == null;
+//        admin
+@Override
+public Page<OrderAdminResponse> getAllAdminOrders(
+        OrderRequestParam param,
+        Pageable pageable
+) {
 
-            if (current == next) return false;
+    Specification<Order> spec = OrderSpecificationBuilder.build(param);
 
-            // TABLE ORDER (offline)
-            if (isTableOrder) {
-                return switch (current) {
-                    case PENDING -> next == OrderStatus.CONFIRMED || next == OrderStatus.REJECTED;
-                    case CONFIRMED -> next == OrderStatus.PREPARING;
-                    case PREPARING -> next == OrderStatus.COMPLETED;
-                    case COMPLETED, REJECTED, CANCELED -> false;
-                    default -> false;
-                };
-            }
+    return orderRepository.findAll(spec, pageable)
+            .map(order -> {
+                Payment payment = paymentRepository.findByOrderId(order.getId())
+                        .orElse(null);
 
-            // ONLINE
-            return switch (current) {
-                case PENDING -> next == OrderStatus.CONFIRMED || next == OrderStatus.REJECTED;
-                case CONFIRMED -> next == OrderStatus.PREPARING;
-                case PREPARING -> next == OrderStatus.DELIVERING;
-                case DELIVERING -> next == OrderStatus.COMPLETED;
-                case COMPLETED, REJECTED, CANCELED -> false;
-            };
-        }
+                return OrderMapper.toAdminResponse(order, payment);
+            });
+}
     }
 

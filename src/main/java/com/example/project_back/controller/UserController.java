@@ -38,6 +38,7 @@ public class UserController {
     private final FoodService foodService;
     private final TableService tableService;
     private final OrderService orderService;
+    private final SepayService  sepayService;
 
     @PostMapping()
     public ResponseEntity<BaseResponse<UserResponse>> createUser(@RequestBody @Valid UserCreateRequest createUserRequest) {
@@ -133,13 +134,13 @@ public ResponseEntity<BaseResponse<UserResponse>> updateUser(
         ));
     }
 
-    @GetMapping("/table-detail/{id}")
-    public ResponseEntity<BaseResponse<TableDetailResponse>> getTableDetail (@PathVariable Integer id){
-        return ResponseEntity.ok(new BaseResponse<>(
-                tableService.tableDetail(id),
-                "getTableDetail table successfully!"
-        ));
-    }
+//    @GetMapping("/table-detail/{id}")
+//    public ResponseEntity<BaseResponse<TableBookResponse>> getTableDetail (@PathVariable Integer id){
+//        return ResponseEntity.ok(new BaseResponse<>(
+//                tableService.tableDetail(id),
+//                "getTableDetail table successfully!"
+//        ));
+//    }
 
     @GetMapping("/table-order")
     public MenuTableResponse getMenu(
@@ -154,6 +155,13 @@ public ResponseEntity<BaseResponse<UserResponse>> updateUser(
 public ResponseEntity<BaseResponse<OrderTableResponse>> createOrderTable(
         @RequestBody CreateOrderTableRequest request){
     return ResponseEntity.ok(BaseResponse.success( orderService.createOrderTb(request)));
+}
+//sepay
+@PostMapping("/sepay/callback")
+public void sepayCallback(@RequestParam String orderCode,
+                          @RequestParam String transactionId) {
+
+    sepayService.confirmPayment(orderCode, transactionId);
 }
 }
 

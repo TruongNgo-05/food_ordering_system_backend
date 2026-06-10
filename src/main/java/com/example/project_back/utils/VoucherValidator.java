@@ -1,4 +1,4 @@
-package com.example.project_back.validator;
+package com.example.project_back.utils;
 
 import com.example.project_back.entity.Voucher;
 import com.example.project_back.exception.ApplicationException;

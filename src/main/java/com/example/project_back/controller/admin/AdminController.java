@@ -3,6 +3,7 @@ package com.example.project_back.controller.admin;
 import com.example.project_back.common.BaseResponse;
 import com.example.project_back.dto.request.admin.*;
 import com.example.project_back.dto.request.spec.FoodRequestParam;
+import com.example.project_back.dto.request.spec.OrderRequestParam;
 import com.example.project_back.dto.request.spec.ReviewFoodParam;
 import com.example.project_back.dto.request.spec.VoucherRequestParam;
 import com.example.project_back.dto.response.admin.*;
@@ -130,14 +131,34 @@ public class AdminController {
         ));
     }
 
-    @DeleteMapping("categories{id}")
+    @DeleteMapping("categories/{id}")
     public ResponseEntity<BaseResponse<String>> deleteCategories(@PathVariable Integer id) {
         return ResponseEntity.ok(new BaseResponse<>(
                 categoriesService.deleteCategories(id),
                 "Delete Categories admin successfully!"
         ));
     }
-    
+
+    @GetMapping("/table")
+    public ResponseEntity<BaseResponse<Page<TableAdminResponse>>> getAllTables(
+            @RequestParam(required = false) String tableNumber,
+            @PageableDefault(
+                    size = 5,
+                    sort = "id",
+                    direction = Sort.Direction.DESC
+            ) Pageable pageable
+    ) {
+
+        return ResponseEntity.ok(
+                new BaseResponse<>(
+                        tableService.getListAdminTables(
+                                tableNumber,
+                                pageable
+                        ),
+                        "Get All table successfully!"
+                )
+        );
+    }
 
     //    banner
     @GetMapping("banner")
@@ -253,4 +274,12 @@ public ResponseEntity<BaseResponse<Page<FoodAdminResponse>>> getAllFood(
         ));
     }
 
+
+//    order
+@GetMapping("orders")
+public ResponseEntity<BaseResponse<Page<OrderAdminResponse>>> getAllAdminOrders(OrderRequestParam param , Pageable pageable) {
+    return ResponseEntity.ok(BaseResponse.success(
+            orderService.getAllAdminOrders(param,pageable)
+    ));
+}
 }

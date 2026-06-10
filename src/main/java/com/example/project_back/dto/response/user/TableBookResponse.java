@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class TableDetailResponse {
+public class TableBookResponse {
     private TableResponse tableDetail;
-    private String qrCode;
+    private String status;
 }

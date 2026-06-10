@@ -18,7 +18,7 @@ import com.example.project_back.repository.UserRepository;
 import com.example.project_back.repository.VoucherRepository;
 import com.example.project_back.service.VoucherService;
 import com.example.project_back.specification.VoucherSpecification;
-import com.example.project_back.validator.VoucherValidator;
+import com.example.project_back.utils.VoucherValidator;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
