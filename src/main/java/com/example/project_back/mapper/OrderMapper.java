@@ -228,6 +228,7 @@ public class OrderMapper {
 
         response.setPriceBefore(order.getTotalPrice());
 
+
         response.setPaymentUrl(paymentUrl);
 
         return response;
@@ -252,6 +253,7 @@ public class OrderMapper {
         response.setTotalPrice(order.getTotalPrice());
 
         response.setStatus(order.getStatus());
+
 
         response.setPaymentUrl(paymentUrl);
 

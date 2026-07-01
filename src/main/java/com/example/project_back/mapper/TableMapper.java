@@ -9,26 +9,29 @@ import org.springframework.beans.BeanUtils;
 public class TableMapper {
 
 //    demo
-    public static TableResponse toTableResponse(TableDetail table) {
+    public static TableResponse toTableResponseTest(TableDetail table) {
         TableResponse tableResponse = new TableResponse();
         BeanUtils.copyProperties(table, tableResponse);
         tableResponse.setStatus(table.getStatus().toString());
         return tableResponse;
     }
 
-//    public static TableBookResponse toTableBookResponse(TableDetail table) {
-//        TableBookResponse tableBookResponse = new TableBookResponse();
-//        tableBookResponse.setTableDetail(toTableResponse(table));
-//        tableBookResponse.setStatus(table.getStatus().toString());
-//        return tableBookResponse;
-//    }
+//    user
+    public static TableBookResponse tableBookResponse(TableDetail table) {
+        TableBookResponse tableBookResponse = new TableBookResponse();
+        BeanUtils.copyProperties(table, tableBookResponse);
+        tableBookResponse.setTableId(table.getId());
+        return tableBookResponse;
+    }
+
+
 
 //admin
 public static TableAdminResponse toTableAdminResponse(TableDetail table) {
    TableAdminResponse tableAdminResponse = new TableAdminResponse();
     BeanUtils.copyProperties(table, tableAdminResponse);
-    tableAdminResponse.setStatus(table.getStatus().toString());
     return tableAdminResponse;
 }
+
 
 }

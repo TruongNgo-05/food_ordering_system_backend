@@ -20,6 +20,8 @@ public class TableDetail {
     @Column(name = "table_number")
     private String tableNumber;
 
+    private Integer capacity;
+
     @Column(name = "qr_code")
     private String qrCode;
 

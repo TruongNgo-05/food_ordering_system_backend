@@ -1,23 +1,29 @@
 package com.example.project_back.service.Impl;
 
+import com.example.project_back.constant.BookingStatus;
 import com.example.project_back.constant.TableStatus;
 import com.example.project_back.dto.request.admin.CreateAndUpdateTableRequest;
 import com.example.project_back.dto.request.user.table.BookTableRequest;
 import com.example.project_back.dto.response.admin.TableAdminResponse;
+import com.example.project_back.dto.response.staff.ReservationDetailStaffResponse;
+import com.example.project_back.dto.response.staff.ReservationStaffResponse;
 import com.example.project_back.dto.response.user.FoodTableResponse;
 import com.example.project_back.dto.response.user.MenuTableResponse;
 import com.example.project_back.dto.response.user.TableBookResponse;
 import com.example.project_back.dto.response.user.TableResponse;
 import com.example.project_back.entity.Food;
 import com.example.project_back.entity.TableDetail;
+import com.example.project_back.entity.TableReservations;
 import com.example.project_back.exception.ApplicationException;
 import com.example.project_back.mapper.FoodMapper;
 import com.example.project_back.mapper.TableMapper;
 import com.example.project_back.repository.FoodRepository;
 import com.example.project_back.repository.OrderRepository;
 import com.example.project_back.repository.TableDetailRepository;
+import com.example.project_back.repository.TableReservationsRepository;
 import com.example.project_back.service.TableService;
 import com.example.project_back.specification.TableSpecification;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,21 +37,39 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-public class TableServiceImpl implements    TableService {
+public class TableServiceImpl implements TableService {
     private final TableDetailRepository tableDetailRepository;
     private final FoodRepository foodRepository;
     private final QRCodeService qrCodeService;
     private final OrderRepository orderRepository;
+    private final TableReservationsRepository  tableReservationsRepository;
+    private final MailService mailService;
 
+//    test
     @Override
-    public List<TableResponse> getListTables() {
+    public List<TableResponse> getListTablesTest() {
         List<TableDetail> tableDetails = tableDetailRepository.findAll();
         List<TableResponse> tableResponseList = new ArrayList<>();
         for (TableDetail tableDetail : tableDetails) {
-            tableResponseList.add(TableMapper.toTableResponse(tableDetail));
+            tableResponseList.add(TableMapper.toTableResponseTest(tableDetail));
         }
         return tableResponseList;
     }
+
+
+//    admin
+    @Override
+    public Page<TableAdminResponse> getListAdminTables(
+        String tableNumber,
+        Pageable pageable
+    ) {
+    Specification<TableDetail> spec = Specification.unrestricted();
+
+    if (tableNumber != null && !tableNumber.isBlank()) {
+        spec = spec.and(TableSpecification.hasTableNumber(tableNumber));
+    }
+    return tableDetailRepository.findAll(spec, pageable).map(TableMapper::toTableAdminResponse);
+}
 
     @Override
     public TableResponse createTable(CreateAndUpdateTableRequest create) {
@@ -61,14 +85,17 @@ public class TableServiceImpl implements    TableService {
 
         tableDetail.setCreatedAt(LocalDateTime.now());
 
+        tableDetail.setCapacity(create.getCapacity());
+
         String qrUrl = qrCodeService.generateQRCode(create.getTableNumber());
 
         tableDetail.setQrCode(qrUrl);
 
         tableDetailRepository.save(tableDetail);
 
-        return TableMapper.toTableResponse(tableDetail);
+        return TableMapper.toTableResponseTest(tableDetail);
     }
+
     @Override
     public TableResponse updateTable(CreateAndUpdateTableRequest update, Integer id) {
         Optional<TableDetail> tableDetailOptional = tableDetailRepository.findById(id);
@@ -79,20 +106,13 @@ public class TableServiceImpl implements    TableService {
         if(update.getTableNumber() != null){
         tableDetail.setTableNumber(update.getTableNumber());
         }
+        if(update.getCapacity() != null){
+            tableDetail.setCapacity(update.getCapacity());
+        }
         tableDetail.setUpdatedAt(LocalDateTime.now());
         tableDetailRepository.save(tableDetail);
-        return TableMapper.toTableResponse(tableDetail);
+        return TableMapper.toTableResponseTest(tableDetail);
     }
-
-//    @Override
-//    public TableBookResponse tableDetail(Integer id) {
-//        Optional<TableDetail> tableDetailOptional = tableDetailRepository.findById(id);
-//        if(tableDetailOptional.isEmpty()){
-//            throw new ApplicationException(" K tim thay ban");
-//        }
-//        TableDetail tableDetail = tableDetailOptional.get();
-//       return TableMapper.toTableDetailResponse(tableDetail);
-//    }
 
     @Override
     public String deleteTable(Integer id) {
@@ -111,6 +131,8 @@ public class TableServiceImpl implements    TableService {
         return "delete success";
     }
 
+
+//    user
     @Override
     public MenuTableResponse getMenuByTable(
             String tableNumber
@@ -128,45 +150,220 @@ public class TableServiceImpl implements    TableService {
 
         MenuTableResponse response = new MenuTableResponse();
 
-        response.setTable(TableMapper.toTableResponse(table));
+        response.setTable(TableMapper.toTableResponseTest(table));
 
         response.setFoods(foodResponses);
 
         return response;
     }
 
+    // user booking
     @Override
-    public TableResponse dinnerSet(BookTableRequest bookTableRequest) {
-
-        TableDetail tableDetails = tableDetailRepository.findByTableNumber(bookTableRequest.getTableNumber())
-                .orElseThrow(() -> new ApplicationException("Không tìm thấy bàn"));
-
-        if (tableDetails.getStatus().equals(TableStatus.OCCUPIED)) {
-            throw new ApplicationException("Bàn đang sử dụng");
-        }
-
-        if (tableDetails.getStatus().equals(TableStatus.RESERVED)) {
-            throw new ApplicationException("Bàn này đã được đặt trước");
-        }
-
-        tableDetails.setStatus(TableStatus.RESERVED);
-
-        tableDetailRepository.save(tableDetails);
-
-        return TableMapper.toTableResponse(tableDetails);
-    }
-
-    @Override
-    public Page<TableAdminResponse> getListAdminTables(
-            String tableNumber,
-            Pageable pageable
-    ) {
+    public List<TableBookResponse> getAllTableBook(Integer capacity) {
 
         Specification<TableDetail> spec = Specification.unrestricted();
 
-        if (tableNumber != null && !tableNumber.isBlank()) {
-            spec = spec.and(TableSpecification.hasTableNumber(tableNumber));
+        if (capacity != null) {
+            spec = spec.and(TableSpecification.hasCapacity(capacity));
         }
-        return tableDetailRepository.findAll(spec, pageable).map(TableMapper::toTableAdminResponse);
+
+        List<TableDetail> tableDetails = tableDetailRepository.findAll(spec);
+
+        return tableDetails.stream()
+                .map(TableMapper::tableBookResponse)
+                .toList();
     }
+
+    @Override
+    @Transactional
+    public void bookTable(BookTableRequest request) {
+
+        TableDetail table = tableDetailRepository.findById(request.getTableId())
+                .orElseThrow(() -> new RuntimeException("Bàn không tồn tại"));
+
+        TableReservations reservation = new TableReservations();
+
+        reservation.setReservationCode("BK-" + System.currentTimeMillis());
+
+        reservation.setCustomerName(request.getCustomerName());
+        reservation.setCustomerPhone(request.getCustomerPhone());
+        reservation.setCustomerEmail(request.getCustomerEmail());
+        reservation.setReservationTime(request.getTimeComes());
+        reservation.setNote(request.getNote());
+
+        reservation.setStatus(BookingStatus.PENDING);
+
+        reservation.setCreatedAt(LocalDateTime.now());
+        reservation.setUpdatedAt(LocalDateTime.now());
+
+        reservation.setTable(table);
+
+        table.setStatus(TableStatus.RESERVED);
+        table.setUpdatedAt(LocalDateTime.now());
+        if (request.getTimeComes().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Thời gian đặt bàn không hợp lệ");
+        }
+        tableReservationsRepository.save(reservation);
+        tableDetailRepository.save(table);
+    }
+
+
+
+
+//    staff
+@Override
+public Page<ReservationStaffResponse> getAllReservations(Pageable pageable) {
+
+    return tableReservationsRepository.findAll(pageable)
+            .map(item -> {
+                ReservationStaffResponse res = new ReservationStaffResponse();
+
+                res.setId(item.getId());
+                res.setReservationCode(item.getReservationCode());
+                res.setCustomerName(item.getCustomerName());
+                res.setCustomerPhone(item.getCustomerPhone());
+                res.setCustomerEmail(item.getCustomerEmail());
+                res.setReservationTime(item.getReservationTime());
+                res.setStatus(item.getStatus());
+
+                if (item.getTable() != null) {
+                    res.setTableNumber(item.getTable().getTableNumber());
+                }
+
+                return res;
+            });
+}
+
+    @Override
+    public ReservationDetailStaffResponse getDetailReservations(Integer id) {
+
+        TableReservations reservation = tableReservationsRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn đặt bàn"));
+
+        ReservationDetailStaffResponse res = new ReservationDetailStaffResponse();
+
+        res.setReservationCode(reservation.getReservationCode());
+        res.setCustomerName(reservation.getCustomerName());
+        res.setCustomerPhone(reservation.getCustomerPhone());
+        res.setCustomerEmail(reservation.getCustomerEmail());
+        res.setReservationTime(reservation.getReservationTime());
+        res.setStatus(reservation.getStatus());
+        res.setNote(reservation.getNote());
+
+        if (reservation.getTable() != null) {
+            res.setTableNumber(reservation.getTable().getTableNumber());
+            res.setCapacity(reservation.getTable().getCapacity());
+        }
+
+        return res;
+    }
+
+    @Transactional
+    @Override
+    public void confirmReservation(Integer id) {
+
+        TableReservations reservation =
+                tableReservationsRepository.findById(id)
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn"));
+
+        reservation.setStatus(BookingStatus.CONFIRMED);
+
+        reservation.setUpdatedAt(LocalDateTime.now());
+
+        tableReservationsRepository.save(reservation);
+    }
+
+    @Transactional
+    @Override
+    public void checkInReservation(Integer id) {
+
+        TableReservations reservation = tableReservationsRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn"));
+
+        reservation.setStatus(BookingStatus.CHECKED_IN);
+
+        TableDetail table = reservation.getTable();
+
+        table.setStatus(TableStatus.OCCUPIED);
+
+        reservation.setUpdatedAt(LocalDateTime.now());
+        table.setUpdatedAt(LocalDateTime.now());
+
+        tableReservationsRepository.save(reservation);
+        tableDetailRepository.save(table);
+
+        mailService.sendEmail(
+                reservation.getCustomerEmail(),
+                "Xác nhận check-in đặt bàn",
+                "Xin chào " + reservation.getCustomerName() + ",\n\n" +
+                        "Bạn đã check-in thành công.\n\n" +
+                        "Mã đặt bàn: " + reservation.getReservationCode() + "\n" +
+                        "Bàn số: " + table.getTableNumber() + "\n\n" +
+                        "Nhà hàng sẽ giữ bàn của bạn trong vòng 30 phút kể từ thời điểm check-in.\n" +
+                        "Nếu quá thời gian trên mà không sử dụng bàn, nhà hàng có quyền sắp xếp cho khách hàng khác.\n\n" +
+                        "Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.\n" +
+                        "Chúc bạn có một trải nghiệm tuyệt vời!"
+        );
+    }
+
+    @Transactional
+    @Override
+    public void cancelReservation(Integer id) {
+
+        TableReservations reservation =
+                tableReservationsRepository.findById(id)
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn"));
+
+        reservation.setStatus(BookingStatus.CANCELED);
+
+        TableDetail table = reservation.getTable();
+
+        table.setStatus(TableStatus.AVAILABLE);
+
+        reservation.setUpdatedAt(LocalDateTime.now());
+        table.setUpdatedAt(LocalDateTime.now());
+
+        tableReservationsRepository.save(reservation);
+        tableDetailRepository.save(table);
+
+        mailService.sendEmail(
+                reservation.getCustomerEmail(),
+                "Đơn đặt bàn đã bị hủy",
+                "Xin chào " + reservation.getCustomerName() + ",\n\n" +
+                        "Đơn đặt bàn của bạn đã được hủy.\n" +
+                        "Mã đặt bàn: " + reservation.getReservationCode() + "\n\n" +
+                        "Nếu có thắc mắc vui lòng liên hệ nhà hàng."
+        );
+    }
+
+
+    @Transactional
+    @Override
+    public void completeReservation(Integer id) {
+
+        TableReservations reservation = tableReservationsRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn"));
+
+        reservation.setStatus(BookingStatus.COMPLETED);
+
+        TableDetail table = reservation.getTable();
+
+        table.setStatus(TableStatus.AVAILABLE);
+
+        reservation.setUpdatedAt(LocalDateTime.now());
+        table.setUpdatedAt(LocalDateTime.now());
+
+        tableReservationsRepository.save(reservation);
+        tableDetailRepository.save(table);
+
+        mailService.sendEmail(
+                reservation.getCustomerEmail(),
+                "Hoàn thành đặt bàn",
+                "Xin chào " + reservation.getCustomerName() + ",\n\n" +
+                        "Đơn đặt bàn của bạn đã hoàn thành.\n" +
+                        "Mã đặt bàn: " + reservation.getReservationCode() + "\n\n" +
+                        "Cảm ơn bạn đã ghé thăm nhà hàng."
+        );
+    }
+
 }

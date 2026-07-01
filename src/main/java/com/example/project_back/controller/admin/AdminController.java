@@ -81,19 +81,20 @@ public class AdminController {
 
 
     //    table
-//    @GetMapping("/table")
-//    public ResponseEntity<BaseResponse<Page<TableResponse>>> getTableAdmin(Pageable pageable) {
-//        return ResponseEntity.ok(new BaseResponse<>(
-//                tableService.getTableAdmin(pageable),
-//                "create table successfully!"
-//        ));
-//    }
+    @GetMapping("/table")
+    public ResponseEntity<BaseResponse<Page<TableAdminResponse>>> getAllTables(
+            @RequestParam(required = false) String tableNumber,
+            @PageableDefault(size = 5, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        return ResponseEntity.ok(BaseResponse.success(
+                tableService.getListAdminTables(tableNumber, pageable)
+        ));
+    }
 
     @PostMapping("/table")
     public ResponseEntity<BaseResponse<TableResponse>> createTable(@RequestBody CreateAndUpdateTableRequest create) {
-        return ResponseEntity.ok(new BaseResponse<>(
-                tableService.createTable(create),
-                "create table successfully!"
+        return ResponseEntity.ok(BaseResponse.success(
+                tableService.createTable(create)
         ));
     }
 
@@ -139,26 +140,6 @@ public class AdminController {
         ));
     }
 
-    @GetMapping("/table")
-    public ResponseEntity<BaseResponse<Page<TableAdminResponse>>> getAllTables(
-            @RequestParam(required = false) String tableNumber,
-            @PageableDefault(
-                    size = 5,
-                    sort = "id",
-                    direction = Sort.Direction.DESC
-            ) Pageable pageable
-    ) {
-
-        return ResponseEntity.ok(
-                new BaseResponse<>(
-                        tableService.getListAdminTables(
-                                tableNumber,
-                                pageable
-                        ),
-                        "Get All table successfully!"
-                )
-        );
-    }
 
     //    banner
     @GetMapping("banner")

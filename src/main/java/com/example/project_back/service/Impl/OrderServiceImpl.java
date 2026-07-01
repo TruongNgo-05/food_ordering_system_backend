@@ -431,6 +431,7 @@
             }
 
             order.setStatus(status);
+
             order.setUpdatedAt(LocalDateTime.now());
 
             if (status == OrderStatus.COMPLETED && order.getTable() != null) {

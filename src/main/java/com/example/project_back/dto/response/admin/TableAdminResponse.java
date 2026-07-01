@@ -8,6 +8,5 @@ import lombok.Setter;
 public class TableAdminResponse {
     private Integer id;
     private String tableNumber;
-    private String qrCode;
-    private String status;
+    private Integer capacity;
 }

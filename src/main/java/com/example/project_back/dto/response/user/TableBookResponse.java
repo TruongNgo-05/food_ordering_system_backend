@@ -6,6 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class TableBookResponse {
-    private TableResponse tableDetail;
-    private String status;
+    private Integer tableId;
+    private String tableNumber;
+    private Integer capacity;
 }

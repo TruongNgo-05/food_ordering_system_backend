@@ -9,4 +9,13 @@ public class TableSpecification {
             return cb.like(cb.upper(root.get("tableNumber")),"%"+tableNumber.toUpperCase()+"%");
         };
     }
+
+//    lấy xấp xỉ
+    public static Specification<TableDetail> hasCapacity(Integer capacity){
+        return (root, query, cb) -> {
+            query.orderBy(cb.asc(root.get("capacity")));
+
+            return cb.greaterThanOrEqualTo(root.get("capacity"), capacity);
+        };
+    }
 }

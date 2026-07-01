@@ -51,8 +51,8 @@ CREATE TABLE categories
 CREATE TABLE table_details
 (
     id           INT PRIMARY KEY AUTO_INCREMENT,
-    table_number VARCHAR(10) UNIQUE,
-    capacity     INT,
+    table_number VARCHAR(10) UNIQUE NOT NULL,
+    capacity     INT                NOT NULL,
     qr_code      TEXT,
     status       ENUM('AVAILABLE','OCCUPIED','RESERVED') DEFAULT 'AVAILABLE',
     created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -189,6 +189,7 @@ CREATE TABLE payments
     paid_at           DATETIME,
     transaction_id    VARCHAR(255),
     created_at        DATETIME,
+    updated_at        DATETIME,
     FOREIGN KEY (order_id) REFERENCES orders (id),
     FOREIGN KEY (payment_method_id) REFERENCES payment_methods (id)
 );
@@ -226,7 +227,33 @@ CREATE TABLE banners
     image_url   TEXT         NOT NULL,
     is_active   BOOLEAN DEFAULT TRUE
 );
+CREATE TABLE table_reservations
+(
+    id               INT PRIMARY KEY AUTO_INCREMENT,
 
+    reservation_code VARCHAR(50) UNIQUE,
+
+    customer_name    VARCHAR(255) NOT NULL,
+    customer_phone   VARCHAR(20)  NOT NULL,
+
+    table_id         INT          NOT NULL,
+    reservation_time DATETIME     NOT NULL,
+
+    note             TEXT,
+
+    status           ENUM(
+        'PENDING',
+        'CONFIRMED',
+        'CHECKED_IN',
+        'COMPLETED',
+        'CANCELED',
+        'NO_SHOW'
+    ) DEFAULT 'PENDING',
+
+    created_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at       DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (table_id) REFERENCES table_details (id)
+);
 -- ================= OTP =================
 CREATE TABLE otps
 (
@@ -283,9 +310,7 @@ VALUES ('Đồ ăn nhanh'),
 
 -- ================= TABLE =================
 INSERT INTO table_details (table_number, capacity)
-VALUES ('T01', 2),
-       ('T02', 4),
-       ('T03', 6);
+VALUES ('T01', 2);
 
 -- ================= VOUCHERS =================
 INSERT INTO vouchers (code, discount, min_order_value, usage_limit)
@@ -423,11 +448,11 @@ INSERT INTO orders (order_code,
                     payment_method_id,
                     voucher_id,
                     table_id)
-VALUES ('ORD-20240601-001', 2, 1, 0, 195000, 'COMPLETED', 1, NULL, NULL),
+VALUES ('ORD-OL-1780504677471', 2, 1, 0, 195000, 'COMPLETED', 1, NULL, NULL),
 
-       ('ORD-20240601-002', 3, 3, 50000, 175000, 'CONFIRMED', 3, 2, 2),
+       ('ORD-OL-1780504677472', 3, 3, 50000, 175000, 'CONFIRMED', 3, 2, null),
 
-       ('ORD-20240602-001', 2, 1, 17000, 178000, 'PENDING', 2, 1, NULL);
+       ('ORD-OL-1780504677422', 2, 1, 17000, 178000, 'PENDING', 2, 1, NULL);
 -- ================= ORDER DETAILS =================
 INSERT INTO order_details (order_id, food_id, quantity, price)
 VALUES (1, 1, 2, 85000),
@@ -471,7 +496,9 @@ VALUES (1,
         'Ưu đãi hấp dẫn, thanh toán tiện lợi, giao hàng siêu tốc.',
         'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?q=80&w=1920&auto=format&fit=crop',
         TRUE);
-
+INSERT INTO table_reservations (reservation_code, customer_name, customer_phone, table_id, reservation_time, note,
+                                status)
+VALUES ('RES001', 'Nguyen Van A', '0987654321', 1, '2026-06-15 19:00:00', 'can yen tinh ', 'PENDING');
 -- Xem user
 SELECT *
 FROM users;
@@ -490,4 +517,6 @@ FROM ORDERS;
 SELECT *
 FROM payment_methods;
 select *
-from table_details
+from table_details;
+select *
+from table_reservations

@@ -8,6 +8,7 @@ import com.example.project_back.dto.request.spec.FoodRequestParam;
 import com.example.project_back.dto.request.user.ChangePasswordRequest;
 import com.example.project_back.dto.request.user.UserUpdateRequest;
 import com.example.project_back.dto.request.user.UserCreateRequest;
+import com.example.project_back.dto.request.user.table.BookTableRequest;
 import com.example.project_back.dto.response.customer.order.OrderTableResponse;
 import com.example.project_back.dto.response.user.*;
 import com.example.project_back.service.*;
@@ -39,6 +40,7 @@ public class UserController {
     private final TableService tableService;
     private final OrderService orderService;
     private final SepayService  sepayService;
+
 
     @PostMapping()
     public ResponseEntity<BaseResponse<UserResponse>> createUser(@RequestBody @Valid UserCreateRequest createUserRequest) {
@@ -117,7 +119,6 @@ public ResponseEntity<BaseResponse<UserResponse>> updateUser(
 
     @GetMapping("/foods/{id}")
     public ResponseEntity<BaseResponse<FoodDetailResponse>> getFoodDetail(@PathVariable Long id){
-
         return ResponseEntity.ok(new BaseResponse<>(
                 foodService.getFoodDetail(id),
                 "Get Food Detail successfully!"
@@ -126,21 +127,13 @@ public ResponseEntity<BaseResponse<UserResponse>> updateUser(
 
 
 //    table
-    @GetMapping("/table")
+    @GetMapping("/table-test")
     public ResponseEntity<BaseResponse<List<TableResponse>>> getAllTable (){
         return ResponseEntity.ok(new BaseResponse<>(
-                tableService.getListTables(),
+                tableService.getListTablesTest(),
                 "Get All table successfully!"
         ));
     }
-
-//    @GetMapping("/table-detail/{id}")
-//    public ResponseEntity<BaseResponse<TableBookResponse>> getTableDetail (@PathVariable Integer id){
-//        return ResponseEntity.ok(new BaseResponse<>(
-//                tableService.tableDetail(id),
-//                "getTableDetail table successfully!"
-//        ));
-//    }
 
     @GetMapping("/table-order")
     public MenuTableResponse getMenu(
@@ -148,6 +141,25 @@ public ResponseEntity<BaseResponse<UserResponse>> updateUser(
     ) {
         return tableService.getMenuByTable(tableNumber);
     }
+
+    @GetMapping("/table-book")
+    public ResponseEntity<BaseResponse<List<TableBookResponse>>> getAllTableBook (@RequestParam(required = false) Integer capacity){
+        return ResponseEntity.ok(new BaseResponse<>(
+                tableService.getAllTableBook(capacity),
+                "get all tableBook successfully!"
+        ));
+    }
+
+    @PostMapping("/table-book")
+    public ResponseEntity<BaseResponse<String>> bookTable(@RequestBody BookTableRequest request) {
+
+        tableService.bookTable(request);
+
+        return ResponseEntity.ok(
+               BaseResponse.success("Đặt bàn thành công")
+        );
+    }
+
 
 
 //    order

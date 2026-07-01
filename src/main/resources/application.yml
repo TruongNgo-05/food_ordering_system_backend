@@ -40,5 +40,7 @@ jwt:
 #  returnUrl: https://subfractionally-wrinkleable-kenneth.ngrok-free.dev/api/payments/vnpay-return
 
 sepay:
-  bank-account: 00004341212
-  bank-name: TPBank
+#  bank-account: 00004341212
+#  bank-name: TPBank
+  bank-account: 0389582843
+  bank-name: MBBank
