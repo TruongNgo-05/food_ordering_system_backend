@@ -4,13 +4,23 @@ import com.example.project_back.dto.authentication.ForgotPassword;
 import com.example.project_back.dto.authentication.LoginRequest;
 import com.example.project_back.dto.authentication.LoginResponse;
 import com.example.project_back.dto.authentication.ResetPassword;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public interface AuthenticationService {
 
-    // USER
-    LoginResponse login(LoginRequest loginRequest );
+    // Login
+    LoginResponse login(LoginRequest loginRequest, HttpServletResponse response);
 
+    // Refresh Access Token
+    LoginResponse refreshToken(HttpServletRequest request, HttpServletResponse response);
+
+    // Logout
+    void logout(HttpServletRequest request, HttpServletResponse response);
+
+    // Forgot password
     String sendOtp(ForgotPassword forgetpw);
 
+    // Reset password
     Boolean resetPassword(ResetPassword resetpw);
 }

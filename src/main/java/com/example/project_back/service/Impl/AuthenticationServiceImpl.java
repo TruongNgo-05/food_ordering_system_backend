@@ -3,16 +3,19 @@ package com.example.project_back.service.Impl;
 
 import com.example.project_back.config.JwtUtils;
 import com.example.project_back.constant.Status;
-import com.example.project_back.dto.authentication.ForgotPassword;
-import com.example.project_back.dto.authentication.LoginRequest;
-import com.example.project_back.dto.authentication.LoginResponse;
-import com.example.project_back.dto.authentication.ResetPassword;
+import com.example.project_back.dto.authentication.*;
 import com.example.project_back.entity.Otp;
+import com.example.project_back.entity.RefreshToken;
 import com.example.project_back.entity.User;
 import com.example.project_back.exception.ApplicationException;
 import com.example.project_back.repository.OtpRepository;
+import com.example.project_back.repository.RefreshTokenRepository;
 import com.example.project_back.repository.UserRepository;
 import com.example.project_back.service.AuthenticationService;
+import com.example.project_back.service.RefreshTokenService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,54 +39,58 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final OtpRepository otpRepository;
-    private final MailService mailService;
+    private final RefreshTokenService refreshTokenService;
+    private final ContentMailService  contentMailService;
 
-    //fomat giờ vn
-    ZoneId vnZone = ZoneId.of("Asia/Ho_Chi_Minh");
-    LocalDateTime vnTime = LocalDateTime.now(vnZone);
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
 
     @Override
-    public LoginResponse login(LoginRequest loginRequest) {
-        Optional<User> users = userRepository
-                .findByEmailOrUsername(
-                        loginRequest.getEmailOrUsername(),
-                        loginRequest.getEmailOrUsername()
-                );
+    public LoginResponse login(LoginRequest request,
+                               HttpServletResponse response) {
+
+        Optional<User> users = userRepository.findByEmailOrUsername(
+                request.getEmailOrUsername(),
+                request.getEmailOrUsername()
+        );
+
         if (users.isEmpty()) {
-            throw new ApplicationException("Sai email hoặc username ");
+            throw new ApplicationException("Sai email hoặc username");
         }
 
         User user = users.get();
-        // Kiểm tra tài khoản có bị khóa không
-        if (user.getStatus() == Status.LOCKED && user.getLockTime() != null)
+
+        // Kiểm tra khóa tài khoản
+        if (user.getStatus() == Status.LOCKED && user.getLockTime() != null) {
+
             if (user.getLockTime().plusMinutes(15).isBefore(LocalDateTime.now())) {
+
                 user.setStatus(Status.ACTIVED);
                 user.setFailCount(0);
                 user.setLockTime(null);
 
                 userRepository.save(user);
+
             } else {
                 throw new ApplicationException("Tài khoản bị khóa. Thử lại sau 15 phút");
             }
-        //  Sai pass
-        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+        }
+
+        // Kiểm tra mật khẩu
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
 
             int failCount = user.getFailCount() + 1;
+
             user.setFailCount(failCount);
 
-            // Sai quá 5 lần sẽ khóa
             if (failCount >= 5) {
+
                 user.setStatus(Status.LOCKED);
+
                 user.setLockTime(LocalDateTime.now());
-                //gửi mail
-                mailService.sendEmail(
-                        user.getEmail(),
-                        "Account locked",
-                        "Tài khoản của bạn đã bị khóa 15 phút"
-                );
+
+                contentMailService.sendAccountLocked(user);
             }
+
             userRepository.save(user);
 
             throw new ApplicationException(
@@ -91,69 +98,159 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             );
         }
 
-        ZoneId vnZone = ZoneId.of("Asia/Ho_Chi_Minh");
-        LocalDateTime vnTime = LocalDateTime.now(vnZone);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(" HH:mm:ss dd/MM/yyyy");
-
         user.setFailCount(0);
+
         userRepository.save(user);
 
-        mailService.sendEmail(
-                user.getEmail(),
-                "Account Login",
-                "Tài khoản của bạn vừa login lúc " + vnTime.format(formatter)
-        );
+      contentMailService.sendLoginSuccess(user);
 
-        String token = jwtUtils.generateToken(user.getUsername());
+        String accessToken = jwtUtils.generateAccessToken(user.getUsername());
+
+        String refreshToken = jwtUtils.generateRefreshToken(user.getUsername());
+
+        refreshTokenService.save(user, refreshToken);
+
+        Cookie cookie = new Cookie("refreshToken", refreshToken);
+
+        cookie.setHttpOnly(true);
+
+        cookie.setSecure(false); // true khi deploy HTTPS
+
+        cookie.setPath("/");
+
+        cookie.setMaxAge(7 * 24 * 60 * 60);
+
+        response.addCookie(cookie);
 
         return new LoginResponse(
-                token,
+                accessToken,
+                "Bearer",
                 user.getUsername(),
                 user.getRole().name(),
                 user.getFailCount()
         );
     }
 
+    @Override
+    public LoginResponse refreshToken(HttpServletRequest request,
+                                      HttpServletResponse response) {
+
+        Cookie[] cookies = request.getCookies();
+
+        if (cookies == null) {
+            throw new ApplicationException("Không tìm thấy Refresh Token");
+        }
+
+        String refreshToken = null;
+
+        for (Cookie cookie : cookies) {
+
+            if ("refreshToken".equals(cookie.getName())) {
+
+                refreshToken = cookie.getValue();
+
+                break;
+            }
+        }
+
+        if (refreshToken == null) {
+            throw new ApplicationException("Refresh Token không tồn tại");
+        }
+
+        RefreshToken token = refreshTokenService.verify(refreshToken);
+
+        User user = token.getUser();
+
+        String accessToken = jwtUtils.generateAccessToken(user.getUsername());
+
+        return new LoginResponse(
+                accessToken,
+                "Bearer",
+                user.getUsername(),
+                user.getRole().name(),
+                user.getFailCount()
+        );
+    }
+
+    @Override
+    public void logout(HttpServletRequest request,
+                       HttpServletResponse response) {
+
+        Cookie[] cookies = request.getCookies();
+
+        if (cookies != null) {
+
+            for (Cookie cookie : cookies) {
+
+                if ("refreshToken".equals(cookie.getName())) {
+
+                    RefreshToken token = refreshTokenService.verify(cookie.getValue());
+
+                    refreshTokenService.delete(token.getUser());
+
+                    Cookie deleteCookie = new Cookie("refreshToken", null);
+
+                    deleteCookie.setHttpOnly(true);
+
+                    deleteCookie.setSecure(false);
+
+                    deleteCookie.setPath("/");
+
+                    deleteCookie.setMaxAge(0);
+
+                    response.addCookie(deleteCookie);
+
+                    break;
+                }
+            }
+        }
+    }
+
     @Transactional
     @Override
     public String sendOtp(ForgotPassword forgetpw) {
+
         Optional<User> user = userRepository.findByEmail(forgetpw.getEmail());
+
         if (user.isEmpty()) {
-            throw new ApplicationException("Không tìm thấy tài khoản ");
+            throw new ApplicationException("Không tìm thấy tài khoản");
         }
-        //kiểm tra OTP gần nhất xem đã tạo bao giờ
-        Optional<Otp> lastOtp = otpRepository
-                .findTopByEmailOrderByCreatedAtDesc(forgetpw.getEmail());
+
+        // Kiểm tra thời gian gửi OTP gần nhất
+        Optional<Otp> lastOtp =
+                otpRepository.findTopByEmailOrderByCreatedAtDesc(forgetpw.getEmail());
+
         if (lastOtp.isPresent()) {
+
             LocalDateTime lastTime = lastOtp.get().getCreatedAt();
-            // thời gian tạo otp chưa đến 30s mà user gửi thêm thì quăng ra exception
-            if (lastTime.plusSeconds(30).isAfter(LocalDateTime.now())) {
-                throw new ApplicationException("Vui lòng chờ 30s trước khi gửi lại OTP");
+
+            // Chỉ cho gửi lại sau 60 giây
+            if (lastTime.plusSeconds(60).isAfter(LocalDateTime.now())) {
+                throw new ApplicationException("Vui lòng chờ 60 giây trước khi gửi lại OTP.");
             }
         }
+
+        // Xóa OTP cũ
         otpRepository.deleteByEmail(forgetpw.getEmail());
 
-        // Tạo OTP 6 chữ số
+        // Tạo OTP
         int otp = new Random().nextInt(900000) + 100000;
 
         Otp newOtp = new Otp();
         newOtp.setEmail(forgetpw.getEmail());
         newOtp.setOtp(otp);
-        newOtp.setExpireAt(LocalDateTime.now().plusSeconds(30));//30s bị xóa
+
+        // OTP có hiệu lực 5 phút
         newOtp.setCreatedAt(LocalDateTime.now());
+        newOtp.setExpireAt(LocalDateTime.now().plusMinutes(5));
+
         otpRepository.save(newOtp);
+
         log.info("Send OTP for user {} : {}", forgetpw.getEmail(), otp);
-        mailService.sendEmail(
-                user.get().getEmail(),
-                "Mã OTP xác thực lấy lại mật khẩu",
-                "Xin chào " + user.get().getUsername() + ",\n\n"
-                        + "Mã OTP xác thực của bạn là:\n\n"
-                        + otp + "\n\n"
-                        + "Mã OTP này có hiệu lực trong vòng 30s.\n\n"
-                        + "Vui lòng không chia sẻ mã này cho bất kỳ ai để đảm bảo an toàn cho tài khoản.\n\n"
-                        + "Trân trọng"
-        );
-        return "OTP đã được gửi qua email :" + forgetpw.getEmail();
+
+        contentMailService.sendOtp(user.get(), otp);
+
+        return "OTP đã được gửi qua email: " + forgetpw.getEmail();
     }
 
     @Override
@@ -182,14 +279,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setPassword(passwordEncoder.encode(resetpw.getNewPassword()));
         userRepository.save(users.get());
         otpRepository.delete(otp);
-        ZoneId vnZone = ZoneId.of("Asia/Ho_Chi_Minh");
-        LocalDateTime vnTime = LocalDateTime.now(vnZone);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(" HH:mm:ss dd/MM/yyyy");
-        mailService.sendEmail(
-                user.getEmail(),
-                "Password changed",
-                "Mật khẩu của bạn vừa được thay đổi lúc " + vnTime.format(formatter)
-        );
+        contentMailService.sendPasswordChanged(user);
 
         return true;
     }

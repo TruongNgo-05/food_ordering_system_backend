@@ -45,10 +45,10 @@ public class User {
 
     @Column(name = "create_date")
     private LocalDateTime createdDate;
-// thêm cột này để đếm số lần bị khóa
+    // thêm cột này để đếm số lần bị khóa
     @Column(name = "fail_count")
     private Integer failCount;
-// hiển thị thời gian bị khóa
+    // hiển thị thời gian bị khóa
     @Column(name = "lock_time")
     private LocalDateTime lockTime;
 

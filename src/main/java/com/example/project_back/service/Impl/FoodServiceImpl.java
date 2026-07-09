@@ -168,7 +168,7 @@
 
             // ===== MAIN IMAGE =====
             if (image != null && !image.isEmpty()) {
-                food.setImage(fileService.uploadFile(image));
+                food.setImage(fileService.uploadFile(image, "foods"));
             } else if (create.getImageUrl() != null) {
                 food.setImage(create.getImageUrl());
             }
@@ -182,8 +182,9 @@
                     if (file.isEmpty()) continue;
 
                     FoodImage img = new FoodImage();
-                    img.setImageUrl(fileService.uploadFile(file));
+                    img.setImageUrl(fileService.uploadFile(file, "foods"));
                     img.setFood(food);
+
                     imageList.add(img);
                 }
             }
@@ -245,7 +246,7 @@
                 if (food.getImage() != null) {
                     fileService.deleteFile(food.getImage());
                 }
-                food.setImage(fileService.uploadFile(image));
+                food.setImage(fileService.uploadFile(image, "foods"));
             }
 
             //  SET URL
@@ -265,23 +266,29 @@
 
             List<FoodImage> currentImages = food.getImages();
 
-            // ===== 1. REMOVE OLD =====
-            for (FoodImage oldImg : new ArrayList<>(currentImages)) {
+            List<FoodImage> removeImages = new ArrayList<>();
 
-                if (!newUrls.contains(oldImg.getImageUrl())) {
+            for(FoodImage oldImg : currentImages){
+
+                if(!newUrls.contains(oldImg.getImageUrl())){
 
                     fileService.deleteFile(oldImg.getImageUrl());
-                    foodImageRepository.delete(oldImg);
-                    currentImages.remove(oldImg);
+
+                    removeImages.add(oldImg);
                 }
             }
+
+
+            foodImageRepository.deleteAll(removeImages);
+
+            currentImages.removeAll(removeImages);
 
             // ===== 2. ADD FILE =====
             if (images != null) {
                 for (MultipartFile file : images) {
                     if (file.isEmpty()) continue;
 
-                    String url = fileService.uploadFile(file);
+                    String url = fileService.uploadFile(file, "foods");
 
                     FoodImage img = new FoodImage();
                     img.setImageUrl(url);
@@ -348,4 +355,55 @@
             return "delete successfully";
         }
 
+
+        @Transactional
+        @Override
+        public String deleteMainImage(Long id) {
+
+            Food food = foodRepository.findById(id)
+                    .orElseThrow(() ->
+                            new ApplicationException("Không tìm thấy món ăn")
+                    );
+
+
+            if(food.getImage() != null){
+
+                // xóa file trong storage
+                fileService.deleteFile(food.getImage());
+
+                // xóa url trong DB
+                food.setImage(null);
+
+                foodRepository.save(food);
+            }
+
+
+            return "Delete main image successfully";
+        }
+
+        @Transactional
+        @Override
+        public String deleteSubImage(Long imageId) {
+
+
+            FoodImage image = foodImageRepository.findById(imageId)
+                    .orElseThrow(() ->
+                            new ApplicationException("Không tìm thấy ảnh")
+                    );
+
+
+            // xóa file thật
+            if(image.getImageUrl()!=null){
+
+                fileService.deleteFile(image.getImageUrl());
+
+            }
+
+
+            // xóa record database
+            foodImageRepository.delete(image);
+
+
+            return "Delete sub image successfully";
+        }
     }

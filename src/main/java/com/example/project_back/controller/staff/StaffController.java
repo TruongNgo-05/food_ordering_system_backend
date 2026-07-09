@@ -124,4 +124,14 @@ public class StaffController {
         return ResponseEntity.ok(BaseResponse.success("Hoàn thành đơn đặt bàn"));
     }
 
+//table
+@GetMapping("tables")
+public ResponseEntity<BaseResponse<List<StaffTableResponse>>> getAllTables() {
+
+    return ResponseEntity.ok(
+            BaseResponse.success(
+                    tableService.getAllStaffTables()
+            )
+    );
+}
 }

@@ -12,7 +12,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -21,26 +20,28 @@ public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtils jwtUtils;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+
+        String path = request.getServletPath();
+
+        return path.startsWith("/api/auth")
+                || path.startsWith("/oauth2")
+                || path.startsWith("/login");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        String path = request.getServletPath();
-
-        // bỏ qua login/register(sau nay test token treen security)
-//        if(path.startsWith("/api/auth")){
-//            filterChain.doFilter(request,response);
-//            return;
-//        }
-
         String authHeader = request.getHeader("Authorization");
 
-        if(authHeader != null && authHeader.startsWith("Bearer ")){
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
 
             String token = authHeader.substring(7);
 
-            if(jwtUtils.validateToken(token)){
+            if (jwtUtils.validateAccessToken(token)) {
 
                 String username = jwtUtils.getUsernameFromToken(token);
 
@@ -51,12 +52,10 @@ public class JwtFilter extends OncePerRequestFilter {
                                 Collections.emptyList()
                         );
 
-                SecurityContextHolder
-                        .getContext()
-                        .setAuthentication(authentication);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }
 
-        filterChain.doFilter(request,response);
+        filterChain.doFilter(request, response);
     }
 }

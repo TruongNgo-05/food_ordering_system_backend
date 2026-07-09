@@ -24,6 +24,6 @@ public class FoodCreateAndUpdateRequest {
     private String imageUrl;
 
     private List<String> imageUrls;
-
+    private List<Long> deletedImages;
     private Boolean removeImage;
 }

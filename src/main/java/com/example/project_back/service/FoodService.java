@@ -36,6 +36,7 @@ public interface FoodService {
 
     String deleteFood(Long id);
 
-//    // xóa ảnh phụ theo id
-//    void deleteSubImage(Long imageId);
+    String deleteMainImage(Long id);
+
+    String deleteSubImage(Long imageId);
 }

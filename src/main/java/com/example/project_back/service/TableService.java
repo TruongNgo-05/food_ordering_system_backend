@@ -5,6 +5,7 @@ import com.example.project_back.dto.request.user.table.BookTableRequest;
 import com.example.project_back.dto.response.admin.TableAdminResponse;
 import com.example.project_back.dto.response.staff.ReservationDetailStaffResponse;
 import com.example.project_back.dto.response.staff.ReservationStaffResponse;
+import com.example.project_back.dto.response.staff.StaffTableResponse;
 import com.example.project_back.dto.response.user.MenuTableResponse;
 import com.example.project_back.dto.response.user.TableBookResponse;
 import com.example.project_back.dto.response.user.TableResponse;
@@ -42,7 +43,7 @@ Page<TableAdminResponse> getListAdminTables(
 Page<ReservationStaffResponse> getAllReservations(Pageable pageable);
     ReservationDetailStaffResponse getDetailReservations(Integer id);
 
-
+    List<StaffTableResponse> getAllStaffTables();
 // dat don
     void confirmReservation(Integer id);
 

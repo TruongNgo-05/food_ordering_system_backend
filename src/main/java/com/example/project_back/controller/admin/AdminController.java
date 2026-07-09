@@ -2,12 +2,10 @@ package com.example.project_back.controller.admin;
 
 import com.example.project_back.common.BaseResponse;
 import com.example.project_back.dto.request.admin.*;
-import com.example.project_back.dto.request.spec.FoodRequestParam;
-import com.example.project_back.dto.request.spec.OrderRequestParam;
-import com.example.project_back.dto.request.spec.ReviewFoodParam;
-import com.example.project_back.dto.request.spec.VoucherRequestParam;
+import com.example.project_back.dto.request.spec.*;
 import com.example.project_back.dto.response.admin.*;
 import com.example.project_back.dto.response.user.CategoriesResponse;
+import com.example.project_back.dto.response.user.SupportResponse;
 import com.example.project_back.dto.response.user.TableResponse;
 import com.example.project_back.service.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,6 +34,8 @@ public class AdminController {
     private final FoodService foodService ;
     private final ReviewService reviewService;
     private final OrderService orderService;
+    private final SupportService supportService;
+    private final FAQService faqService;
 
     //    voucher
     @GetMapping("voucher")
@@ -64,7 +64,8 @@ public class AdminController {
     }
 
     @PutMapping("voucher/{id}")
-    public ResponseEntity<BaseResponse<VoucherAdminResponse>> updateVoucher(@PathVariable Integer id,@RequestBody @Valid VoucherCreateAndUpdateRequest update){
+    public ResponseEntity<BaseResponse<VoucherAdminResponse>> updateVoucher(
+            @PathVariable Integer id,@RequestBody @Valid VoucherCreateAndUpdateRequest update){
         return ResponseEntity.ok(new BaseResponse<>(
                 voucherService.updateVoucher(id,update),
                 "update vouchers successfully"
@@ -230,21 +231,47 @@ public ResponseEntity<BaseResponse<Page<FoodAdminResponse>>> getAllFood(
         );
     }
 
-    @DeleteMapping("foods{id}")
-    public ResponseEntity<BaseResponse<String>> deleteFood(@PathVariable Long id) {
-        return ResponseEntity.ok(new BaseResponse<>(
-                foodService.deleteFood(id),
-                "Delete succsess full"
-        ));
+    @DeleteMapping("foods/{id}")
+    public ResponseEntity<BaseResponse<String>> deleteFood(
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(
+                new BaseResponse<>(
+                        foodService.deleteFood(id),
+                        "Delete success"
+                )
+        );
     }
 //
 //
-//    // ===== XÓA ẢNH PHỤ =====
-//    @DeleteMapping("foods/images/{imageId}")
-//    public ResponseEntity<?> deleteSubImage(@PathVariable Long imageId) {
-//        foodService.deleteSubImage(imageId);
-//        return ResponseEntity.ok("Deleted sub image");
-//    }
+//    // ===== XÓA ẢNH food =====
+
+    @DeleteMapping("foods/{id}/image")
+    public ResponseEntity<BaseResponse<String>> deleteMainImage(
+            @PathVariable Long id
+    ) {
+
+        return ResponseEntity.ok(
+                new BaseResponse<>(
+                        foodService.deleteMainImage(id),
+                        "Delete main image success"
+                )
+        );
+    }
+
+    @DeleteMapping("foods/images/{imageId}")
+    public ResponseEntity<BaseResponse<String>> deleteSubImage(
+            @PathVariable Long imageId
+    ) {
+
+        return ResponseEntity.ok(
+                new BaseResponse<>(
+                        foodService.deleteSubImage(imageId),
+                        "Delete sub image success"
+                )
+        );
+    }
+
 
 
 // review
@@ -263,4 +290,133 @@ public ResponseEntity<BaseResponse<Page<OrderAdminResponse>>> getAllAdminOrders(
             orderService.getAllAdminOrders(param,pageable)
     ));
 }
+
+
+    // support
+// Lấy tất cả ticket
+    @GetMapping("support")
+    public ResponseEntity<BaseResponse<Page<SupportResponse>>> getAllTickets(
+            SupportRequestParam param, @PageableDefault(size = 5) Pageable pageable ) {
+
+        return ResponseEntity.ok(
+                new BaseResponse<>(
+                        supportService.getAllTickets(param, pageable),
+                        "Get all support tickets successfully"
+                )
+        );
+    }
+
+    // Lấy chi tiết ticket
+    @GetMapping("support/{id}")
+    public ResponseEntity<BaseResponse<SupportResponse>> getTicketById(
+            @PathVariable Integer id) {
+
+        return ResponseEntity.ok(
+                new BaseResponse<>(
+                        supportService.getTicketById(id),
+                        "Get support ticket successfully"
+                )
+        );
+    }
+
+    // Trả lời ticket
+    @PutMapping("support/{id}/reply")
+    public ResponseEntity<BaseResponse<String>> replyTicket(
+            @PathVariable Integer id,
+            @Valid @RequestBody ReplySupportRequest request) {
+
+        supportService.replyTicket(id, request);
+
+        return ResponseEntity.ok(
+                new BaseResponse<>(
+                        "SUCCESS",
+                        "Reply support ticket successfully"
+                )
+        );
+    }
+
+    // Đánh dấu đã xử lý
+    @PutMapping("support/{id}/resolve")
+    public ResponseEntity<BaseResponse<String>> resolveTicket(
+            @PathVariable Integer id) {
+
+        supportService.resolveTicket(id);
+
+        return ResponseEntity.ok(
+                new BaseResponse<>(
+                        "SUCCESS",
+                        "Resolve support ticket successfully"
+                )
+        );
+    }
+
+    // Xóa ticket
+    @DeleteMapping("support/{id}")
+    public ResponseEntity<BaseResponse<String>> deleteTicket(
+            @PathVariable Integer id) {
+
+        supportService.deleteTicket(id);
+
+        return ResponseEntity.ok(
+                new BaseResponse<>(
+                        "SUCCESS",
+                        "Delete support ticket successfully"
+                )
+        );
+    }
+
+// ================= FAQ =================
+
+    // Thêm FAQ
+    @PostMapping("faq")
+    public ResponseEntity<BaseResponse<FAQAdminResponse>> createFAQ(
+            @Valid @RequestBody FAQCreateAndUpdateRequest request
+    ){
+
+        return ResponseEntity.ok(
+                new BaseResponse<>(
+                        faqService.createFAQ(request),
+                        "Create FAQ successfully"
+                )
+        );
+
+    }
+
+
+
+    // Cập nhật FAQ
+    @PutMapping("faq/{id}")
+    public ResponseEntity<BaseResponse<FAQAdminResponse>> updateFAQ(
+            @PathVariable Integer id,
+            @Valid @RequestBody FAQCreateAndUpdateRequest request
+    ){
+
+        return ResponseEntity.ok(
+                new BaseResponse<>(
+                        faqService.updateFAQ(id, request),
+                        "Update FAQ successfully"
+                )
+        );
+
+    }
+
+
+
+    // Xóa FAQ
+    @DeleteMapping("faq/{id}")
+    public ResponseEntity<BaseResponse<String>> deleteFAQ(
+            @PathVariable Integer id
+    ){
+
+        return ResponseEntity.ok(
+                new BaseResponse<>(
+                        faqService.deleteFAQ(id),
+                        "Delete FAQ successfully"
+                )
+        );
+
+    }
+
 }
+
+

@@ -287,9 +287,14 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public UserResponse createUser(UserCreateRequest createUserRequest) {
-    if (userRepository.findByEmailOrUsername(createUserRequest.getEmail(), createUserRequest.getUsername()).isPresent()) {
-        throw new ApplicationException("User đã tồn tại ");
+        if (userRepository.findByUsername(createUserRequest.getUsername()).isPresent()) {
+        throw new ApplicationException("Username đã tồn tại");
     }
+        if (userRepository.findByEmail(createUserRequest.getEmail()).isPresent()) {
+            throw new ApplicationException("Email đã tồn tại");
+        }
+
+
     if (!createUserRequest.getPassWord().equals(createUserRequest.getConfirmPassword())) {
         throw new ApplicationException("Password không khớp");
     }
@@ -333,12 +338,52 @@ public class UserServiceImpl implements UserService {
             if (user.getAvatar() != null && user.getAvatar().startsWith("/uploads/")) {
                 fileService.deleteFile(user.getAvatar());
             }
-            String url = fileService.uploadFile(avatar);
+            String url = fileService.uploadFile(avatar, "avatars");
+            user.setAvatar(url);
             user.setAvatar(url);
         } else if (request.getAvatar() != null) {
-            user.setAvatar(request.getAvatar());
+
+            if(request.getAvatar().isEmpty()){
+                user.setAvatar(null);
+            }else{
+                user.setAvatar(request.getAvatar());
+            }
+
         }
         return UserMapper.map(userRepository.save(user));
+    }
+
+    @Transactional
+    @Override
+    public UserResponse deleteAvatar() {
+
+        String username = SecurityUtils.getCurrentUsername();
+
+        Optional<User> users = userRepository.findByUsername(username);
+
+        if (users.isEmpty()) {
+            throw new ApplicationException(
+                    "Không tìm thấy tài khoản người dùng"
+            );
+        }
+
+        User user = users.get();
+
+
+        // Xóa file trong server
+        if (user.getAvatar() != null && user.getAvatar().startsWith("/uploads/")) {
+
+            fileService.deleteFile(user.getAvatar());
+        }
+
+
+        // Xóa đường dẫn trong database
+        user.setAvatar(null);
+
+
+        return UserMapper.map(
+                userRepository.save(user)
+        );
     }
 
     @Override

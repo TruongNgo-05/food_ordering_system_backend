@@ -1,57 +1,117 @@
 package com.example.project_back.config;
 
-
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import lombok.Getter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
-
-//Tạo token và đọc token
 @Component
+@Getter
 public class JwtUtils {
 
-    private final String jwtSecret = "examSecretKeyexamSecretKeyexamSecretKey";
+    @Value("${jwt.secret}")
+    private String jwtSecret;
 
-    private final long jwtExpiration = 86400000; // 1 day
+    @Value("${jwt.access-expiration}")
+    private long accessExpiration;
 
-    private Key getSigningKey(){
-        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
+    @Value("${jwt.refresh-expiration}")
+    private long refreshExpiration;
+
+    private Key getSigningKey() {
+        return Keys.hmacShaKeyFor(
+                jwtSecret.getBytes(StandardCharsets.UTF_8)
+        );
     }
 
-    public String generateToken(String username){
+    // ==========================
+    // ACCESS TOKEN
+    // ==========================
+
+    public String generateAccessToken(String username) {
 
         return Jwts.builder()
                 .setSubject(username)
+                .claim("type", "ACCESS")
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis()+jwtExpiration))
+                .setExpiration(new Date(System.currentTimeMillis() + accessExpiration))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+//    accset TOKEN recrif them id cho jwt de check jwt o backlist == redis
+    // ==========================
+    // REFRESH TOKEN
+    // ==========================
+
+    public String generateRefreshToken(String username) {
+
+        return Jwts.builder()
+                .setSubject(username)
+                .claim("type", "REFRESH")
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + refreshExpiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String getUsernameFromToken(String token){
+    // ==========================
+    // GET USERNAME
+    // ==========================
+
+    public String getUsernameFromToken(String token) {
+        return getClaims(token).getSubject();
+    }
+
+    // ==========================
+    // CLAIMS
+    // ==========================
+
+    public Claims getClaims(String token) {
 
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+                .getBody();
     }
 
-    public boolean validateToken(String token){
+    // ==========================
+    // VALIDATE ACCESS TOKEN
+    // ==========================
 
-        try{
-            Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token);
+    public boolean validateAccessToken(String token) {
 
-            return true;
+        try {
 
-        }catch (JwtException e){
+            Claims claims = getClaims(token);
+
+            return "ACCESS".equals(claims.get("type", String.class));
+
+        } catch (JwtException | IllegalArgumentException e) {
+
+            return false;
+        }
+    }
+
+    // ==========================
+    // VALIDATE REFRESH TOKEN
+    // ==========================
+
+    public boolean validateRefreshToken(String token) {
+
+        try {
+
+            Claims claims = getClaims(token);
+
+            return "REFRESH".equals(claims.get("type", String.class));
+
+        } catch (JwtException | IllegalArgumentException e) {
+
             return false;
         }
     }

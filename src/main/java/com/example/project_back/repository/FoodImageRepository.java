@@ -7,8 +7,5 @@ import java.util.List;
 
 public interface FoodImageRepository extends JpaRepository<FoodImage, Long> {
 
-
-    void deleteByFoodIdAndImageUrl(Long foodId, String imageUrl);
-
     void deleteByFoodId(Long foodId);
 }

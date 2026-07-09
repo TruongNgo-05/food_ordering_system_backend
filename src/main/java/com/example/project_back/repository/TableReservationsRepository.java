@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface TableReservationsRepository extends JpaRepository<TableReservations, Integer> {
     @Query("""
@@ -38,4 +39,6 @@ public interface TableReservationsRepository extends JpaRepository<TableReservat
             @Param("tableId") Integer tableId,
             @Param("reservationTime") LocalDateTime reservationTime
     );
+
+    Optional<TableReservations> findFirstByTableIdAndStatusInOrderByReservationTimeAsc(Integer tableId, List<BookingStatus> statuses);
 }

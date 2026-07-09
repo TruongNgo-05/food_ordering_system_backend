@@ -7,6 +7,7 @@ import com.example.project_back.dto.request.user.table.BookTableRequest;
 import com.example.project_back.dto.response.admin.TableAdminResponse;
 import com.example.project_back.dto.response.staff.ReservationDetailStaffResponse;
 import com.example.project_back.dto.response.staff.ReservationStaffResponse;
+import com.example.project_back.dto.response.staff.StaffTableResponse;
 import com.example.project_back.dto.response.user.FoodTableResponse;
 import com.example.project_back.dto.response.user.MenuTableResponse;
 import com.example.project_back.dto.response.user.TableBookResponse;
@@ -30,7 +31,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -43,7 +46,7 @@ public class TableServiceImpl implements TableService {
     private final QRCodeService qrCodeService;
     private final OrderRepository orderRepository;
     private final TableReservationsRepository  tableReservationsRepository;
-    private final MailService mailService;
+    private final ContentMailService  contentMailService;
 
 //    test
     @Override
@@ -183,7 +186,9 @@ public class TableServiceImpl implements TableService {
 
         TableReservations reservation = new TableReservations();
 
-        reservation.setReservationCode("BK-" + System.currentTimeMillis());
+        String code = "BK-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+
+        reservation.setReservationCode(code);
 
         reservation.setCustomerName(request.getCustomerName());
         reservation.setCustomerPhone(request.getCustomerPhone());
@@ -205,12 +210,111 @@ public class TableServiceImpl implements TableService {
         }
         tableReservationsRepository.save(reservation);
         tableDetailRepository.save(table);
+        contentMailService.sendBookingSuccess(reservation);
     }
 
 
 
 
 //    staff
+
+
+    @Override
+    public List<StaffTableResponse> getAllStaffTables() {
+
+        List<TableDetail> tables = tableDetailRepository.findAll();
+
+        return tables.stream().map(table -> {
+
+            StaffTableResponse res = new StaffTableResponse();
+
+            res.setId(table.getId());
+            res.setTableNumber(table.getTableNumber());
+            res.setCapacity(table.getCapacity());
+            res.setStatus(table.getStatus());
+
+            switch (table.getStatus()) {
+
+                case AVAILABLE:
+                    res.setStatusText("Còn trống");
+                    break;
+
+                case OCCUPIED:
+                    res.setStatusText("Đang sử dụng");
+                    break;
+
+                case RESERVED:
+
+                    tableReservationsRepository
+                            .findFirstByTableIdAndStatusInOrderByReservationTimeAsc(
+                                    table.getId(),
+                                    List.of(
+                                            BookingStatus.PENDING,
+                                            BookingStatus.CONFIRMED
+                                    )
+                            )
+                            .ifPresentOrElse(reservation -> {
+
+                                Duration duration = Duration.between(
+                                        LocalDateTime.now(),
+                                        reservation.getReservationTime()
+                                );
+
+                                long minutes = duration.toMinutes();
+
+                                if (minutes == 0) {
+                                    res.setStatusText("Khách sắp đến");
+                                } else if (minutes < 0) {
+
+                                    long lateMinutes = Math.abs(minutes);
+
+                                    if (lateMinutes < 60) {
+                                        res.setStatusText("Khách đã đến muộn " + lateMinutes + " phút");
+                                    } else {
+
+                                        long hours = lateMinutes / 60;
+                                        long remain = lateMinutes % 60;
+
+                                        if (remain == 0) {
+                                            res.setStatusText("Khách đã đến muộn " + hours + " giờ");
+                                        } else {
+                                            res.setStatusText(
+                                                    "Khách đã đến muộn "
+                                                            + hours + " giờ "
+                                                            + remain + " phút"
+                                            );
+                                        }
+                                    }
+
+                                } else if (minutes < 60) {
+
+                                    res.setStatusText("Đã đặt trước - còn " + minutes + " phút");
+
+                                } else {
+
+                                    long hours = minutes / 60;
+                                    long remain = minutes % 60;
+
+                                    if (remain == 0) {
+                                        res.setStatusText("Đã đặt trước - còn " + hours + " giờ");
+                                    } else {
+                                        res.setStatusText(
+                                                "Đã đặt trước - còn "
+                                                        + hours + " giờ "
+                                                        + remain + " phút"
+                                        );
+                                    }
+                                }
+
+                            }, () -> res.setStatusText("Đã đặt trước"));
+
+                    break;
+            }
+
+            return res;
+
+        }).toList();
+    }
 @Override
 public Page<ReservationStaffResponse> getAllReservations(Pageable pageable) {
 
@@ -292,18 +396,7 @@ public Page<ReservationStaffResponse> getAllReservations(Pageable pageable) {
         tableReservationsRepository.save(reservation);
         tableDetailRepository.save(table);
 
-        mailService.sendEmail(
-                reservation.getCustomerEmail(),
-                "Xác nhận check-in đặt bàn",
-                "Xin chào " + reservation.getCustomerName() + ",\n\n" +
-                        "Bạn đã check-in thành công.\n\n" +
-                        "Mã đặt bàn: " + reservation.getReservationCode() + "\n" +
-                        "Bàn số: " + table.getTableNumber() + "\n\n" +
-                        "Nhà hàng sẽ giữ bàn của bạn trong vòng 30 phút kể từ thời điểm check-in.\n" +
-                        "Nếu quá thời gian trên mà không sử dụng bàn, nhà hàng có quyền sắp xếp cho khách hàng khác.\n\n" +
-                        "Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.\n" +
-                        "Chúc bạn có một trải nghiệm tuyệt vời!"
-        );
+        contentMailService.sendCheckIn(reservation);
     }
 
     @Transactional
@@ -326,14 +419,7 @@ public Page<ReservationStaffResponse> getAllReservations(Pageable pageable) {
         tableReservationsRepository.save(reservation);
         tableDetailRepository.save(table);
 
-        mailService.sendEmail(
-                reservation.getCustomerEmail(),
-                "Đơn đặt bàn đã bị hủy",
-                "Xin chào " + reservation.getCustomerName() + ",\n\n" +
-                        "Đơn đặt bàn của bạn đã được hủy.\n" +
-                        "Mã đặt bàn: " + reservation.getReservationCode() + "\n\n" +
-                        "Nếu có thắc mắc vui lòng liên hệ nhà hàng."
-        );
+      contentMailService.sendCanceled(reservation);
     }
 
 
@@ -356,14 +442,7 @@ public Page<ReservationStaffResponse> getAllReservations(Pageable pageable) {
         tableReservationsRepository.save(reservation);
         tableDetailRepository.save(table);
 
-        mailService.sendEmail(
-                reservation.getCustomerEmail(),
-                "Hoàn thành đặt bàn",
-                "Xin chào " + reservation.getCustomerName() + ",\n\n" +
-                        "Đơn đặt bàn của bạn đã hoàn thành.\n" +
-                        "Mã đặt bàn: " + reservation.getReservationCode() + "\n\n" +
-                        "Cảm ơn bạn đã ghé thăm nhà hàng."
-        );
+    contentMailService.sendCompleted(reservation);
     }
 
 }

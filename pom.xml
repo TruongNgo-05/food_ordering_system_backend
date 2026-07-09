@@ -96,11 +96,11 @@
         </dependency>
 
         <!--        mapper-->
-        <dependency>
-            <groupId>org.modelmapper</groupId>
-            <artifactId>modelmapper</artifactId>
-            <version>3.2.0</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.modelmapper</groupId>-->
+<!--            <artifactId>modelmapper</artifactId>-->
+<!--            <version>3.2.0</version>-->
+<!--        </dependency>-->
         <!--    encodeer-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -118,6 +118,14 @@
             <artifactId>poi-ooxml</artifactId>
             <version>5.2.5</version>
         </dependency>
+<!--        ai gemini-->
+<!--AQ.Ab8RN6KlHqa1AsPLhre3uA0Yv5fZLzL8kT8nCov1EsyI48RnqQ-->
+            <dependency>
+                <groupId>com.google.genai</groupId>
+                <artifactId>google-genai</artifactId>
+                <version>1.0.0</version>
+            </dependency>
+
         <!-- Swagger OpenAPI -->
         <dependency>
             <groupId>org.springdoc</groupId>
@@ -125,11 +133,6 @@
             <version>2.8.3</version>
         </dependency>
 <!--        login gg-->
-        <dependency>
-            <groupId>com.google.api-client</groupId>
-            <artifactId>google-api-client</artifactId>
-            <version>2.0.0</version>
-        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-client</artifactId>

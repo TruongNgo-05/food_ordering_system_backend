@@ -22,7 +22,7 @@ public class ReservationScheduler {
 
     private final TableReservationsRepository reservationRepository;
     private final TableDetailRepository tableRepository;
-    private final MailService mailService;
+    private final ContentMailService contentMailService;
 
     @Scheduled(fixedRate = 60000) // chạy mỗi 1 phút
     @Transactional
@@ -54,33 +54,17 @@ public class ReservationScheduler {
             }
 
             try {
+
                 if (reservation.getCustomerEmail() != null && !reservation.getCustomerEmail().isBlank()) {
 
-                    mailService.sendEmail(reservation.getCustomerEmail(),
-                            "Thông báo hủy đặt bàn tự động",
-                            """
-                            Xin chào %s,
-                    
-                            Chúng tôi rất tiếc phải thông báo rằng đơn đặt bàn của bạn đã được hủy tự động do quá 30 phút kể từ thời gian đặt mà chưa thực hiện check-in.
-                    
-                            Mã đặt bàn: %s
-                            Thời gian đặt: %s
-                    
-                            Nếu vẫn có nhu cầu sử dụng dịch vụ, vui lòng thực hiện đặt bàn lại trên hệ thống.
-                    
-                            Cảm ơn bạn đã quan tâm và sử dụng dịch vụ của chúng tôi.
-                    
-                            Trân trọng.
-                            """
-                                    .formatted(
-                                            reservation.getCustomerName(),
-                                            reservation.getReservationCode(),
-                                            reservation.getReservationTime()
-                                    )
-                    );
+                    contentMailService.sendAutoCanceled(reservation);
+
                 }
+
             } catch (Exception e) {
+
                 log.error("Không gửi được email cho booking {}", reservation.getReservationCode(), e);
+
             }
 
             log.info("Auto canceled reservation {}", reservation.getReservationCode());

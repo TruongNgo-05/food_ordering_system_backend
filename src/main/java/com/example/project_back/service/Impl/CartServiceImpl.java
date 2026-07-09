@@ -79,11 +79,8 @@ public class CartServiceImpl implements CartService {
                 });
 
         // Tìm food
-        Optional<Food> foods = foodRepository.findById(request.getFoodId());
-        Food food = foods.get();
-        if (food == null) {
-            throw new ApplicationException("Food không tồn tại");
-        }
+        Food food = foodRepository.findById(request.getFoodId())
+                .orElseThrow(() -> new ApplicationException("Food không tồn tại"));
 
         //  Kiểm tra item đã tồn tại trong cart chưa
         CartItem existItem = null;

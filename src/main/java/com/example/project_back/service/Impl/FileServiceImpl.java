@@ -13,32 +13,34 @@ import java.util.UUID;
 @Service
 public class FileServiceImpl implements FileService {
 
-    private final String UPLOAD_DIR = "uploads";
+    private static final String UPLOAD_DIR = "uploads";
 
     @Override
-    public String uploadFile(MultipartFile file) {
+    public String uploadFile(MultipartFile file, String folder) {
         try {
             String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
 
-            Path path = Paths.get(UPLOAD_DIR, fileName);
-            Files.createDirectories(path.getParent());
+            Path folderPath = Paths.get(UPLOAD_DIR, folder);
+            Files.createDirectories(folderPath);
 
-            Files.write(path, file.getBytes());
+            Path filePath = folderPath.resolve(fileName);
 
-            return "/uploads/" + fileName;
+            Files.write(filePath, file.getBytes());
+
+            return "/uploads/" + folder + "/" + fileName;
 
         } catch (Exception e) {
-            throw new RuntimeException("Upload file thất bại");
+            throw new RuntimeException("Upload file thất bại", e);
         }
     }
 
     @Override
     public void deleteFile(String filePath) {
         try {
-            if (filePath == null || filePath.isEmpty()) return;
+            if (filePath == null || filePath.isBlank()) return;
 
-            String fileName = filePath.replace("/uploads/", "");
-            Path path = Paths.get(UPLOAD_DIR, fileName);
+            String relativePath = filePath.replaceFirst("^/uploads/", "");
+            Path path = Paths.get(UPLOAD_DIR, relativePath);
 
             Files.deleteIfExists(path);
 
@@ -50,6 +52,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public void deleteFiles(List<String> filePaths) {
         if (filePaths == null) return;
+
         for (String path : filePaths) {
             deleteFile(path);
         }

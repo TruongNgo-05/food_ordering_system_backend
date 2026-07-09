@@ -47,6 +47,9 @@ List<AddressResponse> getMyAddresses();
     UserResponse getCurrentUser();
 
     UserResponse updateUser(UserUpdateRequest request, MultipartFile avatar);
+
+    UserResponse deleteAvatar();
+
     Boolean changePassword(ChangePasswordRequest change);
 
 }

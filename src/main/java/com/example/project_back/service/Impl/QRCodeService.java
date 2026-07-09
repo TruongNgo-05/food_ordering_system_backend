@@ -54,7 +54,7 @@ public class QRCodeService {
                     "PNG",
                     path
             );
-            return BACKEND_URL + "/qrcodes/" + fileName;
+            return BACKEND_URL + "/uploads/qrcodes/" + fileName;
 
         } catch (Exception e) {
             throw new RuntimeException("Generate QR Failed", e);

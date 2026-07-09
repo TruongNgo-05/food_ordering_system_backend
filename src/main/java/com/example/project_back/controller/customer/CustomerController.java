@@ -9,6 +9,7 @@ import com.example.project_back.dto.request.customer.cart.UpdateCartRequest;
 import com.example.project_back.dto.request.customer.order.CreateOrderRequest;
 import com.example.project_back.dto.request.customer.order.CreateOrderTableRequest;
 import com.example.project_back.dto.request.spec.OrderRequestParam;
+import com.example.project_back.dto.request.user.SupportRequest;
 import com.example.project_back.dto.response.customer.FavoriteResponse;
 import com.example.project_back.dto.response.customer.order.OrderResponse;
 import com.example.project_back.dto.response.customer.order.MyOrderResponse;
@@ -19,7 +20,9 @@ import com.example.project_back.dto.response.customer.cart.CartResponse;
 import com.example.project_back.dto.response.customer.voucher.VoucherResponse;
 import com.example.project_back.dto.response.user.AddressResponse;
 import com.example.project_back.dto.response.user.ReviewResponse;
+import com.example.project_back.dto.response.user.SupportResponse;
 import com.example.project_back.service.*;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +44,7 @@ public class CustomerController {
     private final CartService cartService;
     private final FavoriteService favoriteService;
     private final OrderService orderService;
+    private final SupportService supportService;
 
 
 //    review
@@ -219,5 +223,27 @@ public class CustomerController {
                 favoriteService.toggleFavorite(foodId),
                 "ccap nhat yêu thich thanh cong"
         ));
+    }
+
+//    support
+// Gửi yêu cầu hỗ trợ
+@PostMapping("/support")
+public ResponseEntity<BaseResponse<String>> createTicket(
+        @Valid @RequestBody SupportRequest request) {
+
+    supportService.createTicket(request);
+
+    return ResponseEntity.ok(
+            BaseResponse.success("Gửi yêu cầu thành công")
+    );
+}
+
+    // Lịch sử hỗ trợ
+    @GetMapping("/support/my-ticket")
+    public ResponseEntity<BaseResponse<Page<SupportResponse>>> getMyTickets(Pageable pageable) {
+
+        return ResponseEntity.ok(
+                BaseResponse.success(supportService.getMyTickets(pageable))
+        );
     }
 }

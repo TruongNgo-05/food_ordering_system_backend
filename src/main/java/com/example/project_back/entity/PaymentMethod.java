@@ -20,7 +20,4 @@ public class PaymentMethod {
 
     @Enumerated(EnumType.STRING)
     private PaymentMethodType code;
-
-    @Column(name = "is_active")
-    private Boolean isActive;
 }

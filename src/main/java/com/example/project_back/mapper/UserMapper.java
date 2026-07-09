@@ -16,6 +16,7 @@ public class    UserMapper {
 public static UserResponse map(User user){
     UserResponse userResponse = new UserResponse();
     BeanUtils.copyProperties(user, userResponse);
+
     return userResponse;
 }
 public static User map(UserCreateRequest userCreateRequest){

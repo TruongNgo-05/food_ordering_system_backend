@@ -6,6 +6,7 @@ import com.example.project_back.dto.request.customer.order.CreateOrderTableReque
 import com.example.project_back.dto.request.spec.CategoriesRequestParam;
 import com.example.project_back.dto.request.spec.FoodRequestParam;
 import com.example.project_back.dto.request.user.ChangePasswordRequest;
+import com.example.project_back.dto.request.user.SupportRequest;
 import com.example.project_back.dto.request.user.UserUpdateRequest;
 import com.example.project_back.dto.request.user.UserCreateRequest;
 import com.example.project_back.dto.request.user.table.BookTableRequest;
@@ -40,6 +41,7 @@ public class UserController {
     private final TableService tableService;
     private final OrderService orderService;
     private final SepayService  sepayService;
+    private final SupportService supportService;
 
 
     @PostMapping()
@@ -72,6 +74,16 @@ public ResponseEntity<BaseResponse<UserResponse>> updateUser(
             )
     );
 }
+    @DeleteMapping("/me")
+    public ResponseEntity<BaseResponse<UserResponse>> deleteAvatar() {
+
+        return ResponseEntity.ok(
+                new BaseResponse<>(
+                        usersService.deleteAvatar(),
+                        "Delete avatar success"
+                )
+        );
+    }
 
     @PutMapping("/changePassword")
     public ResponseEntity<BaseResponse<Boolean>> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
@@ -110,7 +122,9 @@ public ResponseEntity<BaseResponse<UserResponse>> updateUser(
 
 //    food
     @GetMapping("/foods")
-    public ResponseEntity<BaseResponse<Page<FoodResponse>>> getAllFood(FoodRequestParam param, @PageableDefault(size = 5, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+    public ResponseEntity<BaseResponse<Page<FoodResponse>>> getAllFood(
+            FoodRequestParam param,
+            @PageableDefault(size = 5, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(new BaseResponse<>(
                 foodService.getAllFoodCustomer(param, pageable),
                 "Get All succsess full"
@@ -170,11 +184,29 @@ public ResponseEntity<BaseResponse<OrderTableResponse>> createOrderTable(
 }
 //sepay
 @PostMapping("/sepay/callback")
-public void sepayCallback(@RequestParam String orderCode,
-                          @RequestParam String transactionId) {
+public ResponseEntity<String> sepayCallback(
+        @RequestParam("content") String orderCode,
+        @RequestParam("referenceCode") String transactionId) {
+
+    System.out.println("orderCode = " + orderCode);
+    System.out.println("transactionId = " + transactionId);
 
     sepayService.confirmPayment(orderCode, transactionId);
+
+    return ResponseEntity.ok("OK");
 }
+
+
+//support
+// FAQ
+@GetMapping("/faq")
+public ResponseEntity<BaseResponse<Page<FAQResponse>>> getFAQ(@PageableDefault(size = 5, sort = "id", direction = Sort.Direction.DESC)Pageable pageable) {
+    return ResponseEntity.ok(
+            BaseResponse.success(supportService.getFAQs(pageable))
+    );
+}
+
+
 }
 
 
