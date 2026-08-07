@@ -10,8 +10,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ngoquangtruongx4@gmail.com  # Gmail gửi đi
-    password: teyh srrf nuqo phgk   # App Password Gmail
+    username: ${MAIL}  # Gmail gửi đi
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -27,6 +27,23 @@ spring:
       enabled: true
       max-file-size: 30MB
       max-request-size: 30MB
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+
+          facebook:
+            client-id: ${FACEBOOK_CLIENT_ID}
+            client-secret: ${FACEBOOK_CLIENT_SECRET}
+            scope:
+              - email
+              - public_profile
 jwt:
   secret: examSecretKeyexamSecretKeyexamSecretKey123456789
   access-expiration: 1800000
