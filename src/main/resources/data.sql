@@ -62,10 +62,9 @@ CREATE TABLE table_details
 -- ================= PAYMENT METHOD =================
 CREATE TABLE payment_methods
 (
-    id        INT PRIMARY KEY AUTO_INCREMENT,
-    name      VARCHAR(50),
-    code      ENUM('COD','ONLINE','AT_TABLE'),
-    is_active BOOLEAN DEFAULT TRUE
+    id   INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50),
+    code ENUM('COD','ONLINE','AT_TABLE')
 );
 
 -- ================= VOUCHERS =================
@@ -235,6 +234,7 @@ CREATE TABLE table_reservations
 
     customer_name    VARCHAR(255) NOT NULL,
     customer_phone   VARCHAR(20)  NOT NULL,
+    customer_email   VARCHAR(255) NOT NULL,
 
     table_id         INT          NOT NULL,
     reservation_time DATETIME     NOT NULL,
@@ -254,6 +254,42 @@ CREATE TABLE table_reservations
     updated_at       DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (table_id) REFERENCES table_details (id)
 );
+
+CREATE TABLE faq
+(
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    question   VARCHAR(255) NOT NULL,
+    answer     TEXT         NOT NULL,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+CREATE TABLE support_ticket
+(
+    id           INT PRIMARY KEY AUTO_INCREMENT,
+
+    support_code VARCHAR(50) UNIQUE,
+
+    user_id      INT          NOT NULL,
+
+    subject      VARCHAR(255) NOT NULL,
+    message      TEXT         NOT NULL,
+
+    reply        TEXT,
+
+    status       ENUM(
+        'PENDING',
+        'REPLIED',
+        'RESOLVED'
+    ) DEFAULT 'PENDING',
+
+    created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at   DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id)
+        REFERENCES users (id)
+        ON DELETE CASCADE
+);
 -- ================= OTP =================
 CREATE TABLE otps
 (
@@ -265,18 +301,98 @@ CREATE TABLE otps
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (email) REFERENCES users (email)
 );
+CREATE TABLE refresh_tokens
+(
 
+    id          INT PRIMARY KEY AUTO_INCREMENT,
+
+    token       VARCHAR(512) NOT NULL UNIQUE,
+
+    expiry_date DATETIME     NOT NULL,
+
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    user_id     INT          NOT NULL,
+
+    FOREIGN KEY (user_id)
+        REFERENCES users (id)
+        ON DELETE CASCADE
+
+);
+-- chat
+CREATE TABLE conversations
+(
+
+    id                BIGINT PRIMARY KEY AUTO_INCREMENT,
+
+    customer_id       INT NOT NULL,
+
+    staff_id          INT NULL,
+
+    status            ENUM('OPEN','CLOSED') DEFAULT 'OPEN',
+
+    unread_count      INT      DEFAULT 0,
+
+    last_message_time DATETIME,
+
+    created_at        DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at        DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_conversation_customer
+        FOREIGN KEY (customer_id)
+            REFERENCES users (id),
+
+    CONSTRAINT fk_conversation_staff
+        FOREIGN KEY (staff_id)
+            REFERENCES users (id),
+
+    CONSTRAINT uk_customer UNIQUE (customer_id)
+
+);
+
+CREATE TABLE messages
+(
+
+    id              BIGINT PRIMARY KEY AUTO_INCREMENT,
+
+    conversation_id BIGINT NOT NULL,
+
+    sender_id       INT    NOT NULL,
+
+    sender_type     ENUM('CUSTOMER','STAFF') NOT NULL,
+
+    content         TEXT   NOT NULL,
+
+    is_read         BOOLEAN  DEFAULT FALSE,
+
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_message_conversation
+        FOREIGN KEY (conversation_id)
+            REFERENCES conversations (id)
+            ON DELETE CASCADE,
+
+    CONSTRAINT fk_message_sender
+        FOREIGN KEY (sender_id)
+            REFERENCES users (id)
+
+);
 CREATE INDEX idx_orders_user_id ON orders (user_id);
 CREATE INDEX idx_orders_status ON orders (status);
 CREATE INDEX idx_order_details_order_id ON order_details (order_id);
 CREATE INDEX idx_foods_category_id ON foods (category_id);
 CREATE INDEX idx_reviews_food_id ON reviews (food_id);
+CREATE INDEX idx_messages_conversation ON messages (conversation_id);
+CREATE INDEX idx_messages_created ON messages (created_at);
+CREATE INDEX idx_conversation_customer ON conversations (customer_id);
+CREATE INDEX idx_conversation_staff ON conversations (staff_id);
 -- ================= DỮ LIỆU MẪU =================
 -- ================= PAYMENT METHODS =================
-INSERT INTO payment_methods (name, code, is_active)
-VALUES ('Thanh toán khi nhận hàng', 'COD', TRUE),
-       ('Thanh toán online', 'ONLINE', TRUE),
-       ('Thanh toán Tiền mặt tại bàn', 'AT_TABLE', TRUE);
+INSERT INTO payment_methods (name, code)
+VALUES ('Thanh toán khi nhận hàng', 'COD'),
+       ('Thanh toán online', 'ONLINE'),
+       ('Thanh toán Tiền mặt tại bàn', 'AT_TABLE');
 
 -- ================= USERS =================
 INSERT INTO users (email, username, password, full_name, role, phone)
@@ -438,21 +554,8 @@ VALUES (1, 1, 2),
        (1, 3, 1),
        (2, 2, 3);
 
--- ================= ORDERS =================
-INSERT INTO orders (order_code,
-                    user_id,
-                    address_id,
-                    discount,
-                    total_price,
-                    status,
-                    payment_method_id,
-                    voucher_id,
-                    table_id)
-VALUES ('ORD-OL-1780504677471', 2, 1, 0, 195000, 'COMPLETED', 1, NULL, NULL),
 
-       ('ORD-OL-1780504677472', 3, 3, 50000, 175000, 'CONFIRMED', 3, 2, null),
 
-       ('ORD-OL-1780504677422', 2, 1, 17000, 178000, 'PENDING', 2, 1, NULL);
 -- ================= ORDER DETAILS =================
 INSERT INTO order_details (order_id, food_id, quantity, price)
 VALUES (1, 1, 2, 85000),
@@ -496,27 +599,56 @@ VALUES (1,
         'Ưu đãi hấp dẫn, thanh toán tiện lợi, giao hàng siêu tốc.',
         'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?q=80&w=1920&auto=format&fit=crop',
         TRUE);
-INSERT INTO table_reservations (reservation_code, customer_name, customer_phone, table_id, reservation_time, note,
-                                status)
-VALUES ('RES001', 'Nguyen Van A', '0987654321', 1, '2026-06-15 19:00:00', 'can yen tinh ', 'PENDING');
+INSERT INTO table_reservations (reservation_code, customer_name, customer_phone, customer_email, table_id,
+                                reservation_time, note, status)
+VALUES ('RES001', 'Nguyen Van A', '0987654321', "truong@123.com", 1, '2026-06-15 19:00:00', 'can yen tinh ', 'PENDING');
+INSERT INTO faq (question, answer)
+VALUES ('Làm sao để đặt món trên hệ thống?',
+        'Bạn chỉ cần chọn món ăn, thêm vào giỏ hàng, nhập địa chỉ giao hàng và tiến hành thanh toán. Đơn hàng sẽ được xác nhận ngay sau khi đặt thành công.'),
+
+       ('Tôi có thể hủy đơn hàng không?',
+        'Bạn có thể hủy đơn khi đơn hàng vẫn ở trạng thái PENDING hoặc CONFIRMED. Sau khi nhà hàng bắt đầu chế biến, đơn hàng sẽ không thể hủy.'),
+
+       ('Hệ thống hỗ trợ những hình thức thanh toán nào?',
+        'Chúng tôi hỗ trợ thanh toán khi nhận hàng (COD), thanh toán trực tuyến bằng VNPay và thanh toán tại bàn.'),
+
+       ('Tôi quên mật khẩu thì phải làm sao?',
+        'Chọn "Quên mật khẩu" tại trang đăng nhập và làm theo hướng dẫn để nhận email đặt lại mật khẩu.'),
+
+       ('Làm thế nào để sử dụng mã giảm giá?',
+        'Nhập mã giảm giá tại trang thanh toán trước khi xác nhận đơn hàng. Hệ thống sẽ tự động kiểm tra điều kiện áp dụng.'),
+
+       ('Tôi có thể đặt bàn trước không?',
+        'Có. Bạn có thể vào mục Đặt bàn, chọn thời gian, số lượng người và bàn mong muốn để gửi yêu cầu đặt bàn.'),
+
+       ('Tôi có thể xem lịch sử đơn hàng ở đâu?',
+        'Đăng nhập vào tài khoản và chọn mục Đơn hàng của tôi để xem toàn bộ lịch sử đặt món.'),
+
+       ('Thời gian phản hồi hỗ trợ là bao lâu?',
+        'Thông thường chúng tôi sẽ phản hồi trong vòng 24 giờ làm việc.');
 -- Xem user
 SELECT *
 FROM users;
 -- select * from foods;
 -- select * from food_images;
 -- select * from vouchers;
-SELECT *
-FROM user_addresses;
-select*
-from carts;
-select*
-from cart_items;
+-- SELECT * FROM user_addresses;
+-- select*from carts;
+-- select*from cart_items;
 -- select * from favorites
 SELECT *
 FROM ORDERS;
-SELECT *
-FROM payment_methods;
+-- SELECT * FROM payment_methods;
+-- select * from table_details;
+-- select * from table_reservations;
+select*
+from refresh_tokens;
 select *
-from table_details;
+from support_ticket;
 select *
-from table_reservations
+from conversations;
+
+select *
+from messages;
+SHOW
+TABLES;
