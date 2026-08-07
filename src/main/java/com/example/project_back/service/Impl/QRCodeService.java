@@ -4,6 +4,7 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -13,18 +14,16 @@ import java.nio.file.Path;
 @Service
 public class QRCodeService {
 
-    //  Backend domain (chỉ dùng cho ảnh QR + API)
-    private static final String BACKEND_URL =
-            "https://subfractionally-wrinkleable-kenneth.ngrok-free.dev";
+    @Value("${app.backend-url}")
+    private String backendUrl;
 
-    //  Frontend domain (QUAN TRỌNG: QR phải mở cái này)
-    private static final String FRONTEND_URL =
-            "http://localhost:5173"; // đổi thành domain frontend khi deploy
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 
     public String generateQRCode(String tableNumber) {
 
         try {
-            String qrContentUrl = FRONTEND_URL + "/table-order?table=" + tableNumber;
+            String qrContentUrl = frontendUrl + "/table-order?table=" + tableNumber;
 
             String folderPath = "uploads/qrcodes/";
 
@@ -54,7 +53,8 @@ public class QRCodeService {
                     "PNG",
                     path
             );
-            return BACKEND_URL + "/uploads/qrcodes/" + fileName;
+
+            return backendUrl + "/uploads/qrcodes/" + fileName;
 
         } catch (Exception e) {
             throw new RuntimeException("Generate QR Failed", e);

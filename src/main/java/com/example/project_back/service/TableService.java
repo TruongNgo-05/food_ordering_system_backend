@@ -44,6 +44,10 @@ Page<ReservationStaffResponse> getAllReservations(Pageable pageable);
     ReservationDetailStaffResponse getDetailReservations(Integer id);
 
     List<StaffTableResponse> getAllStaffTables();
+
+    void receiveCustomer(Integer tableId);
+
+    void cancelReceive(Integer tableId);
 // dat don
     void confirmReservation(Integer id);
 

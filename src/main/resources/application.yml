@@ -21,15 +21,12 @@ spring:
           connectiontimeout: 15000
           timeout: 15000
           writetimeout: 15000
-#          gioi han anh
+  #          gioi han anh
   servlet:
     multipart:
       enabled: true
       max-file-size: 30MB
       max-request-size: 30MB
-
-
-
 jwt:
   secret: examSecretKeyexamSecretKeyexamSecretKey123456789
   access-expiration: 1800000
@@ -37,65 +34,10 @@ jwt:
 
 
 sepay:
-#  bank-account: 00004341212
-#  bank-name: TPBank
-  bank-account: 0389582843
-  bank-name: MBBank
-#  -- sau nayf dungf doker dong goi
-#server:
-#  port: 8080
-#
-#spring:
-#  datasource:
-#    url: ${DB_URL:jdbc:mysql://localhost:3306/food_ordering_system}
-#    username: ${DB_USERNAME:root}
-#    password: ${DB_PASSWORD:1234}
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-#
-#  mail:
-#    host: smtp.gmail.com
-#    port: 587
-#    username: ${MAIL_USERNAME}
-#    password: ${MAIL_PASSWORD}
-#    properties:
-#      mail:
-#        smtp:
-#          auth: true
-#          starttls:
-#            enable: true
-#          connectiontimeout: 15000
-#          timeout: 15000
-#          writetimeout: 15000
-#
-#  servlet:
-#    multipart:
-#      enabled: true
-#      max-file-size: 10MB
-#      max-request-size: 10MB
-#
-#  security:
-#    oauth2:
-#      client:
-#        registration:
-#          google:
-#            client-id: ${GOOGLE_CLIENT_ID}
-#            client-secret: ${GOOGLE_CLIENT_SECRET}
-#            scope:
-#              - email
-#              - profile
-#
-#          facebook:
-#            client-id: ${FACEBOOK_CLIENT_ID}
-#            client-secret: ${FACEBOOK_CLIENT_SECRET}
-#            scope:
-#              - email
-#              - public_profile
-#
-#jwt:
-#  secret: ${JWT_SECRET}
-#  access-expiration: ${JWT_ACCESS_EXPIRATION:1800000}
-#  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
-#
-#sepay:
-#  bank-account: ${SEPAY_BANK_ACCOUNT}
-#  bank-name: ${SEPAY_BANK_NAME}
+  bank-account: 18995736789
+  bank-name: TPBank
+
+app:
+  backend-url: http://localhost:8080
+# backend-url: https://subfractionally-wrinkleable-kenneth.ngrok-free.dev de hien qr public
+  frontend-url: http://localhost:5173

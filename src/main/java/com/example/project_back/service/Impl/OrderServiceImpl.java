@@ -55,6 +55,10 @@
         private final TableDetailRepository tableDetailRepository;
         private final FoodRepository foodRepository;
         private final SepayService sepayService;
+        private final OrderDetailRepository orderDetailRepository;
+
+
+
 
         @Override
         @Transactional
@@ -95,15 +99,15 @@
 
             if (request.getVoucherCode() != null && !request.getVoucherCode().trim().isEmpty()) {
 
-                voucher = voucherValidator.validateVoucher(request.getVoucherCode(), total);
+                voucher = voucherValidator.validateVoucher(
+                        request.getVoucherCode(),
+                        total
+                );
 
-                discount = voucherValidator.calculateDiscount(voucher, total);
-
-                int used = voucher.getUsedCount() == null ? 0 : voucher.getUsedCount();
-
-                voucher.setUsedCount(used + 1);
-
-                voucherRepository.save(voucher);
+                discount = voucherValidator.calculateDiscount(
+                        voucher,
+                        total
+                );
             }
 
             Order order;
@@ -133,10 +137,18 @@
 
             String paymentUrl = null;
 
-            // COD
             if (paymentMethod.getCode() == PaymentMethodType.COD) {
 
                 order.setStatus(OrderStatus.CONFIRMED);
+
+                if (voucher != null) {
+
+                    int used = voucher.getUsedCount() == null ? 0 : voucher.getUsedCount();
+
+                    voucher.setUsedCount(used + 1);
+
+                    voucherRepository.save(voucher);
+                }
 
                 cart.getItems().clear();
 
@@ -296,6 +308,7 @@
             }
         }
 
+
         @Override
         @Transactional
         public OrderTableResponse createOrderTb(
@@ -362,6 +375,37 @@
         }
 
 
+        @Override
+        @Transactional
+        public void deletePendingOrder(String orderCode) {
+
+            Order order = orderRepository.findByOrderCode(orderCode)
+                    .orElse(null);
+
+            // Nếu webhook đã xóa hoặc đơn không còn thì bỏ qua
+            if (order == null) {
+                return;
+            }
+
+            // Nếu đơn không còn ở trạng thái PENDING thì không xóa
+            if (order.getStatus() != OrderStatus.PENDING) {
+                return;
+            }
+
+            Payment payment = paymentRepository.findByOrderId(order.getId())
+                    .orElse(null);
+
+            // Nếu đã thanh toán thì không xóa
+            if (payment != null && payment.getStatus() == PaymentStatus.PAID) {
+                return;
+            }
+
+            if (payment != null) {
+                paymentRepository.delete(payment);
+            }
+
+            orderRepository.delete(order);
+        }
 //staff
 
         @Override
@@ -443,7 +487,46 @@
             orderRepository.save(order);
         }
 
+        @Transactional
+        @Override
+        public void checkoutTable(Integer tableId) {
 
+            Order order = orderRepository
+                    .findTopByTableIdAndStatusNotOrderByCreatedAtDesc(
+                            tableId,
+                            OrderStatus.COMPLETED
+                    )
+                    .orElseThrow(() -> new ApplicationException("Không có hóa đơn"));
+
+            Payment payment = paymentRepository.findByOrderId(order.getId())
+                    .orElseThrow(() -> new ApplicationException("Không tìm thấy thanh toán"));
+
+            // Chỉ thanh toán nếu là tiền mặt tại bàn
+            if (order.getPaymentMethod().getCode() == PaymentMethodType.AT_TABLE) {
+
+                payment.setStatus(PaymentStatus.PAID);
+                paymentRepository.save(payment);
+
+            } else if (order.getPaymentMethod().getCode() == PaymentMethodType.ONLINE) {
+
+                // ONLINE phải thanh toán trước khi checkout
+                if (payment.getStatus() != PaymentStatus.PAID) {
+                    throw new ApplicationException("Khách chưa thanh toán QR");
+                }
+
+            } else if (order.getPaymentMethod().getCode() == PaymentMethodType.COD) {
+
+                // Không nên có COD ở đơn tại bàn
+                throw new ApplicationException("Đơn tại bàn không được sử dụng COD");
+            }
+
+            order.setStatus(OrderStatus.COMPLETED);
+            orderRepository.save(order);
+
+            TableDetail table = order.getTable();
+            table.setStatus(TableStatus.AVAILABLE);
+            tableDetailRepository.save(table);
+        }
 //        admin
 @Override
 public Page<OrderAdminResponse> getAllAdminOrders(
@@ -461,5 +544,7 @@ public Page<OrderAdminResponse> getAllAdminOrders(
                 return OrderMapper.toAdminResponse(order, payment);
             });
 }
+
+
     }
 

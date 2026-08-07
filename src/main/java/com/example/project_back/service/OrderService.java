@@ -24,7 +24,7 @@ public interface OrderService {
     void reorder(Long orderId);
 
     OrderTableResponse createOrderTb(CreateOrderTableRequest request);
-
+    void deletePendingOrder(String orderCode);
     // staff
     Page<OrderStaffOnLineResponse> getOnlineOrders(OrderRequestParam param , Pageable pageable);
     Page<OrderStaffOffLineResponse> getTableOrders(OrderRequestParam param , Pageable pageable);
@@ -32,7 +32,7 @@ public interface OrderService {
     OrderDetailStaffResponse getOrderStaffDetail(Long orderId);
 
     void updateStatus(Long orderId, OrderStatus status);
-
+    void checkoutTable(Integer tableId);
 //    admin
 
 Page<OrderAdminResponse> getAllAdminOrders(

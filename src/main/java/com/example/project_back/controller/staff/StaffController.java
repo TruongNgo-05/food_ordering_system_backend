@@ -134,4 +134,45 @@ public ResponseEntity<BaseResponse<List<StaffTableResponse>>> getAllTables() {
             )
     );
 }
+// ================= NHẬN KHÁCH =================
+
+    @PutMapping("tables/{id}/receive")
+    public ResponseEntity<BaseResponse<String>> receiveCustomer(
+            @PathVariable Integer id
+    ) {
+
+        tableService.receiveCustomer(id);
+
+        return ResponseEntity.ok(
+                BaseResponse.success("Đã nhận khách")
+        );
+    }
+
+    // ================= HỦY NHẬN KHÁCH =================
+
+    @PutMapping("tables/{id}/cancel-receive")
+    public ResponseEntity<BaseResponse<String>> cancelReceiveCustomer(
+            @PathVariable Integer id
+    ) {
+
+        tableService.cancelReceive(id);
+
+        return ResponseEntity.ok(
+                BaseResponse.success("Đã trả bàn về trạng thái trống")
+        );
+    }
+
+    // ================= THANH TOÁN BÀN =================
+
+    @PutMapping("tables/{id}/checkout")
+    public ResponseEntity<BaseResponse<String>> checkoutTable(
+            @PathVariable Integer id
+    ) {
+
+        orderService.checkoutTable(id);
+
+        return ResponseEntity.ok(
+                BaseResponse.success("Thanh toán thành công")
+        );
+    }
 }

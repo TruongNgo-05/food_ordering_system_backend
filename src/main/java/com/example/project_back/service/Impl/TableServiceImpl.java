@@ -1,6 +1,7 @@
 package com.example.project_back.service.Impl;
 
 import com.example.project_back.constant.BookingStatus;
+import com.example.project_back.constant.OrderStatus;
 import com.example.project_back.constant.TableStatus;
 import com.example.project_back.dto.request.admin.CreateAndUpdateTableRequest;
 import com.example.project_back.dto.request.user.table.BookTableRequest;
@@ -13,6 +14,7 @@ import com.example.project_back.dto.response.user.MenuTableResponse;
 import com.example.project_back.dto.response.user.TableBookResponse;
 import com.example.project_back.dto.response.user.TableResponse;
 import com.example.project_back.entity.Food;
+import com.example.project_back.entity.Order;
 import com.example.project_back.entity.TableDetail;
 import com.example.project_back.entity.TableReservations;
 import com.example.project_back.exception.ApplicationException;
@@ -186,7 +188,7 @@ public class TableServiceImpl implements TableService {
 
         TableReservations reservation = new TableReservations();
 
-        String code = "BK-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        String code = "BKT" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
 
         reservation.setReservationCode(code);
 
@@ -240,7 +242,24 @@ public class TableServiceImpl implements TableService {
                     break;
 
                 case OCCUPIED:
+
                     res.setStatusText("Đang sử dụng");
+
+                    orderRepository.findTopByTableIdAndStatusNotOrderByCreatedAtDesc(
+                                    table.getId(),
+                                    OrderStatus.COMPLETED
+                            )
+                            .ifPresent(order -> {
+
+                                res.setHasOrder(true);
+
+                                res.setOrderId(order.getId());
+
+                                res.setTotalPrice(
+                                        order.getTotalPrice() - order.getDiscount()
+                                );
+                            });
+
                     break;
 
                 case RESERVED:
@@ -314,6 +333,50 @@ public class TableServiceImpl implements TableService {
             return res;
 
         }).toList();
+    }
+
+//nhận khách
+    @Transactional
+    @Override
+    public void receiveCustomer(Integer tableId) {
+
+        TableDetail table = tableDetailRepository.findById(tableId)
+                .orElseThrow(() -> new ApplicationException("Không tìm thấy bàn"));
+
+        if (table.getStatus() != TableStatus.AVAILABLE) {
+            throw new ApplicationException("Bàn không trống");
+        }
+
+        table.setStatus(TableStatus.OCCUPIED);
+
+        table.setUpdatedAt(LocalDateTime.now());
+
+        tableDetailRepository.save(table);
+    }
+//hủy nhận
+    @Transactional
+    @Override
+    public void cancelReceive(Integer tableId) {
+
+        TableDetail table = tableDetailRepository.findById(tableId)
+                .orElseThrow(() -> new ApplicationException("Không tìm thấy bàn"));
+
+        Optional<Order> order =
+                orderRepository.findTopByTableIdAndStatusNotOrderByCreatedAtDesc(
+                        tableId,
+                        OrderStatus.COMPLETED
+                );
+
+        if (order.isPresent()) {
+
+            throw new ApplicationException("Bàn đã gọi món");
+        }
+
+        table.setStatus(TableStatus.AVAILABLE);
+
+        table.setUpdatedAt(LocalDateTime.now());
+
+        tableDetailRepository.save(table);
     }
 @Override
 public Page<ReservationStaffResponse> getAllReservations(Pageable pageable) {

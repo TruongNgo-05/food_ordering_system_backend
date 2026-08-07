@@ -9,5 +9,4 @@ import lombok.Setter;
 public class TableResponse {
     private String tableNumber;
     private String qrCode;
-    private String status;
 }

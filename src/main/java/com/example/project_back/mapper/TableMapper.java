@@ -12,7 +12,6 @@ public class TableMapper {
     public static TableResponse toTableResponseTest(TableDetail table) {
         TableResponse tableResponse = new TableResponse();
         BeanUtils.copyProperties(table, tableResponse);
-        tableResponse.setStatus(table.getStatus().toString());
         return tableResponse;
     }
 

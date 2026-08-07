@@ -182,19 +182,19 @@ public ResponseEntity<BaseResponse<OrderTableResponse>> createOrderTable(
         @RequestBody CreateOrderTableRequest request){
     return ResponseEntity.ok(BaseResponse.success( orderService.createOrderTb(request)));
 }
-//sepay
-@PostMapping("/sepay/callback")
-public ResponseEntity<String> sepayCallback(
-        @RequestParam("content") String orderCode,
-        @RequestParam("referenceCode") String transactionId) {
-
-    System.out.println("orderCode = " + orderCode);
-    System.out.println("transactionId = " + transactionId);
-
-    sepayService.confirmPayment(orderCode, transactionId);
-
-    return ResponseEntity.ok("OK");
-}
+////sepay
+//@PostMapping("/sepay/callback")
+//public ResponseEntity<String> sepayCallback(
+//        @RequestParam("content") String orderCode,
+//        @RequestParam("referenceCode") String transactionId) {
+//
+//    System.out.println("orderCode = " + orderCode);
+//    System.out.println("transactionId = " + transactionId);
+//
+//    sepayService.confirmPayment(orderCode, transactionId);
+//
+//    return ResponseEntity.ok("OK");
+//}
 
 
 //support

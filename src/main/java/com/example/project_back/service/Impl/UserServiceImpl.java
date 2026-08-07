@@ -11,11 +11,14 @@ import com.example.project_back.dto.request.user.UserCreateRequest;
 import com.example.project_back.dto.request.user.UserUpdateRequest;
 import com.example.project_back.dto.response.user.AddressResponse;
 import com.example.project_back.dto.response.user.UserResponse;
+import com.example.project_back.entity.Conversation;
 import com.example.project_back.entity.User;
 import com.example.project_back.entity.UserAddress;
 import com.example.project_back.exception.ApplicationException;
 import com.example.project_back.mapper.AddressMapper;
 import com.example.project_back.mapper.UserMapper;
+import com.example.project_back.repository.ConversationRepository;
+import com.example.project_back.repository.MessageRepository;
 import com.example.project_back.repository.UserAddressRepository;
 import com.example.project_back.repository.UserRepository;
 import com.example.project_back.service.FileService;
@@ -45,7 +48,8 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final FileService fileService;
     private final MailService mailService;
-
+    private final ConversationRepository conversationRepository;
+    private final ContentMailService contentMailService;
     //ADMIN
     @Override
     public Page<UserResponse> findAllUsers(UserRequestParam param, Pageable pageable) {
@@ -113,15 +117,7 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(users);
 
-        mailService.sendEmail(
-                users.getEmail(),
-                "Tài khoản của bạn đã được mở khóa",
-                "Xin chào " + users.getUsername() + ",\n\n"
-                        + "Tài khoản của bạn đã được quản trị viên mở khóa thành công.\n"
-                        + "Bạn hiện có thể đăng nhập và tiếp tục sử dụng hệ thống như bình thường.\n\n"
-                        + "Nếu bạn gặp bất kỳ vấn đề nào khi đăng nhập, vui lòng liên hệ admin.\n\n"
-                        + "Trân trọng"
-        );
+        contentMailService.sendAccountUnlocked(users);
         return users.getEmail();
     }
 
@@ -137,13 +133,7 @@ public class UserServiceImpl implements UserService {
         users.setLockTime(LocalDateTime.now());
 
         userRepository.save(users);
-        mailService.sendEmail(
-                users.getEmail(),
-                "Tài khoản của bạn đã bị khóa",
-                "Xin chào " + users.getUsername() + ",\n\n"
-                        + "Tài khoản của bạn đã bị admin khóa.\n"
-                        + "Vui lòng liên hệ quản trị viên để được hỗ trợ mở khóa."
-        );
+        contentMailService.sendAccountLockedByAdmin(users);
 
         return users.getEmail();
     }
@@ -151,12 +141,18 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public String deleteUser(Long id) {
-        Optional<User> user = userRepository.findById(id);
-        if (user.isEmpty()) {
-            throw new ApplicationException("Không tìm thấy tài khoản người dùng");
-        }
-        userRepository.deleteById(id);
-        return "Xóa tài khoản thành công ";
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() ->
+                        new ApplicationException("Không tìm thấy tài khoản người dùng"));
+
+        List<Conversation> conversations = conversationRepository.findByCustomerOrStaff(user, user);
+
+        conversationRepository.deleteAll(conversations);
+
+        userRepository.delete(user);
+
+        return "Xóa tài khoản thành công";
     }
 
 //   CUSTOMER
@@ -307,7 +303,7 @@ public class UserServiceImpl implements UserService {
     }
     user.setPassword(passwordEncoder.encode(createUserRequest.getPassWord()));
     User savedUser = userRepository.save(user);
-
+        contentMailService.sendRegisterSuccess(savedUser);
     UserResponse userResponse = UserMapper.map(savedUser);
     return userResponse;
 }
@@ -339,7 +335,6 @@ public class UserServiceImpl implements UserService {
                 fileService.deleteFile(user.getAvatar());
             }
             String url = fileService.uploadFile(avatar, "avatars");
-            user.setAvatar(url);
             user.setAvatar(url);
         } else if (request.getAvatar() != null) {
 

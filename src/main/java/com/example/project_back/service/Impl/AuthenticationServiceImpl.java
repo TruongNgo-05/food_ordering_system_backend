@@ -217,8 +217,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         // Kiểm tra thời gian gửi OTP gần nhất
-        Optional<Otp> lastOtp =
-                otpRepository.findTopByEmailOrderByCreatedAtDesc(forgetpw.getEmail());
+        Optional<Otp> lastOtp = otpRepository.findTopByEmailOrderByCreatedAtDesc(forgetpw.getEmail());
 
         if (lastOtp.isPresent()) {
 

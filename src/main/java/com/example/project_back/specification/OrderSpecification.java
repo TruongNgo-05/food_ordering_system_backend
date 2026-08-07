@@ -29,14 +29,14 @@ public class OrderSpecification {
 
 public static Specification<Order> isOnlineOrCodOrder() {
     return (root, query, cb) -> cb.or(
-            cb.like(root.get("orderCode"), "ORD-OL-%"),
-            cb.like(root.get("orderCode"), "ORD-COD-%")
+            cb.like(root.get("orderCode"), "ORDO%"),
+            cb.like(root.get("orderCode"), "ORDC%")
     );
 }
 
     public static Specification<Order> isTableOrder() {
         return (root, query, cb) ->
-                cb.like(root.get("orderCode"), "ORD-TB-%");
+                cb.like(root.get("orderCode"), "ORDT%");
     }
 
     public static Specification<Order> hasCreatedAtBetween(LocalDate from, LocalDate to) {

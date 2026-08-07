@@ -1,10 +1,12 @@
 package com.example.project_back.security.oauth;
 
 import com.example.project_back.config.JwtUtils;
+import com.example.project_back.config.UsernameGenerator;
 import com.example.project_back.constant.Role;
 import com.example.project_back.constant.Status;
 import com.example.project_back.entity.User;
 import com.example.project_back.repository.UserRepository;
+import com.example.project_back.service.Impl.ContentMailService;
 import com.example.project_back.service.RefreshTokenService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,6 +33,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
+    private final ContentMailService  contentMailService;
 
     @Override
     public void onAuthenticationSuccess(
@@ -101,7 +104,10 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
             user = new User();
             user.setEmail(email);
-            user.setUsername(email);
+            user.setUsername(
+                    UsernameGenerator.generateUniqueUsername(name, userRepository)
+            );
+
             user.setFullName(name);
             user.setAvatar(avatar);
             user.setRole(Role.CUSTOMER);
@@ -111,12 +117,12 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             user.setFailCount(0);
             user.setLockTime(null);
 
-            user.setPassword(
-                    passwordEncoder.encode(UUID.randomUUID().toString())
-            );
+            user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
 
             userRepository.save(user);
+            contentMailService.sendRegisterSuccess(user);
         }
+        contentMailService.sendLoginSuccess(user);
 
         // ==============================
         //  GENERATE JWT

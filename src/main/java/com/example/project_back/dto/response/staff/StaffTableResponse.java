@@ -16,6 +16,11 @@ public class StaffTableResponse {
 
     private TableStatus status;
 
-    // Chuỗi hiển thị
     private String statusText;
+
+    private boolean hasOrder;
+
+    private Long orderId;
+
+    private Double totalPrice;
 }

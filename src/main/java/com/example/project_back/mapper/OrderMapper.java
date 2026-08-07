@@ -34,7 +34,7 @@ public class OrderMapper {
     ) {
 
         Order order = new Order();
-        order.setOrderCode("ORD-OL-" + System.currentTimeMillis());
+        order.setOrderCode("ORDO" + System.currentTimeMillis());
 
         order.setUser(user);
 
@@ -81,7 +81,7 @@ public class OrderMapper {
 
         order.setCustomerPhone(user.getPhone());
 
-        order.setOrderCode("ORD-COD-" + System.currentTimeMillis());
+        order.setOrderCode("ORDC" + System.currentTimeMillis());
 
         order.setAddress(address);
 
@@ -162,7 +162,7 @@ public class OrderMapper {
 
         BeanUtils.copyProperties(request, order);
 
-        order.setOrderCode("ORD-TB-" + System.currentTimeMillis());
+        order.setOrderCode("ORDT" + System.currentTimeMillis());
 
         order.setStatus(OrderStatus.PENDING);
 
