@@ -12,6 +12,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -34,6 +35,8 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
     private final ContentMailService  contentMailService;
+
+    @Value("${app.frontend-url}") private String frontendUrl;
 
     @Override
     public void onAuthenticationSuccess(
@@ -90,9 +93,11 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         // BLOCKED USER
         // ==============================
         if (user != null && user.getStatus() == Status.LOCKED) {
+
             response.sendRedirect(
-                    "http://localhost:5173/login?error=locked"
+                    frontendUrl + "/login?error=locked"
             );
+
             return;
         }
 
@@ -116,20 +121,34 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             user.setCreatedDate(LocalDateTime.now());
             user.setFailCount(0);
             user.setLockTime(null);
+            user.setSessionVersion(0L);
 
             user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
 
             userRepository.save(user);
             contentMailService.sendRegisterSuccess(user);
         }
+        // ==============================
+// LOGIN SUCCESS
+// ==============================
+
+        user.setSessionVersion(
+                user.getSessionVersion() + 1
+        );
+
+        userRepository.save(user);
+
         contentMailService.sendLoginSuccess(user);
 
-        // ==============================
-        //  GENERATE JWT
-        // ==============================
-        String accessToken = jwtUtils.generateAccessToken(user.getUsername());
+// ==============================
+// GENERATE JWT
+// ==============================
 
-        String refreshToken = jwtUtils.generateRefreshToken(user.getUsername());
+        String accessToken =
+                jwtUtils.generateAccessToken(user);
+
+        String refreshToken =
+                jwtUtils.generateRefreshToken(user);
 
 // Lưu refresh token vào DB
         refreshTokenService.save(user, refreshToken);
@@ -153,7 +172,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
 // Chỉ trả access token cho React
         response.sendRedirect(
-                "http://localhost:5173/oauth-success"
+                frontendUrl + "/oauth-success"
                         + "?accessToken=" + accessToken
                         + "&new=" + isNewUser
         );

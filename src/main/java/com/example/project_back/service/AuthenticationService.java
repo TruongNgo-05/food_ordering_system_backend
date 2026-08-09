@@ -1,9 +1,6 @@
 package com.example.project_back.service;
 
-import com.example.project_back.dto.authentication.ForgotPassword;
-import com.example.project_back.dto.authentication.LoginRequest;
-import com.example.project_back.dto.authentication.LoginResponse;
-import com.example.project_back.dto.authentication.ResetPassword;
+import com.example.project_back.dto.authentication.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -23,4 +20,6 @@ public interface AuthenticationService {
 
     // Reset password
     Boolean resetPassword(ResetPassword resetpw);
+
+    Boolean verifyOtp(VerifyOtpRequest verifyOtpRequest);
 }

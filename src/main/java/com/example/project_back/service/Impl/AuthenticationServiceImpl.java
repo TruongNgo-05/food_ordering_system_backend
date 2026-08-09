@@ -99,14 +99,18 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         user.setFailCount(0);
+// Tăng session version mỗi lần đăng nhập
+        user.setSessionVersion(
+                user.getSessionVersion() + 1
+        );
 
         userRepository.save(user);
 
       contentMailService.sendLoginSuccess(user);
 
-        String accessToken = jwtUtils.generateAccessToken(user.getUsername());
+        String accessToken = jwtUtils.generateAccessToken(user);
 
-        String refreshToken = jwtUtils.generateRefreshToken(user.getUsername());
+        String refreshToken =  jwtUtils.generateRefreshToken(user);
 
         refreshTokenService.save(user, refreshToken);
 
@@ -161,7 +165,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         User user = token.getUser();
 
-        String accessToken = jwtUtils.generateAccessToken(user.getUsername());
+        String accessToken = jwtUtils.generateAccessToken(user);
 
         return new LoginResponse(
                 accessToken,
@@ -184,18 +188,25 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
                 if ("refreshToken".equals(cookie.getName())) {
 
-                    RefreshToken token = refreshTokenService.verify(cookie.getValue());
+                    try {
+                        RefreshToken token =
+                                refreshTokenService.verify(cookie.getValue());
 
-                    refreshTokenService.delete(token.getUser());
+                        // Chỉ xóa refresh token của thiết bị hiện tại
+                        refreshTokenService.delete(token);
 
-                    Cookie deleteCookie = new Cookie("refreshToken", null);
+                    } catch (ApplicationException e) {
+                        // Token không hợp lệ / hết hạn
+                        // Vẫn xóa cookie phía client
+                        log.warn("Logout với refresh token không hợp lệ");
+                    }
+
+                    Cookie deleteCookie =
+                            new Cookie("refreshToken", null);
 
                     deleteCookie.setHttpOnly(true);
-
                     deleteCookie.setSecure(false);
-
                     deleteCookie.setPath("/");
-
                     deleteCookie.setMaxAge(0);
 
                     response.addCookie(deleteCookie);
@@ -239,13 +250,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         newOtp.setEmail(forgetpw.getEmail());
         newOtp.setOtp(otp);
 
-        // OTP có hiệu lực 5 phút
+        // OTP có hiệu lực 60 s
         newOtp.setCreatedAt(LocalDateTime.now());
-        newOtp.setExpireAt(LocalDateTime.now().plusMinutes(5));
+        newOtp.setExpireAt(LocalDateTime.now().plusSeconds(60));
 
         otpRepository.save(newOtp);
-
-        log.info("Send OTP for user {} : {}", forgetpw.getEmail(), otp);
 
         contentMailService.sendOtp(user.get(), otp);
 
@@ -280,6 +289,26 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         otpRepository.delete(otp);
         contentMailService.sendPasswordChanged(user);
 
+        return true;
+    }
+
+    @Override
+    public Boolean verifyOtp(VerifyOtpRequest request) {
+
+        Optional<User> user = userRepository.findByEmail(request.getEmail());
+        if (user.isEmpty()) {
+            throw new ApplicationException("Không tìm thấy tài khoản người dùng");
+        }
+
+        Otp otp = otpRepository.findByEmailAndOtp(request.getEmail(), request.getOtp());
+
+        if (otp == null) {
+            throw new ApplicationException("OTP không đúng");
+        }
+
+        if (otp.getExpireAt().isBefore(LocalDateTime.now())) {
+            throw new ApplicationException("OTP đã hết hạn");
+        }
         return true;
     }
 }

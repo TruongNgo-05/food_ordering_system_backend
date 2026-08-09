@@ -9,6 +9,6 @@ public interface RefreshTokenService {
 
     RefreshToken verify(String token);
 
-    void delete(User user);
+    void delete(RefreshToken token);
 
 }

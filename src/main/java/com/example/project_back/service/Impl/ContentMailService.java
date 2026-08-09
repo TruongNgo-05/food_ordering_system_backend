@@ -334,7 +334,7 @@ public class ContentMailService {
                     %06d
                   </span>
                 </div>
-                <p style="color:#95a5a6;">Mã có hiệu lực trong 30 giây. Không chia sẻ mã này cho bất kỳ ai.</p>
+                <p style="color:#95a5a6;">Mã có hiệu lực trong 60 giây. Không chia sẻ mã này cho bất kỳ ai.</p>
                 """.formatted(user.getUsername(), otp);
 
         String html = wrapEmail("#3498db", "#2874a6", "🔐", "Mã OTP xác thực", body);

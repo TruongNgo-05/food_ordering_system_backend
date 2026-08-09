@@ -1,6 +1,10 @@
 package com.example.project_back.config;
 
-import io.jsonwebtoken.*;
+import com.example.project_back.entity.User;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,29 +37,53 @@ public class JwtUtils {
     // ACCESS TOKEN
     // ==========================
 
-    public String generateAccessToken(String username) {
+    public String generateAccessToken(User user) {
 
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(user.getUsername())
                 .claim("type", "ACCESS")
+                .claim(
+                        "sessionVersion",
+                        user.getSessionVersion()
+                )
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + accessExpiration))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .setExpiration(
+                        new Date(
+                                System.currentTimeMillis()
+                                        + accessExpiration
+                        )
+                )
+                .signWith(
+                        getSigningKey(),
+                        SignatureAlgorithm.HS256
+                )
                 .compact();
     }
-//    accset TOKEN recrif them id cho jwt de check jwt o backlist == redis
+
     // ==========================
     // REFRESH TOKEN
     // ==========================
 
-    public String generateRefreshToken(String username) {
+    public String generateRefreshToken(User user) {
 
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(user.getUsername())
                 .claim("type", "REFRESH")
+                .claim(
+                        "sessionVersion",
+                        user.getSessionVersion()
+                )
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + refreshExpiration))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .setExpiration(
+                        new Date(
+                                System.currentTimeMillis()
+                                        + refreshExpiration
+                        )
+                )
+                .signWith(
+                        getSigningKey(),
+                        SignatureAlgorithm.HS256
+                )
                 .compact();
     }
 
@@ -65,6 +93,20 @@ public class JwtUtils {
 
     public String getUsernameFromToken(String token) {
         return getClaims(token).getSubject();
+    }
+
+    // ==========================
+    // GET SESSION VERSION
+    // ==========================
+
+    public Long getSessionVersionFromToken(String token) {
+
+        Number version = getClaims(token)
+                .get("sessionVersion", Number.class);
+
+        return version != null
+                ? version.longValue()
+                : null;
     }
 
     // ==========================
@@ -90,9 +132,14 @@ public class JwtUtils {
 
             Claims claims = getClaims(token);
 
-            return "ACCESS".equals(claims.get("type", String.class));
+            return "ACCESS".equals(
+                    claims.get("type", String.class)
+            );
 
-        } catch (JwtException | IllegalArgumentException e) {
+        } catch (
+                JwtException |
+                IllegalArgumentException e
+        ) {
 
             return false;
         }
@@ -108,9 +155,14 @@ public class JwtUtils {
 
             Claims claims = getClaims(token);
 
-            return "REFRESH".equals(claims.get("type", String.class));
+            return "REFRESH".equals(
+                    claims.get("type", String.class)
+            );
 
-        } catch (JwtException | IllegalArgumentException e) {
+        } catch (
+                JwtException |
+                IllegalArgumentException e
+        ) {
 
             return false;
         }

@@ -51,6 +51,9 @@ public class User {
     // hiển thị thời gian bị khóa
     @Column(name = "lock_time")
     private LocalDateTime lockTime;
+// lay session refest
+@Column(name = "session_version",nullable = false)
+private Long sessionVersion = 0L;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Cart cart;

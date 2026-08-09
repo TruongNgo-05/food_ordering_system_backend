@@ -72,14 +72,8 @@ public static Specification<Order> isOnlineOrCodOrder() {
             query.orderBy(
                     cb.asc(
                             cb.selectCase(root.get("status"))
-                                    .when(OrderStatus.PENDING, 1)
-                                    .when(OrderStatus.CONFIRMED, 2)
-                                    .when(OrderStatus.PREPARING, 3)
-                                    .when(OrderStatus.DELIVERING, 4)
-                                    .when(OrderStatus.CANCELED, 5)
-                                    .when(OrderStatus.REJECTED, 6)
-                                    .when(OrderStatus.COMPLETED, 999)
-                                    .otherwise(1000)
+                                    .when(OrderStatus.COMPLETED, 1)
+                                    .otherwise(0)
                     ),
                     cb.desc(root.get("createdAt"))
             );

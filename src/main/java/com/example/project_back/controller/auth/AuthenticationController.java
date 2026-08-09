@@ -85,4 +85,13 @@ public class AuthenticationController {
         Boolean result = authenticationService.resetPassword(resetpw);
         return ResponseEntity.ok(new BaseResponse<>(result, "Reset password successful!"));
     }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<BaseResponse<Boolean>> verifyOtp(
+            @RequestBody @Valid VerifyOtpRequest verifyOtpRequest) {
+
+        Boolean result = authenticationService.verifyOtp(verifyOtpRequest);
+
+        return ResponseEntity.ok(new BaseResponse<>(result, "OTP hợp lệ"));
+    }
 }

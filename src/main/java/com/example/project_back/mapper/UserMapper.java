@@ -25,6 +25,7 @@ public static User map(UserCreateRequest userCreateRequest){
     user.setStatus(Status.ACTIVED);
     user.setFailCount(0);
     user.setIsActive(true);
+    user.setSessionVersion(0L);
     user.setCreatedDate(LocalDateTime.now());
     return user;
 }
